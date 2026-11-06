@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prontuário</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Prontuário">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#4a5a3c">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --musgo:#4a5a3c; --musgo-esc:#3a4730; --musgo-claro:#e7ecdf;
+  --bege:#f5f0e7; --bege-esc:#e9e1d2; --marrom:#7a5a43; --azul:#2f4a63; --azul-claro:#e3ebf3;
+  --terracota:#b4583a; --dourado:#b48a3c;
+  --texto:#27302a; --suave:#6b7268; --linha:#ddd5c6; --branco:#fffdf9;
+  --raio:12px; --sombra:0 1px 2px rgba(40,40,30,.06),0 4px 14px rgba(40,40,30,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--bege);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0}
+.serif{font-family:Georgia,"Times New Roman",serif}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;min-height:44px;padding:.55em 1.05em;border-radius:10px;border:1px solid var(--linha);background:var(--branco);cursor:pointer;font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.pri{background:var(--musgo);border-color:var(--musgo);color:#fff}
+.btn.pri:hover{background:var(--musgo-esc)}
+.btn.azul{background:var(--azul);border-color:var(--azul);color:#fff}
+.btn.perigo{color:var(--terracota);border-color:#e6c3b6}
+.btn.perigo.cheio{background:var(--terracota);color:#fff;border-color:var(--terracota)}
+.btn.sm{min-height:36px;padding:.3em .75em;font-size:.92em}
+.btn.link{border:0;background:none;color:var(--azul);padding:.3em .4em;min-height:36px}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+
+/* Bloqueio */
+.lock{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--musgo) 0%,var(--musgo-esc) 100%)}
+.lock .card{width:100%;max-width:420px;background:var(--branco);border-radius:18px;padding:30px 28px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.lock h1{font-size:1.7rem;color:var(--musgo)}
+.lock .sub{color:var(--suave);margin:.3rem 0 1.4rem}
+.lock .aviso{background:var(--bege);border-radius:10px;padding:.8rem .9rem;font-size:.9rem;color:#5a4a3a;margin:.9rem 0}
+
+/* Campos */
+label.f{display:block;margin-bottom:.9rem}
+label.f > span{display:block;font-size:.88rem;font-weight:600;color:#465046;margin-bottom:.3rem}
+input[type=text],input[type=password],input[type=date],input[type=tel],input[type=email],input[type=number],select,textarea{width:100%;padding:.65em .75em;border:1px solid var(--linha);border-radius:10px;background:#fff;font-size:16px;min-height:44px}
+textarea{resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset:0;border-color:#9fb08d}
+.erro{color:var(--terracota);font-size:.9rem;min-height:1.2em;margin:.2rem 0 .6rem}
+
+/* Estrutura */
+.shell{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.topbar{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;padding-top:max(.55rem,env(safe-area-inset-top));background:var(--musgo);color:#fff}
+.topbar .marca{font-family:Georgia,serif;font-size:1.15rem;font-weight:600;margin-right:auto;cursor:pointer;display:flex;align-items:center;gap:.5rem}
+.topbar .marca small{font-family:-apple-system,system-ui,sans-serif;font-weight:400;opacity:.75;font-size:.78rem}
+.topbar .nav{background:transparent;border:0;color:#e9eee2;padding:.45rem .7rem;border-radius:8px;cursor:pointer;min-height:40px;position:relative}
+.topbar .nav.on,.topbar .nav:hover{background:rgba(255,255,255,.14);color:#fff}
+.topbar .nav .ponto{position:absolute;top:6px;right:4px;width:8px;height:8px;border-radius:50%;background:#f0b35c}
+.body{flex:1;display:flex;min-height:0}
+.sidebar{width:310px;flex-shrink:0;border-right:1px solid var(--linha);background:var(--bege-esc);display:flex;flex-direction:column;min-height:0}
+.sidebar .busca{padding:.8rem;border-bottom:1px solid var(--linha);display:flex;flex-direction:column;gap:.55rem}
+.plist{overflow:auto;flex:1;padding:.4rem}
+.pitem{display:block;width:100%;text-align:left;border:0;background:transparent;padding:.7rem .75rem;border-radius:10px;cursor:pointer;margin-bottom:2px}
+.pitem:hover{background:rgba(255,255,255,.55)}
+.pitem.on{background:var(--branco);box-shadow:var(--sombra)}
+.pitem b{display:block;font-weight:600}
+.pitem small{color:var(--suave)}
+.main{flex:1;overflow:auto;padding:1.4rem 1.6rem 3rem;min-width:0}
+.voltar{display:none}
+.vazio{color:var(--suave);text-align:center;padding:2.5rem 1rem}
+
+.card{background:var(--branco);border-radius:var(--raio);box-shadow:var(--sombra);padding:1.1rem 1.25rem;margin-bottom:1rem}
+.card h2{font-size:1.15rem;margin-bottom:.7rem}
+.card h3{font-size:1rem;margin-bottom:.5rem}
+.banner{border-radius:var(--raio);padding:.85rem 1rem;margin-bottom:1rem;display:flex;gap:.8rem;align-items:center;flex-wrap:wrap}
+.banner.alerta{background:#fbecd9;color:#6b4a1f;border:1px solid #f0d3ac}
+.banner.info{background:var(--azul-claro);color:var(--azul);border:1px solid #c9d7e6}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin-bottom:1rem}
+.kpi{background:var(--branco);border-radius:var(--raio);box-shadow:var(--sombra);padding:1rem 1.1rem}
+.kpi .n{font-family:Georgia,serif;font-size:1.9rem;color:var(--musgo);line-height:1.1}
+.kpi .l{color:var(--suave);font-size:.88rem}
+
+.phead{display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+.avatar{width:54px;height:54px;border-radius:50%;background:var(--musgo-claro);color:var(--musgo);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:1.35rem;font-weight:600;flex-shrink:0}
+.phead h1{font-size:1.5rem}
+.meta{color:var(--suave);font-size:.92rem;display:flex;flex-wrap:wrap;gap:.25rem 1rem;margin-top:.25rem}
+.tag{display:inline-block;padding:.12em .6em;border-radius:99px;font-size:.78rem;font-weight:600;background:var(--musgo-claro);color:var(--musgo)}
+.tag.azul{background:var(--azul-claro);color:var(--azul)}
+.tag.marrom{background:#efe4da;color:var(--marrom)}
+.tag.pend{background:#fbecd9;color:#8a5a1c}
+.tag.ok{background:#e1efe0;color:#2f6b35}
+.tag.ruim{background:#f7dcd3;color:var(--terracota)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:1rem;align-items:start}
+.med{display:flex;justify-content:space-between;gap:.5rem;padding:.55rem 0;border-bottom:1px dashed var(--linha)}
+.med:last-child{border-bottom:0}
+.med small{color:var(--suave);display:block}
+
+.reg{border-left:4px solid var(--musgo);padding-left:1rem}
+.reg.evolucao{border-left-color:var(--azul)}
+.reg.adendo{border-left-color:var(--dourado)}
+.reg .rtop{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center;cursor:pointer}
+.reg .rtit{font-weight:600}
+.reg .rmeta{color:var(--suave);font-size:.86rem}
+.reg .resumo{color:#4a524a;margin-top:.35rem;font-size:.95rem}
+.campo{margin:.6rem 0}
+.campo .k{font-size:.8rem;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.03em}
+.campo .v{white-space:pre-wrap}
+.secao-t{font-family:Georgia,serif;color:var(--marrom);font-weight:600;margin:1rem 0 .2rem;font-size:1.02rem}
+.adendos{margin-top:.8rem;padding:.7rem .9rem;background:#faf5ea;border-radius:10px}
+.hash{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;color:var(--suave);word-break:break-all}
+
+.form-sec{background:var(--branco);border-radius:var(--raio);box-shadow:var(--sombra);padding:1rem 1.2rem .3rem;margin-bottom:1rem}
+.form-sec h3{font-size:1.05rem;color:var(--marrom);margin-bottom:.8rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 1rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem}
+.chip{background:var(--azul-claro);color:var(--azul);border-radius:99px;padding:.3em .4em .3em .8em;display:inline-flex;gap:.3rem;align-items:center;font-size:.92rem}
+.chip button{border:0;background:rgba(47,74,99,.12);color:var(--azul);border-radius:50%;width:24px;height:24px;cursor:pointer;line-height:1}
+.barra-acoes{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bege) 30%);padding:1rem 0 .4rem;display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap}
+.salvo{color:var(--suave);font-size:.85rem;margin-right:auto;align-self:center}
+
+table.aud{width:100%;border-collapse:collapse;font-size:.92rem}
+table.aud th,table.aud td{text-align:left;padding:.5rem .4rem;border-bottom:1px solid var(--linha);vertical-align:top}
+table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
+
+/* Modal e aviso */
+.modal-fundo{position:fixed;inset:0;background:rgba(30,35,28,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal{background:var(--branco);border-radius:16px;max-width:520px;width:100%;padding:1.3rem 1.4rem;box-shadow:0 18px 50px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+.modal h2{font-size:1.25rem;margin-bottom:.6rem}
+.modal p{margin:.4rem 0 1rem;color:#454d45}
+.modal .acoes{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1rem}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#2b332a;color:#fff;padding:.75rem 1.1rem;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#print-root{display:none}
+
+/* Tela estreita (iPad em pé, celular) */
+@media (max-width:900px){
+  .sidebar{width:100%;border-right:0}
+  .shell.detalhe .sidebar{display:none}
+  .shell:not(.detalhe) .main{display:none}
+  .voltar{display:inline-flex;margin-bottom:.8rem}
+  .cols{grid-template-columns:1fr}
+  .main{padding:1rem 1rem 3rem}
+  .topbar .nav .txt{display:none}
+}
+@media (max-width:600px){ .grid2,.grid3{grid-template-columns:1fr} .topbar .marca small{display:none} }
+
+/* Impressão */
+@media print{
+  body{background:#fff}
+  #app,#modal-root,#toast{display:none!important}
+  #print-root{display:block;font-size:11.5pt;color:#000}
+  .p-cab{border-bottom:2px solid #4a5a3c;padding-bottom:8px;margin-bottom:14px}
+  .p-cab h1{font-size:15pt}
+  .p-doc{page-break-after:always}
+  .p-doc:last-child{page-break-after:auto}
+  .p-campo{margin:6px 0;page-break-inside:avoid}
+  .p-campo b{display:block;font-size:9pt;text-transform:uppercase;color:#444}
+  .p-campo div{white-space:pre-wrap}
+  .p-rod{margin-top:18px;border-top:1px solid #999;padding-top:6px;font-size:8.5pt;color:#333}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast"></div>
+<div id="print-root"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   Prontuário eletrônico — versão 1
+   Dados guardados só neste aparelho, criptografados (AES-256-GCM)
+   com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
+   ============================================================ */
+const APP_VERSAO = '1.0.0';
+const ITERACOES = 310000;
+const NOME_PASTA_DRIVE = 'Prontuário – Backups';
+
+/* ---------- utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2));
+const agoraISO = () => new Date().toISOString();
+const hojeStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+const fmtData = s => { if (!s) return ''; const [a,m,d] = s.slice(0,10).split('-'); return `${d}/${m}/${a}`; };
+const fmtDataHora = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); };
+const idade = nasc => { if (!nasc) return ''; const n = new Date(nasc + 'T12:00'); const h = new Date(); let i = h.getFullYear() - n.getFullYear(); const m = h.getMonth() - n.getMonth(); if (m < 0 || (m === 0 && h.getDate() < n.getDate())) i--; return i >= 0 ? i + ' anos' : ''; };
+const iniciais = nome => (nome || '?').split(/\s+/).filter(Boolean).slice(0,2).map(p => p[0].toUpperCase()).join('');
+const semAcento = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const emIframe = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const ehToque = navigator.maxTouchPoints > 1;
+
+function b64(buf) { const b = new Uint8Array(buf); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+function unb64(s) { const bin = atob(s); const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return b; }
+
+/* ---------- criptografia ---------- */
+const enc = new TextEncoder(), dec = new TextDecoder();
+async function derivarChave(senha, salt) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(senha), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:ITERACOES, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function cifrar(chave, obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, chave, enc.encode(JSON.stringify(obj)));
+  return {iv: b64(iv), ct: b64(ct)};
+}
+async function decifrar(chave, pacote) {
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv: unb64(pacote.iv)}, chave, unb64(pacote.ct));
+  return JSON.parse(dec.decode(pt));
+}
+function canonico(v) {
+  if (Array.isArray(v)) return '[' + v.map(canonico).join(',') + ']';
+  if (v && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canonico(v[k])).join(',') + '}';
+  return JSON.stringify(v);
+}
+async function sha256(txt) { const h = await crypto.subtle.digest('SHA-256', enc.encode(txt)); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2,'0')).join(''); }
+const conteudoRegistro = r => ({id:r.id, patientId:r.patientId, tipo:r.tipo, data:r.data, criadoEm:r.criadoEm, campos:r.campos, cid:r.cid, refId:r.refId || null, autor:r.autor});
+async function hashRegistro(r) { return sha256(canonico(conteudoRegistro(r))); }
+
+/* ---------- armazenamento local (IndexedDB) ---------- */
+const Memoria = {};
+const Store = {
+  db: null, volatil: false,
+  abrir() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('prontuario', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async get(k) {
+    try { const db = await this.abrir(); return await new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+    catch (e) { this.volatil = true; return Memoria[k]; }
+  },
+  async set(k, v) {
+    try { const db = await this.abrir(); await new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+    catch (e) { this.volatil = true; Memoria[k] = v; }
+  },
+  async del(k) {
+    try { const db = await this.abrir(); await new Promise((res, rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').delete(k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+    catch (e) { delete Memoria[k]; }
+  }
+};
+
+/* ---------- estado ---------- */
+const DADOS_VAZIOS = () => ({
+  versao: 1, patients: [], records: [], audit: [], drafts: {},
+  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', bloqueioMin:10, googleClientId:'', ultimoBackup:null }
+});
+const S = { chave:null, senha:null, saltB64:null, dados:null, view:{nome:'inicio'}, busca:'', rascunho:null, ultimaAtividade:Date.now(), abertos:new Set(), temCofre:false };
+
+async function salvar() {
+  const pacote = await cifrar(S.chave, S.dados);
+  await Store.set('cofre', {v:1, salt:S.saltB64, ...pacote});
+}
+function auditar(acao, detalhe = '', pid = null) {
+  S.dados.audit.push({id:uid(), em:agoraISO(), acao, detalhe, pid});
+}
+const paciente = id => S.dados.patients.find(p => p.id === id);
+const registrosDe = pid => S.dados.records.filter(r => r.patientId === pid);
+
+/* ---------- CID-10 (sugestões; aceita texto livre) ---------- */
+const CIDS = [
+['F00','Demência na doença de Alzheimer'],['F03','Demência não especificada'],['F05','Delirium não induzido por álcool ou outras substâncias'],['F06.7','Transtorno cognitivo leve'],
+['F10.1','Álcool – uso nocivo'],['F10.2','Álcool – síndrome de dependência'],['F10.3','Álcool – síndrome de abstinência'],
+['F12.1','Canabinoides – uso nocivo'],['F12.2','Canabinoides – síndrome de dependência'],
+['F13.1','Sedativos e hipnóticos – uso nocivo'],['F13.2','Sedativos e hipnóticos – síndrome de dependência'],
+['F14.1','Cocaína – uso nocivo'],['F14.2','Cocaína – síndrome de dependência'],
+['F15.2','Outros estimulantes – síndrome de dependência'],['F17.2','Fumo (tabaco) – síndrome de dependência'],['F19.2','Múltiplas drogas – síndrome de dependência'],
+['F20.0','Esquizofrenia paranoide'],['F20.9','Esquizofrenia não especificada'],['F21','Transtorno esquizotípico'],['F22.0','Transtorno delirante'],['F23','Transtornos psicóticos agudos e transitórios'],['F25','Transtornos esquizoafetivos'],['F29','Psicose não orgânica não especificada'],
+['F30.1','Mania sem sintomas psicóticos'],
+['F31.0','Transtorno afetivo bipolar, episódio atual hipomaníaco'],['F31.1','Transtorno afetivo bipolar, episódio atual maníaco sem sintomas psicóticos'],['F31.2','Transtorno afetivo bipolar, episódio atual maníaco com sintomas psicóticos'],['F31.3','Transtorno afetivo bipolar, episódio atual depressivo leve ou moderado'],['F31.4','Transtorno afetivo bipolar, episódio atual depressivo grave sem sintomas psicóticos'],['F31.5','Transtorno afetivo bipolar, episódio atual depressivo grave com sintomas psicóticos'],['F31.6','Transtorno afetivo bipolar, episódio atual misto'],['F31.7','Transtorno afetivo bipolar, atualmente em remissão'],['F31.8','Outros transtornos afetivos bipolares (inclui tipo II)'],['F31.9','Transtorno afetivo bipolar não especificado'],
+['F32.0','Episódio depressivo leve'],['F32.1','Episódio depressivo moderado'],['F32.2','Episódio depressivo grave sem sintomas psicóticos'],['F32.3','Episódio depressivo grave com sintomas psicóticos'],['F32.9','Episódio depressivo não especificado'],
+['F33.0','Transtorno depressivo recorrente, episódio atual leve'],['F33.1','Transtorno depressivo recorrente, episódio atual moderado'],['F33.2','Transtorno depressivo recorrente, episódio atual grave sem sintomas psicóticos'],['F33.3','Transtorno depressivo recorrente, episódio atual grave com sintomas psicóticos'],['F33.4','Transtorno depressivo recorrente, atualmente em remissão'],
+['F34.0','Ciclotimia'],['F34.1','Distimia'],
+['F40.0','Agorafobia'],['F40.1','Fobias sociais'],['F40.2','Fobias específicas (isoladas)'],
+['F41.0','Transtorno de pânico'],['F41.1','Ansiedade generalizada'],['F41.2','Transtorno misto ansioso e depressivo'],['F41.9','Transtorno ansioso não especificado'],
+['F42.2','Transtorno obsessivo-compulsivo, forma mista'],['F42.9','Transtorno obsessivo-compulsivo não especificado'],
+['F43.0','Reação aguda ao estresse'],['F43.1','Estado de estresse pós-traumático'],['F43.2','Transtornos de adaptação'],
+['F44.9','Transtorno dissociativo não especificado'],['F45.0','Transtorno de somatização'],['F45.2','Transtorno hipocondríaco'],['F48.0','Neurastenia'],
+['F50.0','Anorexia nervosa'],['F50.2','Bulimia nervosa'],['F51.0','Insônia não orgânica'],
+['F60.2','Personalidade dissocial'],['F60.3','Transtorno de personalidade com instabilidade emocional'],['F60.4','Personalidade histriônica'],['F60.5','Personalidade anancástica'],['F60.6','Personalidade ansiosa (esquiva)'],['F60.7','Personalidade dependente'],
+['F63.0','Jogo patológico (apostas)'],['F63.3','Tricotilomania'],['F63.8','Outros transtornos dos hábitos e dos impulsos'],
+['F84.0','Autismo infantil'],['F84.5','Síndrome de Asperger'],
+['F90.0','Distúrbios da atividade e da atenção (TDAH)'],['F90.9','Transtorno hipercinético não especificado'],['F98.8','Outros transtornos especificados (inclui déficit de atenção sem hiperatividade)'],
+['F95.2','Síndrome de Tourette'],['F99','Transtorno mental não especificado'],['Z73.0','Esgotamento (burnout)']
+];
+
+/* ---------- modelos de ficha ---------- */
+const FICHAS = {
+  primeira: { titulo:'Primeira consulta', cor:'', secoes:[
+    {t:'Motivo da consulta', campos:[['encaminhamento','Encaminhado por / como chegou','linha'],['queixa','Queixa principal','texto'],['hda','História da doença atual','longo']]},
+    {t:'Antecedentes', campos:[['ant_psiq','Antecedentes psiquiátricos (diagnósticos, tratamentos, internações)','longo'],['tentativas','Tentativas de suicídio ou autolesão (histórico)','texto'],['med_previas','Medicações psiquiátricas prévias (resposta e efeitos)','texto'],['ant_clinicos','Antecedentes clínicos e cirúrgicos','texto'],['alergias','Alergias','linha']]},
+    {t:'Hábitos e comportamentos', campos:[['substancias','Uso de substâncias (álcool, tabaco, cannabis, cocaína, outras: padrão, início, último uso)','longo'],['apostas','Apostas / bets','texto'],['eletronicos','Uso de eletrônicos e telas','texto'],['sono','Sono','linha'],['apetite','Alimentação e apetite','linha'],['atividade','Atividade física','linha']]},
+    {t:'História familiar e pessoal', campos:[['familiar','História familiar psiquiátrica','texto'],['pessoal','História pessoal e social (desenvolvimento, estudo, trabalho, relacionamentos, moradia)','longo']]},
+    {t:'Exame do estado mental', campos:[['em_aparencia','Aparência e atitude','linha'],['em_consciencia','Consciência e orientação','linha'],['em_atencao','Atenção e memória','linha'],['em_humor','Humor e afeto','linha'],['em_pensamento','Pensamento (curso, forma e conteúdo)','texto'],['em_senso','Sensopercepção','linha'],['em_psicomotor','Psicomotricidade','linha'],['em_juizo','Juízo crítico e insight','linha'],['em_risco','Avaliação de risco','texto']]},
+    {t:'Conclusão', campos:[['hipotese','Hipótese diagnóstica','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['plano','Plano e orientações','texto'],['retorno','Retorno','linha']]}
+  ]},
+  evolucao: { titulo:'Evolução', secoes:[
+    {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto'],['risco','Avaliação de risco','linha'],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
+  ]},
+  adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]}
+};
+const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
+function resumoRegistro(r) {
+  const c = r.campos || {};
+  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || '';
+  return t.length > 160 ? t.slice(0,160) + '…' : t;
+}
+
+/* ---------- avisos e modais ---------- */
+let toastT;
+function aviso(msg, ms = 3200) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
+function modal(html, aoAbrir) {
+  const raiz = $('#modal-root');
+  raiz.innerHTML = `<div class="modal-fundo"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  const fechar = () => { raiz.innerHTML = ''; };
+  raiz.querySelector('.modal-fundo').addEventListener('click', e => { if (e.target.classList.contains('modal-fundo')) fechar(); });
+  if (aoAbrir) aoAbrir(raiz.querySelector('.modal'), fechar);
+  const f = raiz.querySelector('input,textarea,select'); if (f && !ehToque) f.focus();
+  return fechar;
+}
+function confirmar({titulo, texto, ok = 'Confirmar', perigo = false}) {
+  return new Promise(res => {
+    modal(`<h2>${esc(titulo)}</h2><p>${texto}</p><div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn ${perigo ? 'perigo cheio' : 'pri'}" data-m="sim">${esc(ok)}</button></div>`, (m, fechar) => {
+      m.querySelector('[data-m=nao]').onclick = () => { fechar(); res(false); };
+      m.querySelector('[data-m=sim]').onclick = () => { fechar(); res(true); };
+    });
+  });
+}
+function pedirSenha(titulo, texto) {
+  return new Promise(res => {
+    modal(`<h2>${esc(titulo)}</h2><p>${esc(texto)}</p><label class="f"><span>Senha</span><input type="password" id="m-senha" autocomplete="current-password"></label><div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Continuar</button></div>`, (m, fechar) => {
+      const ok = () => { const v = m.querySelector('#m-senha').value; fechar(); res(v || null); };
+      m.querySelector('[data-m=nao]').onclick = () => { fechar(); res(null); };
+      m.querySelector('[data-m=sim]').onclick = ok;
+      m.querySelector('#m-senha').addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+    });
+  });
+}
+
+/* ============================================================
+   TELA DE BLOQUEIO
+   ============================================================ */
+async function telaBloqueio() {
+  const cofre = await Store.get('cofre');
+  S.temCofre = !!cofre;
+  const app = $('#app');
+  if (!cofre) {
+    app.innerHTML = `<div class="lock"><form class="card" id="f-criar" autocomplete="off">
+      <h1>Prontuário</h1><div class="sub">Primeiro acesso neste aparelho</div>
+      <label class="f"><span>Crie uma senha (mínimo 8 caracteres)</span><input type="password" id="s1" autocomplete="new-password"></label>
+      <label class="f"><span>Repita a senha</span><input type="password" id="s2" autocomplete="new-password"></label>
+      <div class="aviso"><b>Guarde bem esta senha.</b> Ela protege os dados dos pacientes e não pode ser recuperada: sem ela, nem os backups abrem.<br><br>Já usa o prontuário em outro aparelho? Crie aqui a <b>mesma senha</b> e depois importe o backup.</div>
+      <div class="erro" id="erro"></div>
+      <button class="btn pri" style="width:100%">Criar e entrar</button>
+    </form></div>`;
+    $('#f-criar').addEventListener('submit', async e => {
+      e.preventDefault();
+      const a = $('#s1').value, b = $('#s2').value;
+      if (a.length < 8) return $('#erro').textContent = 'A senha precisa ter pelo menos 8 caracteres.';
+      if (a !== b) return $('#erro').textContent = 'As senhas não conferem.';
+      $('#erro').textContent = 'Preparando…';
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      S.saltB64 = b64(salt); S.chave = await derivarChave(a, salt); S.senha = a;
+      S.dados = DADOS_VAZIOS(); auditar('Cofre criado neste aparelho');
+      await salvar(); aposEntrar();
+    });
+  } else {
+    app.innerHTML = `<div class="lock"><form class="card" id="f-entrar">
+      <h1>Prontuário</h1><div class="sub">Digite sua senha para abrir</div>
+      <label class="f"><span>Senha</span><input type="password" id="s1" autocomplete="current-password"></label>
+      <div class="erro" id="erro"></div>
+      <button class="btn pri" style="width:100%">Entrar</button>
+    </form></div>`;
+    $('#f-entrar').addEventListener('submit', async e => {
+      e.preventDefault();
+      const senha = $('#s1').value; if (!senha) return;
+      $('#erro').textContent = 'Abrindo…';
+      try {
+        const chave = await derivarChave(senha, unb64(cofre.salt));
+        const dados = await decifrar(chave, cofre);
+        S.chave = chave; S.senha = senha; S.saltB64 = cofre.salt; S.dados = Object.assign(DADOS_VAZIOS(), dados);
+        S.dados.settings = Object.assign(DADOS_VAZIOS().settings, dados.settings || {});
+        auditar('Acesso ao prontuário'); await salvar(); aposEntrar();
+      } catch (err) { $('#erro').textContent = 'Senha incorreta.'; $('#s1').value = ''; }
+    });
+  }
+  if (!ehToque) setTimeout(() => $('#s1') && $('#s1').focus(), 50);
+}
+function aposEntrar() {
+  S.ultimaAtividade = Date.now(); S.view = {nome:'inicio'};
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+  render();
+  if (Store.volatil) aviso('Atenção: este navegador não permite guardar dados. Nada será salvo ao fechar.', 7000);
+}
+function bloquear(motivo) {
+  S.chave = null; S.senha = null; S.dados = null; S.rascunho = null; S.abertos.clear();
+  $('#modal-root').innerHTML = '';
+  telaBloqueio();
+  if (motivo) setTimeout(() => aviso(motivo), 100);
+}
+setInterval(() => {
+  if (!S.chave) return;
+  const min = Number(S.dados.settings.bloqueioMin) || 10;
+  if (Date.now() - S.ultimaAtividade > min * 60000) bloquear('Bloqueado por inatividade.');
+}, 20000);
+['pointerdown','keydown','scroll','touchstart'].forEach(ev => document.addEventListener(ev, () => { S.ultimaAtividade = Date.now(); }, {passive:true, capture:true}));
+
+/* ============================================================
+   ESTRUTURA PRINCIPAL
+   ============================================================ */
+function precisaBackup() {
+  if (!S.dados.patients.length) return false;
+  const u = S.dados.settings.ultimoBackup;
+  if (!u) return true;
+  const ultimaMudanca = Math.max(0, ...S.dados.records.map(r => Date.parse(r.criadoEm)), ...S.dados.patients.map(p => Date.parse(p.atualizadoEm || p.criadoEm)));
+  return ultimaMudanca > Date.parse(u.em) && (Date.now() - Date.parse(u.em) > 24 * 3600e3);
+}
+function render() {
+  if (!S.chave) return telaBloqueio();
+  const v = S.view.nome;
+  const detalhe = v !== 'inicio' || false;
+  const nav = (n, rot, ic, extra = '') => `<button class="nav ${v === n ? 'on' : ''}" data-act="ir" data-v="${n}" title="${rot}">${ic} <span class="txt">${rot}</span>${extra}</button>`;
+  $('#app').innerHTML = `<div class="shell ${detalhe ? 'detalhe' : ''}">
+    <header class="topbar">
+      <div class="marca" data-act="ir" data-v="inicio">Prontuário <small>${esc(S.dados.settings.medico)}</small></div>
+      ${nav('backup','Backup','⇅', precisaBackup() ? '<span class="ponto"></span>' : '')}
+      ${nav('auditoria','Registro de acesso','☰')}
+      ${nav('config','Ajustes','⚙')}
+      <button class="nav" data-act="bloquear" title="Bloquear">🔒 <span class="txt">Bloquear</span></button>
+    </header>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="busca">
+          <input type="text" id="busca" placeholder="Buscar paciente…" value="${esc(S.busca)}" autocomplete="off">
+          <button class="btn pri" data-act="novo-paciente">+ Novo paciente</button>
+        </div>
+        <div class="plist" id="plist">${listaPacientes()}</div>
+      </aside>
+      <main class="main" id="main">${telaPrincipal()}</main>
+    </div></div>`;
+  const b = $('#busca');
+  b.addEventListener('input', () => { S.busca = b.value; $('#plist').innerHTML = listaPacientes(); });
+  if (v === 'registro') ligarFormRegistro();
+  if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
+  $('#main').scrollTop = 0;
+}
+function listaPacientes() {
+  const q = semAcento(S.busca.trim());
+  let ps = S.dados.patients.filter(p => !p.arquivado);
+  if (q) ps = ps.filter(p => semAcento(p.nome).includes(q) || (p.cpf || '').replace(/\D/g,'').includes(q.replace(/\D/g,'') || '###') || semAcento(p.telefone).includes(q));
+  ps.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  if (!ps.length) return `<div class="vazio">${S.dados.patients.length ? 'Nenhum paciente encontrado.' : 'Nenhum paciente ainda.<br>Toque em “+ Novo paciente”.'}</div>`;
+  const atual = S.view.pid;
+  return ps.map(p => {
+    const regs = registrosDe(p.id).filter(r => r.tipo !== 'adendo');
+    const ult = regs.sort((a, b) => b.data.localeCompare(a.data))[0];
+    return `<button class="pitem ${p.id === atual ? 'on' : ''}" data-act="abrir-paciente" data-id="${p.id}"><b>${esc(p.nome)}</b><small>${p.nascimento ? esc(idade(p.nascimento)) + ' · ' : ''}${ult ? 'Último atendimento ' + fmtData(ult.data) : 'Sem atendimentos'}</small></button>`;
+  }).join('');
+}
+function telaPrincipal() {
+  switch (S.view.nome) {
+    case 'paciente': return telaPaciente();
+    case 'form-paciente': return telaFormPaciente();
+    case 'registro': return telaFormRegistro();
+    case 'backup': return telaBackup();
+    case 'auditoria': return telaAuditoria();
+    case 'config': return telaConfig();
+    default: return telaInicio();
+  }
+}
+const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"') => `<button class="btn link voltar" data-act="${act}" ${extra}>${rot}</button>`;
+
+/* ---------- início ---------- */
+function telaInicio() {
+  const d = S.dados, hoje = hojeStr();
+  const hojeN = d.records.filter(r => r.data === hoje && r.tipo !== 'adendo').length;
+  const pend = d.records.filter(r => !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const u = d.settings.ultimoBackup;
+  return `
+    ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
+    ${Store.volatil ? `<div class="banner alerta">Este navegador não está guardando os dados. Use a versão instalada do app.</div>` : ''}
+    <h1 style="font-size:1.6rem;margin-bottom:1rem">Olá, ${esc((d.settings.medico || '').replace(/^Dra?\.\s*/,'').split(' ')[0] || 'doutor')}</h1>
+    <div class="kpis">
+      <div class="kpi"><div class="n">${d.patients.filter(p => !p.arquivado).length}</div><div class="l">pacientes</div></div>
+      <div class="kpi"><div class="n">${hojeN}</div><div class="l">atendimentos hoje</div></div>
+      <div class="kpi"><div class="n">${pend}</div><div class="l">registros aguardando assinatura digital</div></div>
+      <div class="kpi"><div class="n" style="font-size:1.15rem;padding-top:.45rem">${u ? fmtDataHora(u.em) : 'Nunca'}</div><div class="l">último backup</div></div>
+    </div>
+    ${d.patients.length ? '' : `<div class="card"><h2>Para começar</h2><p>Cadastre o primeiro paciente pelo botão “+ Novo paciente”. Se quiser só conhecer o app, carregue pacientes fictícios em <a href="#" data-act="ir" data-v="config">Ajustes</a>.</p></div>`}
+    <div class="card"><h2>Como este prontuário funciona</h2>
+      <p style="margin:.2rem 0">• Os dados ficam <b>só neste aparelho</b>, criptografados com a sua senha.<br>
+      • Registros finalizados <b>não podem ser alterados</b>: correções entram como adendo, com data e hora.<br>
+      • Cada registro recebe uma impressão digital (hash SHA-256) que mostra se algo foi mexido.<br>
+      • Faça backup pelo menu <b>Backup</b>: arquivo e/ou Google Drive.<br>
+      • A assinatura digital com o VIDaaS entra na próxima etapa.</p></div>`;
+}
+
+/* ---------- paciente ---------- */
+function telaPaciente() {
+  const p = paciente(S.view.pid);
+  if (!p) return telaInicio();
+  const regs = registrosDe(p.id);
+  const principais = regs.filter(r => r.tipo !== 'adendo').sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+  const meds = p.medicacoes || [];
+  const ativas = meds.filter(m => !m.fim), suspensas = meds.filter(m => m.fim);
+  const temPrimeira = regs.some(r => r.tipo === 'primeira');
+  return `${btnVoltar()}
+  <div class="card"><div class="phead">
+    <div class="avatar">${esc(iniciais(p.nome))}</div>
+    <div class="grow"><h1>${esc(p.nome)}</h1>
+      <div class="meta">${p.nascimento ? `<span>${fmtData(p.nascimento)} (${esc(idade(p.nascimento))})</span>` : ''}${p.telefone ? `<span>${esc(p.telefone)}</span>` : ''}${p.cpf ? `<span>CPF ${esc(p.cpf)}</span>` : ''}<span class="tag ${p.tipoAtend === 'Convênio' ? 'azul' : 'marrom'}">${esc(p.tipoAtend || 'Particular')}${p.convenio ? ' · ' + esc(p.convenio) : ''}</span></div>
+      ${p.alergias ? `<div style="margin-top:.4rem"><span class="tag ruim">Alergias: ${esc(p.alergias)}</span></div>` : ''}
+    </div>
+    <div class="row">
+      <button class="btn" data-act="editar-paciente" data-id="${p.id}">Editar dados</button>
+      <button class="btn" data-act="imprimir-paciente" data-id="${p.id}">Imprimir prontuário</button>
+    </div></div></div>
+  <div class="row" style="margin-bottom:1rem">
+    <button class="btn ${temPrimeira ? '' : 'pri'}" data-act="novo-registro" data-tipo="primeira" data-pid="${p.id}">+ Primeira consulta</button>
+    <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
+  </div>
+  <div class="cols">
+    <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}</div>
+    <div>
+      <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Medicações em uso</h2><button class="btn sm" data-act="nova-med" data-pid="${p.id}">+ Adicionar</button></div>
+        ${ativas.length ? ativas.map(m => `<div class="med"><div><b>${esc(m.nome)}</b> ${esc(m.dose || '')}<small>${esc(m.posologia || '')}${m.inicio ? ' · desde ' + fmtData(m.inicio) : ''}</small></div><button class="btn sm link" data-act="suspender-med" data-pid="${p.id}" data-id="${m.id}">Suspender</button></div>`).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma medicação em uso.</div>'}
+        ${suspensas.length ? `<details style="margin-top:.6rem"><summary style="cursor:pointer;color:var(--suave)">Histórico (${suspensas.length})</summary>${suspensas.map(m => `<div class="med"><div>${esc(m.nome)} ${esc(m.dose || '')}<small>${m.inicio ? fmtData(m.inicio) : '?'} a ${fmtData(m.fim)}${m.motivo ? ' · ' + esc(m.motivo) : ''}</small></div></div>`).join('')}</details>` : ''}
+      </div>
+      ${p.obs ? `<div class="card"><h3>Observações</h3><div style="white-space:pre-wrap">${esc(p.obs)}</div></div>` : ''}
+      ${p.responsavel ? `<div class="card"><h3>Contato de emergência / responsável</h3><div style="white-space:pre-wrap">${esc(p.responsavel)}</div></div>` : ''}
+    </div>
+  </div>`;
+}
+function camposHTML(r, ficha) {
+  let h = '';
+  for (const sec of ficha.secoes) {
+    const linhas = sec.campos.filter(([k]) => k === 'cid' ? (r.cid || []).length : (r.campos[k] || '').trim());
+    if (!linhas.length) continue;
+    if (ficha.secoes.length > 1) h += `<div class="secao-t">${esc(sec.t)}</div>`;
+    for (const [k, rot] of linhas) {
+      const val = k === 'cid' ? r.cid.join('; ') : r.campos[k];
+      h += `<div class="campo"><div class="k">${esc(rot)}</div><div class="v">${esc(val)}</div></div>`;
+    }
+  }
+  return h;
+}
+function cartaoRegistro(r, todos) {
+  const aberto = S.abertos.has(r.id);
+  const ficha = FICHAS[r.tipo];
+  const adendos = todos.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
+  const integ = S.integridade && S.integridade[r.id];
+  const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
+  const assin = r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
+  return `<div class="card"><div class="reg ${r.tipo}">
+    <div class="rtop" data-act="alternar" data-id="${r.id}">
+      <div><div class="rtit">${esc(nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
+      <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}finalizado ${fmtDataHora(r.criadoEm)}</div></div>
+      <div class="row">${tagInteg}${assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
+    </div>
+    ${aberto ? `${camposHTML(r, ficha)}
+      ${adendos.length ? `<div class="adendos">${adendos.map(a => `<div class="campo"><div class="k">Adendo · ${fmtDataHora(a.criadoEm)}</div><div class="v">${esc(a.campos.texto)}</div></div>`).join('')}</div>` : ''}
+      <div class="hash" style="margin-top:.7rem">SHA-256: ${esc(r.hash)}</div>
+      <div class="row" style="margin-top:.8rem">
+        <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
+        <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">Imprimir / PDF</button>
+        <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
+      </div>` : `<div class="resumo">${esc(resumoRegistro(r))}</div>`}
+  </div></div>`;
+}
+
+/* ---------- cadastro de paciente ---------- */
+function telaFormPaciente() {
+  const p = S.view.pid ? paciente(S.view.pid) : {};
+  const v = k => esc(p[k] || '');
+  return `${btnVoltar(S.view.pid ? '‹ Voltar ao paciente' : '‹ Pacientes', S.view.pid ? 'abrir-paciente' : 'ir', S.view.pid ? `data-id="${p.id}"` : 'data-v="inicio"')}
+  <h1 style="font-size:1.5rem;margin-bottom:1rem">${S.view.pid ? 'Editar dados do paciente' : 'Novo paciente'}</h1>
+  <form id="f-paciente" autocomplete="off">
+    <div class="form-sec"><h3>Identificação</h3>
+      <label class="f"><span>Nome completo *</span><input type="text" name="nome" value="${v('nome')}" required></label>
+      <div class="grid3">
+        <label class="f"><span>Data de nascimento</span><input type="date" name="nascimento" value="${v('nascimento')}"></label>
+        <label class="f"><span>Sexo</span><select name="sexo">${['','Feminino','Masculino','Outro'].map(o => `<option ${p.sexo === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
+        <label class="f"><span>CPF</span><input type="text" name="cpf" value="${v('cpf')}" inputmode="numeric"></label>
+      </div>
+      <div class="grid2">
+        <label class="f"><span>Nome social (se houver)</span><input type="text" name="nomeSocial" value="${v('nomeSocial')}"></label>
+        <label class="f"><span>Profissão</span><input type="text" name="profissao" value="${v('profissao')}"></label>
+      </div>
+    </div>
+    <div class="form-sec"><h3>Contato</h3>
+      <div class="grid2">
+        <label class="f"><span>Telefone / WhatsApp</span><input type="tel" name="telefone" value="${v('telefone')}"></label>
+        <label class="f"><span>E-mail</span><input type="email" name="email" value="${v('email')}"></label>
+      </div>
+      <label class="f"><span>Endereço</span><input type="text" name="endereco" value="${v('endereco')}"></label>
+      <label class="f"><span>Contato de emergência / responsável</span><input type="text" name="responsavel" value="${v('responsavel')}"></label>
+    </div>
+    <div class="form-sec"><h3>Atendimento</h3>
+      <div class="grid2">
+        <label class="f"><span>Tipo</span><select name="tipoAtend">${['Particular','Convênio'].map(o => `<option ${(p.tipoAtend || 'Particular') === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
+        <label class="f"><span>Convênio (se houver)</span><input type="text" name="convenio" value="${v('convenio')}"></label>
+      </div>
+      <label class="f"><span>Alergias</span><input type="text" name="alergias" value="${v('alergias')}"></label>
+      <label class="f"><span>Observações</span><textarea name="obs" rows="3">${v('obs')}</textarea></label>
+    </div>
+    <div class="barra-acoes"><button type="button" class="btn" data-act="${S.view.pid ? 'abrir-paciente' : 'ir'}" ${S.view.pid ? `data-id="${p.id}"` : 'data-v="inicio"'}>Cancelar</button><button class="btn pri">Salvar</button></div>
+  </form>`;
+}
+async function salvarPaciente(form) {
+  const fd = Object.fromEntries(new FormData(form).entries());
+  for (const k in fd) fd[k] = fd[k].trim();
+  if (!fd.nome) return aviso('Informe o nome do paciente.');
+  if (S.view.pid) {
+    const p = paciente(S.view.pid);
+    const mudou = Object.keys(fd).filter(k => (p[k] || '') !== fd[k]);
+    Object.assign(p, fd, {atualizadoEm: agoraISO()});
+    auditar('Dados do paciente alterados', mudou.join(', ') || 'sem mudanças', p.id);
+    await salvar(); abrirPaciente(p.id); aviso('Dados salvos.');
+  } else {
+    const p = Object.assign({id: uid(), criadoEm: agoraISO(), atualizadoEm: agoraISO(), medicacoes: []}, fd);
+    S.dados.patients.push(p); auditar('Paciente cadastrado', p.nome, p.id);
+    await salvar(); abrirPaciente(p.id); aviso('Paciente cadastrado.');
+  }
+}
+
+/* ---------- formulário de registro ---------- */
+function chaveRascunho(tipo, pid, ref) { return [tipo, pid, ref || ''].join('|'); }
+function telaFormRegistro() {
+  const r = S.rascunho, p = paciente(r.patientId), ficha = FICHAS[r.tipo];
+  const orig = r.refId ? S.dados.records.find(x => x.id === r.refId) : null;
+  const campo = ([k, rot, tipo]) => {
+    if (tipo === 'cid') return `<label class="f"><span>${esc(rot)}</span>
+      <div class="chips" id="cid-chips">${chipsCID()}</div>
+      <input type="text" id="cid-input" list="cid-lista" placeholder="Digite o código ou o nome (ex.: F41.1, ansiedade) e escolha" autocomplete="off">
+      <datalist id="cid-lista">${CIDS.map(([c, n]) => `<option value="${c} – ${esc(n)}">`).join('')}</datalist></label>`;
+    const val = esc(r.campos[k] || '');
+    if (tipo === 'linha') return `<label class="f"><span>${esc(rot)}</span><input type="text" data-c="${k}" value="${val}"></label>`;
+    return `<label class="f"><span>${esc(rot)}</span><textarea data-c="${k}" rows="${tipo === 'longo' ? 6 : 3}">${val}</textarea></label>`;
+  };
+  return `<button class="btn link" data-act="sair-form">‹ Voltar ao paciente</button>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(ficha.titulo)}</h1>
+  <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}${orig ? `<span>referente a: ${esc(nomeTipo(orig.tipo))} de ${fmtData(orig.data)}</span>` : ''}</div>
+  <form id="f-registro" autocomplete="off">
+    ${r.tipo !== 'adendo' ? `<div class="form-sec"><label class="f" style="max-width:240px"><span>Data do atendimento</span><input type="date" id="r-data" value="${esc(r.data)}"></label></div>` : ''}
+    ${ficha.secoes.map(s => `<div class="form-sec"><h3>${esc(s.t)}</h3>${s.campos.map(campo).join('')}</div>`).join('')}
+    <div class="barra-acoes"><span class="salvo" id="salvo">Rascunho salvo automaticamente</span>
+      <button type="button" class="btn perigo" data-act="descartar-rascunho">Descartar</button>
+      <button type="submit" class="btn pri">Finalizar registro</button></div>
+  </form>`;
+}
+function chipsCID() { return (S.rascunho.cid || []).map((c, i) => `<span class="chip">${esc(c)}<button type="button" data-act="tirar-cid" data-i="${i}" aria-label="Remover">×</button></span>`).join(''); }
+let rascunhoT;
+function guardarRascunho() {
+  $('#salvo') && ($('#salvo').textContent = 'Salvando…');
+  clearTimeout(rascunhoT);
+  rascunhoT = setTimeout(async () => {
+    if (!S.rascunho || !S.chave) return;
+    S.dados.drafts[S.rascunho.chave] = S.rascunho;
+    await salvar();
+    $('#salvo') && ($('#salvo').textContent = 'Rascunho salvo ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  }, 700);
+}
+function ligarFormRegistro() {
+  const f = $('#f-registro');
+  f.addEventListener('input', e => {
+    const el = e.target;
+    if (el.dataset.c) { S.rascunho.campos[el.dataset.c] = el.value; guardarRascunho(); }
+    else if (el.id === 'r-data') { S.rascunho.data = el.value; guardarRascunho(); }
+  });
+  const ci = $('#cid-input');
+  if (ci) {
+    const add = () => {
+      const val = ci.value.trim(); if (!val) return;
+      if (!S.rascunho.cid.includes(val)) S.rascunho.cid.push(val);
+      ci.value = ''; $('#cid-chips').innerHTML = chipsCID(); guardarRascunho();
+    };
+    ci.addEventListener('change', add);
+    ci.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+  }
+  f.addEventListener('submit', e => { e.preventDefault(); finalizarRegistro(); });
+}
+function abrirRegistro(tipo, pid, ref) {
+  const chave = chaveRascunho(tipo, pid, ref);
+  S.rascunho = S.dados.drafts[chave] || {chave, tipo, patientId: pid, refId: ref || null, data: hojeStr(), campos: {}, cid: []};
+  S.view = {nome:'registro', pid};
+  render();
+  if (S.dados.drafts[chave]) aviso('Rascunho anterior recuperado.');
+}
+async function finalizarRegistro() {
+  const r = S.rascunho;
+  const ci = $('#cid-input'); if (ci && ci.value.trim()) { r.cid.push(ci.value.trim()); ci.value = ''; }
+  const campos = {}; for (const k in r.campos) if ((r.campos[k] || '').trim()) campos[k] = r.campos[k].trim();
+  if (!Object.keys(campos).length) return aviso('Preencha ao menos um campo antes de finalizar.');
+  if (r.tipo !== 'adendo' && !r.data) return aviso('Informe a data do atendimento.');
+  const ok = await confirmar({titulo:'Finalizar registro?', texto:'Depois de finalizado, este registro <b>não pode mais ser alterado</b>. Correções ou complementos entram como adendo, com data e hora.', ok:'Finalizar'});
+  if (!ok) return;
+  const s = S.dados.settings;
+  const reg = {id: uid(), patientId: r.patientId, tipo: r.tipo, data: r.tipo === 'adendo' ? hojeStr() : r.data, criadoEm: agoraISO(), campos, cid: r.cid.slice(), refId: r.refId || null, autor: `${s.medico} – ${s.crm}`, assinatura: {status:'pendente'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  delete S.dados.drafts[r.chave];
+  auditar(`${nomeTipo(r.tipo)} finalizado(a)`, paciente(r.patientId).nome, r.patientId);
+  await salvar();
+  S.rascunho = null;
+  S.abertos.add(r.refId || reg.id);
+  abrirPaciente(r.patientId);
+  aviso('Registro finalizado.');
+}
+
+/* ---------- integridade ---------- */
+async function verificarIntegridade(pid) {
+  S.integridade = S.integridade || {};
+  let ruins = 0;
+  for (const r of registrosDe(pid)) { const ok = (await hashRegistro(r)) === r.hash; S.integridade[r.id] = ok; if (!ok) ruins++; }
+  auditar('Verificação de integridade', ruins ? ruins + ' registro(s) com divergência' : 'todos íntegros', pid);
+  await salvar(); render();
+  aviso(ruins ? `Atenção: ${ruins} registro(s) com divergência.` : 'Todos os registros estão íntegros.');
+}
+
+/* ---------- medicações ---------- */
+function novaMedicacao(pid) {
+  modal(`<h2>Adicionar medicação</h2>
+    <label class="f"><span>Medicação *</span><input type="text" id="m-nome" placeholder="ex.: Sertralina"></label>
+    <div class="grid2"><label class="f"><span>Dose</span><input type="text" id="m-dose" placeholder="ex.: 50 mg"></label>
+    <label class="f"><span>Início</span><input type="date" id="m-ini" value="${hojeStr()}"></label></div>
+    <label class="f"><span>Posologia</span><input type="text" id="m-pos" placeholder="ex.: 1 cp pela manhã"></label>
+    <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Adicionar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      const nome = m.querySelector('#m-nome').value.trim(); if (!nome) return;
+      const p = paciente(pid); p.medicacoes = p.medicacoes || [];
+      const med = {id: uid(), nome, dose: m.querySelector('#m-dose').value.trim(), posologia: m.querySelector('#m-pos').value.trim(), inicio: m.querySelector('#m-ini').value, fim: null, criadoEm: agoraISO()};
+      p.medicacoes.push(med); p.atualizadoEm = agoraISO();
+      auditar('Medicação adicionada', `${p.nome}: ${nome} ${med.dose}`, pid);
+      await salvar(); fechar(); render();
+    };
+  });
+}
+function suspenderMedicacao(pid, id) {
+  const p = paciente(pid), med = p.medicacoes.find(x => x.id === id);
+  modal(`<h2>Suspender ${esc(med.nome)}</h2>
+    <label class="f"><span>Data da suspensão</span><input type="date" id="m-fim" value="${hojeStr()}"></label>
+    <label class="f"><span>Motivo (opcional)</span><input type="text" id="m-mot"></label>
+    <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Suspender</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      med.fim = m.querySelector('#m-fim').value || hojeStr(); med.motivo = m.querySelector('#m-mot').value.trim();
+      p.atualizadoEm = agoraISO(); auditar('Medicação suspensa', `${p.nome}: ${med.nome}`, pid);
+      await salvar(); fechar(); render();
+    };
+  });
+}
+
+/* ---------- impressão ---------- */
+function cabecalhoImpressao() {
+  const s = S.dados.settings;
+  return `<div class="p-cab"><h1>${esc(s.medico)}</h1><div>${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div><div>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</div></div>`;
+}
+function docImpressao(r) {
+  const p = paciente(r.patientId), ficha = FICHAS[r.tipo];
+  const adendos = S.dados.records.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
+  let corpo = '';
+  for (const sec of ficha.secoes) {
+    const linhas = sec.campos.filter(([k]) => k === 'cid' ? (r.cid || []).length : (r.campos[k] || '').trim());
+    if (!linhas.length) continue;
+    if (ficha.secoes.length > 1) corpo += `<h3 style="margin:12px 0 4px;font-size:12pt">${esc(sec.t)}</h3>`;
+    for (const [k, rot] of linhas) corpo += `<div class="p-campo"><b>${esc(rot)}</b><div>${esc(k === 'cid' ? r.cid.join('; ') : r.campos[k])}</div></div>`;
+  }
+  for (const a of adendos) corpo += `<div class="p-campo" style="margin-top:10px"><b>Adendo – ${fmtDataHora(a.criadoEm)}</b><div>${esc(a.campos.texto)}</div></div>`;
+  return `<div class="p-doc">${cabecalhoImpressao()}
+    <h2 style="font-size:13pt;margin:0 0 4px">${esc(ficha.titulo)} – ${fmtData(r.data)}</h2>
+    <div style="margin-bottom:10px">Paciente: <b>${esc(p.nome)}</b>${p.nascimento ? ' · Nasc. ' + fmtData(p.nascimento) + ' (' + esc(idade(p.nascimento)) + ')' : ''}${p.cpf ? ' · CPF ' + esc(p.cpf) : ''}</div>
+    ${corpo}
+    <div class="p-rod">Registrado por ${esc(r.autor)} em ${fmtDataHora(r.criadoEm)}.<br>Código de integridade (SHA-256): ${esc(r.hash)}<br>Assinatura digital ICP-Brasil: ${r.assinatura && r.assinatura.status === 'assinado' ? 'assinado' : 'pendente'}.</div>
+  </div>`;
+}
+function imprimir(html, desc, pid) {
+  $('#print-root').innerHTML = html;
+  auditar('Impressão / PDF', desc, pid); salvar();
+  if (emIframe) { aviso('Nesta prévia a impressão fica bloqueada. Na versão instalada abre a tela de imprimir/salvar PDF.', 6000); return; }
+  setTimeout(() => window.print(), 60);
+}
+
+/* ============================================================
+   BACKUP: ARQUIVO E GOOGLE DRIVE
+   ============================================================ */
+async function montarBackup() {
+  const pacote = await cifrar(S.chave, S.dados);
+  return {app:'prontuario', formato:1, criadoEm: agoraISO(), salt: S.saltB64, ...pacote};
+}
+const nomeBackup = () => { const d = new Date(); const p = n => String(n).padStart(2,'0'); return `prontuario-backup-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.prontuario`; };
+async function marcarBackup(via) { S.dados.settings.ultimoBackup = {em: agoraISO(), via}; auditar('Backup feito', via); await salvar(); }
+async function exportarArquivo() {
+  const b = await montarBackup(); const nome = nomeBackup();
+  const arq = new File([JSON.stringify(b)], nome, {type:'application/octet-stream'});
+  if (ehToque && navigator.canShare && navigator.canShare({files:[arq]})) {
+    try { await navigator.share({files:[arq], title:'Backup do prontuário'}); await marcarBackup('arquivo (compartilhado)'); render(); aviso('Backup exportado.'); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  if (emIframe) { aviso('Nesta prévia o download fica bloqueado. Na versão instalada o arquivo é salvo normalmente.', 6000); return; }
+  const url = URL.createObjectURL(arq); const a = document.createElement('a'); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  await marcarBackup('arquivo'); render(); aviso('Backup salvo: ' + nome);
+}
+async function abrirPacoteBackup(obj) {
+  if (!obj || obj.app !== 'prontuario' || !obj.salt || !obj.ct) throw new Error('Este arquivo não é um backup do prontuário.');
+  try { return await decifrar(await derivarChave(S.senha, unb64(obj.salt)), obj); }
+  catch (e) {
+    const s = await pedirSenha('Senha do backup', 'Este backup foi criado com outra senha. Digite a senha usada quando ele foi feito.');
+    if (!s) throw new Error('Importação cancelada.');
+    try { return await decifrar(await derivarChave(s, unb64(obj.salt)), obj); }
+    catch (e2) { throw new Error('Senha incorreta para este backup.'); }
+  }
+}
+function mesclar(inc) {
+  const d = S.dados; const cont = {pacientes:0, atualizados:0, registros:0};
+  for (const p of inc.patients || []) {
+    const i = d.patients.findIndex(x => x.id === p.id);
+    if (i < 0) { d.patients.push(p); cont.pacientes++; }
+    else if ((p.atualizadoEm || '') > (d.patients[i].atualizadoEm || '')) { d.patients[i] = p; cont.atualizados++; }
+  }
+  const ids = new Set(d.records.map(r => r.id));
+  for (const r of inc.records || []) if (!ids.has(r.id)) { d.records.push(r); cont.registros++; }
+  const aids = new Set(d.audit.map(a => a.id));
+  for (const a of inc.audit || []) if (!aids.has(a.id)) d.audit.push(a);
+  d.audit.sort((a, b) => a.em.localeCompare(b.em));
+  const s = d.settings, si = inc.settings || {};
+  for (const k of ['medico','crm','rqe','endereco','telefone','googleClientId']) if (!s[k] && si[k]) s[k] = si[k];
+  return cont;
+}
+async function importarObjeto(obj, origem) {
+  const inc = await abrirPacoteBackup(obj);
+  const c = mesclar(inc);
+  auditar('Backup importado', `${origem}: +${c.pacientes} paciente(s), +${c.registros} registro(s), ${c.atualizados} atualizado(s)`);
+  await salvar(); render();
+  aviso(`Importado: ${c.pacientes} paciente(s) novo(s), ${c.registros} registro(s) novo(s), ${c.atualizados} cadastro(s) atualizado(s).`, 6000);
+}
+function escolherArquivo() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.prontuario,.json,application/json,application/octet-stream';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try { await importarObjeto(JSON.parse(await f.text()), 'arquivo ' + f.name); }
+    catch (e) { aviso(e.message || 'Não foi possível ler o arquivo.', 5000); }
+  };
+  inp.click();
+}
+
+const Drive = {
+  token: null, expira: 0, pastaId: null,
+  carregarGIS() {
+    if (window.google && google.accounts && google.accounts.oauth2) return Promise.resolve();
+    if (this._carregando) return this._carregando;
+    this._carregando = new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+      s.onload = () => res(); s.onerror = () => { this._carregando = null; rej(new Error('Não foi possível carregar o login do Google (verifique a internet).')); };
+      document.head.appendChild(s);
+    });
+    return this._carregando;
+  },
+  async obterToken() {
+    if (this.token && Date.now() < this.expira - 60000) return this.token;
+    const cid = S.dados.settings.googleClientId;
+    if (!cid) throw new Error('Configure primeiro o ID do Google (em Backup › Google Drive).');
+    await this.carregarGIS();
+    return new Promise((res, rej) => {
+      const cliente = google.accounts.oauth2.initTokenClient({
+        client_id: cid, scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: r => { if (r.error) return rej(new Error('Google: ' + r.error)); this.token = r.access_token; this.expira = Date.now() + (Number(r.expires_in) || 3600) * 1000; res(this.token); },
+        error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Login do Google cancelado.' : 'Não foi possível entrar no Google.'))
+      });
+      cliente.requestAccessToken({prompt: ''});
+    });
+  },
+  async api(url, opts = {}) {
+    const t = await this.obterToken();
+    const r = await fetch(url, {...opts, headers: {...(opts.headers || {}), Authorization: 'Bearer ' + t}});
+    if (r.status === 401) { this.token = null; throw new Error('Sessão do Google expirou. Tente de novo.'); }
+    if (!r.ok) throw new Error('Google Drive respondeu com erro ' + r.status + '.');
+    return r;
+  },
+  async pasta() {
+    if (this.pastaId) return this.pastaId;
+    const q = encodeURIComponent(`name='${NOME_PASTA_DRIVE}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    const j = await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&spaces=drive`)).json();
+    if (j.files && j.files.length) return this.pastaId = j.files[0].id;
+    const c = await (await this.api('https://www.googleapis.com/drive/v3/files?fields=id', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name: NOME_PASTA_DRIVE, mimeType:'application/vnd.google-apps.folder'})})).json();
+    return this.pastaId = c.id;
+  },
+  async enviar() {
+    const pasta = await this.pasta();
+    const b = await montarBackup(), nome = nomeBackup();
+    const limite = 'prontuario' + Date.now();
+    const corpo = `--${limite}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name: nome, parents: [pasta], mimeType: 'application/octet-stream'})}\r\n--${limite}\r\nContent-Type: application/octet-stream\r\n\r\n${JSON.stringify(b)}\r\n--${limite}--`;
+    await this.api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name', {method:'POST', headers:{'Content-Type': 'multipart/related; boundary=' + limite}, body: corpo});
+    return nome;
+  },
+  async maisRecente() {
+    const pasta = await this.pasta();
+    const q = encodeURIComponent(`'${pasta}' in parents and trashed=false`);
+    const j = await (await this.api(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=1&fields=files(id,name,createdTime)`)).json();
+    return (j.files || [])[0] || null;
+  },
+  async baixar(id) { return (await this.api(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).json(); }
+};
+async function driveSalvar(btn) {
+  btn && (btn.disabled = true);
+  try { const nome = await Drive.enviar(); await marcarBackup('Google Drive'); render(); aviso('Backup enviado ao Google Drive: ' + nome, 5000); }
+  catch (e) { aviso(e.message, 6000); btn && (btn.disabled = false); }
+}
+async function drivePuxar(btn) {
+  btn && (btn.disabled = true);
+  try {
+    const f = await Drive.maisRecente();
+    if (!f) { aviso('Ainda não há backups na pasta do Drive.'); btn && (btn.disabled = false); return; }
+    const ok = await confirmar({titulo:'Atualizar do Google Drive?', texto:`Vou juntar o backup <b>${esc(f.name)}</b> (de ${fmtDataHora(f.createdTime)}) com os dados deste aparelho. Nada daqui é apagado.`, ok:'Atualizar'});
+    if (!ok) { btn && (btn.disabled = false); return; }
+    await importarObjeto(await Drive.baixar(f.id), 'Google Drive ' + f.name);
+  } catch (e) { aviso(e.message, 6000); btn && (btn.disabled = false); }
+}
+
+function telaBackup() {
+  const s = S.dados.settings, u = s.ultimoBackup;
+  return `${btnVoltar()}
+  <h1 style="font-size:1.5rem;margin-bottom:1rem">Backup e sincronização</h1>
+  <div class="banner ${precisaBackup() ? 'alerta' : 'info'}">${u ? `Último backup: <b>${fmtDataHora(u.em)}</b> (${esc(u.via)})` : 'Nenhum backup feito ainda neste aparelho.'}</div>
+  <div class="card"><h2>Google Drive</h2>
+    <p style="margin-top:0">Guarda o backup numa pasta “${esc(NOME_PASTA_DRIVE)}” da sua conta Google e serve para levar os dados do iPad para o computador e vice-versa. O arquivo vai <b>criptografado</b>: no Drive fica ilegível sem a sua senha.</p>
+    ${s.googleClientId ? `<div class="row"><button class="btn pri" data-act="drive-salvar">⇧ Salvar no Drive</button><button class="btn azul" data-act="drive-puxar">⇩ Atualizar do Drive</button></div>
+      <details style="margin-top:.9rem"><summary style="cursor:pointer;color:var(--suave)">ID do Google configurado</summary><div class="hash" style="margin:.4rem 0">${esc(s.googleClientId)}</div><button class="btn sm" data-act="drive-config">Alterar</button></details>`
+    : `<div class="banner info" style="margin:0 0 .8rem">Falta um passo único de configuração: criar um “ID de cliente” gratuito no Google e colar aqui. Fazemos isso juntos quando o app estiver no ar.</div><button class="btn" data-act="drive-config">Colar ID do Google</button>`}
+  </div>
+  <div class="card"><h2>Arquivo</h2>
+    <p style="margin-top:0">Gera um arquivo criptografado para guardar onde quiser: pen drive, HD externo, Arquivos do iPad ou o próprio Drive. ${ehToque ? 'No iPad abre a tela de compartilhar: escolha “Salvar em Arquivos” ou o Google Drive.' : ''}</p>
+    <div class="row"><button class="btn pri" data-act="exportar">Exportar backup</button><button class="btn" data-act="importar">Importar backup</button></div>
+    <p style="color:var(--suave);font-size:.9rem;margin-bottom:0">Importar <b>junta</b> os dados do arquivo com os deste aparelho: nada é apagado, e registros iguais não se repetem.</p>
+  </div>`;
+}
+function configurarDrive() {
+  modal(`<h2>ID do Google</h2><p>Cole o “ID do cliente” criado no Google Cloud (termina em <i>.apps.googleusercontent.com</i>).</p>
+    <label class="f"><span>ID do cliente</span><input type="text" id="m-cid" value="${esc(S.dados.settings.googleClientId)}" autocomplete="off"></label>
+    <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Salvar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      const v = m.querySelector('#m-cid').value.trim();
+      if (v && !/\.apps\.googleusercontent\.com$/.test(v)) { aviso('Esse não parece um ID de cliente do Google.'); return; }
+      S.dados.settings.googleClientId = v; Drive.token = null; Drive.pastaId = null;
+      auditar('ID do Google alterado'); await salvar(); fechar(); render();
+    };
+  });
+}
+
+/* ---------- registro de acesso ---------- */
+function telaAuditoria() {
+  const lista = S.dados.audit.slice().reverse().slice(0, 400);
+  return `${btnVoltar()}
+  <h1 style="font-size:1.5rem;margin-bottom:.3rem">Registro de acesso</h1>
+  <p style="color:var(--suave);margin-top:0">Tudo o que é feito no prontuário fica anotado aqui, com data e hora. Mostrando os ${lista.length} mais recentes.</p>
+  <div class="card" style="overflow:auto"><table class="aud"><thead><tr><th>Quando</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>
+  ${lista.map(a => `<tr><td style="white-space:nowrap">${fmtDataHora(a.em)}</td><td>${esc(a.acao)}</td><td>${esc(a.detalhe)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+/* ---------- ajustes ---------- */
+function telaConfig() {
+  const s = S.dados.settings;
+  return `${btnVoltar()}
+  <h1 style="font-size:1.5rem;margin-bottom:1rem">Ajustes</h1>
+  <form id="f-config" class="form-sec"><h3>Dados do médico (cabeçalho das impressões)</h3>
+    <label class="f"><span>Nome</span><input type="text" name="medico" value="${esc(s.medico)}"></label>
+    <div class="grid2"><label class="f"><span>CRM</span><input type="text" name="crm" value="${esc(s.crm)}"></label>
+    <label class="f"><span>RQE (se houver)</span><input type="text" name="rqe" value="${esc(s.rqe)}"></label></div>
+    <label class="f"><span>Endereço do consultório</span><input type="text" name="endereco" value="${esc(s.endereco)}"></label>
+    <div class="grid2"><label class="f"><span>Telefone</span><input type="text" name="telefone" value="${esc(s.telefone)}"></label>
+    <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
+    <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
+  </form>
+  <div class="card"><h2>Segurança</h2><div class="row"><button class="btn" data-act="trocar-senha">Trocar senha</button></div></div>
+  <div class="card"><h2>Pacientes fictícios</h2><p style="margin-top:0">Carrega 3 pacientes inventados, com consultas e evoluções, para você conhecer o app.</p><button class="btn" data-act="demo">Carregar pacientes fictícios</button></div>
+  <div class="card"><h2>Apagar dados deste aparelho</h2><p style="margin-top:0">Remove tudo deste aparelho. Só faça isso se tiver backup.</p><button class="btn perigo" data-act="apagar-tudo">Apagar tudo deste aparelho</button></div>
+  <p style="color:var(--suave);font-size:.85rem">Versão ${APP_VERSAO}</p>`;
+}
+function trocarSenha() {
+  modal(`<h2>Trocar senha</h2>
+    <label class="f"><span>Senha atual</span><input type="password" id="m-a"></label>
+    <label class="f"><span>Nova senha (mín. 8)</span><input type="password" id="m-n"></label>
+    <label class="f"><span>Repita a nova senha</span><input type="password" id="m-r"></label>
+    <div class="erro" id="m-erro"></div>
+    <p style="font-size:.9rem">Backups antigos continuam abrindo com a senha antiga. Use a mesma senha nova nos outros aparelhos.</p>
+    <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Trocar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      const a = m.querySelector('#m-a').value, n = m.querySelector('#m-n').value, r = m.querySelector('#m-r').value, er = m.querySelector('#m-erro');
+      if (a !== S.senha) return er.textContent = 'Senha atual incorreta.';
+      if (n.length < 8) return er.textContent = 'A nova senha precisa ter pelo menos 8 caracteres.';
+      if (n !== r) return er.textContent = 'As senhas novas não conferem.';
+      er.textContent = 'Trocando…';
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      S.chave = await derivarChave(n, salt); S.saltB64 = b64(salt); S.senha = n;
+      auditar('Senha trocada'); await salvar(); fechar(); aviso('Senha trocada.');
+    };
+  });
+}
+async function apagarTudo() {
+  modal(`<h2>Apagar tudo deste aparelho?</h2><p>Isso não pode ser desfeito. Para confirmar, digite <b>APAGAR</b>.</p>
+    <input type="text" id="m-c" autocomplete="off"><div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn perigo cheio" data-m="sim">Apagar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      if (m.querySelector('#m-c').value.trim().toUpperCase() !== 'APAGAR') return aviso('Digite APAGAR para confirmar.');
+      await Store.del('cofre'); fechar(); bloquear('Dados apagados deste aparelho.');
+    };
+  });
+}
+
+/* ---------- pacientes fictícios ---------- */
+async function carregarDemo() {
+  const s = S.dados.settings, autor = `${s.medico} – ${s.crm}`;
+  const dia = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10); };
+  const quando = n => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(15, 30, 0, 0); return d.toISOString(); };
+  const pacs = [
+    {nome:'Ana Exemplo Fictícia', nascimento:'1991-03-14', sexo:'Feminino', telefone:'(71) 90000-0001', tipoAtend:'Particular', profissao:'Advogada', alergias:'', meds:[['Sertralina','50 mg','1 cp pela manhã',40]],
+     regs:[['primeira',40,{queixa:'Preocupação excessiva e tensão há cerca de 1 ano, pior nos últimos 3 meses.',hda:'Relata preocupação constante com trabalho e família, dificuldade para relaxar, tensão muscular, irritabilidade e insônia inicial. Nega ataques de pânico. Sintomas pioraram após aumento da carga de trabalho.',ant_psiq:'Nega tratamentos prévios.',substancias:'Álcool social, 2 a 3 doses aos fins de semana. Nega outras substâncias.',sono:'Insônia inicial, demora cerca de 1 h para dormir.',em_humor:'Humor ansioso, afeto congruente.',em_risco:'Sem ideação suicida. Risco baixo.',hipotese:'Transtorno de ansiedade generalizada.',conduta:'Iniciada sertralina 25 mg por 7 dias, depois 50 mg. Orientada higiene do sono. Encaminhada para psicoterapia (TCC).',retorno:'30 dias'},['F41.1 – Ansiedade generalizada']],
+           ['evolucao',10,{subjetivo:'Refere melhora de cerca de 50% da ansiedade. Dorme melhor. Náusea leve na primeira semana, já resolvida.',adesao:'Boa adesão. Iniciou psicoterapia.',avaliacao:'Boa resposta inicial.',conduta:'Mantida sertralina 50 mg.',retorno:'60 dias'},['F41.1 – Ansiedade generalizada']]]},
+    {nome:'Bruno Teste Simulado', nascimento:'1986-07-02', sexo:'Masculino', telefone:'(71) 90000-0002', tipoAtend:'Particular', profissao:'Engenheiro', meds:[['Lisdexanfetamina','30 mg','1 cp pela manhã',25]],
+     regs:[['primeira',25,{queixa:'Dificuldade de concentração e procrastinação desde a infância.',hda:'Desatenção, esquecimentos, dificuldade em concluir tarefas e organizar a rotina. Prejuízo no trabalho. ASRS positiva.',familiar:'Irmão com diagnóstico de TDAH.',substancias:'Café, 5 xícaras/dia. Nega outras substâncias.',eletronicos:'Uso intenso de redes sociais à noite.',em_atencao:'Atenção voluntária diminuída.',em_risco:'Sem risco identificado.',hipotese:'TDAH, apresentação predominantemente desatenta.',conduta:'Iniciada lisdexanfetamina 30 mg pela manhã. Orientações sobre rotina e redução de cafeína.',retorno:'30 dias'},['F90.0 – Distúrbios da atividade e da atenção (TDAH)']]]},
+    {nome:'Carla Modelo Inventada', nascimento:'1978-11-20', sexo:'Feminino', telefone:'(71) 90000-0003', tipoAtend:'Convênio', convenio:'Plano Exemplo', meds:[],
+     regs:[['primeira',5,{queixa:'Apostas on-line fora de controle há 8 meses.',hda:'Começou com apostas esportivas e jogos on-line. Aumento progressivo dos valores, tentativas de recuperar perdas, mentiras para a família, dívidas.',apostas:'Aposta diariamente, principalmente à noite. Gastos acima da renda.',em_humor:'Humor deprimido, culpa.',em_risco:'Sem ideação suicida no momento. Orientada sobre sinais de alerta.',hipotese:'Jogo patológico.',conduta:'Psicoeducação. Bloqueio de sites e apps de aposta com apoio da família. Encaminhamento para psicoterapia e grupo de apoio.',retorno:'15 dias'},['F63.0 – Jogo patológico (apostas)']]]}
+  ];
+  for (const d of pacs) {
+    const p = {id: uid(), criadoEm: quando(45), atualizadoEm: quando(45), nome: d.nome, nascimento: d.nascimento, sexo: d.sexo, telefone: d.telefone, tipoAtend: d.tipoAtend, convenio: d.convenio || '', profissao: d.profissao || '', alergias: d.alergias || '', obs: 'Paciente fictício para teste.', medicacoes: d.meds.map(([nome, dose, posologia, n]) => ({id: uid(), nome, dose, posologia, inicio: dia(n), fim: null, criadoEm: quando(n)}))};
+    S.dados.patients.push(p);
+    for (const [tipo, n, campos, cid] of d.regs) {
+      const r = {id: uid(), patientId: p.id, tipo, data: dia(n), criadoEm: quando(n), campos, cid, refId: null, autor, assinatura: {status:'pendente'}};
+      r.hash = await hashRegistro(r); S.dados.records.push(r);
+    }
+  }
+  auditar('Pacientes fictícios carregados', '3 pacientes');
+  await salvar(); S.view = {nome:'inicio'}; render(); aviso('Pacientes fictícios carregados.');
+}
+
+/* ============================================================
+   NAVEGAÇÃO E AÇÕES
+   ============================================================ */
+function abrirPaciente(id) { S.view = {nome:'paciente', pid:id}; S.rascunho = null; render(); }
+const ACOES = {
+  'ir': d => { S.view = {nome: d.v}; render(); },
+  'bloquear': () => bloquear(),
+  'novo-paciente': () => { S.view = {nome:'form-paciente'}; render(); },
+  'editar-paciente': d => { S.view = {nome:'form-paciente', pid: d.id}; render(); },
+  'abrir-paciente': d => abrirPaciente(d.id),
+  'novo-registro': d => abrirRegistro(d.tipo, d.pid, d.ref),
+  'sair-form': () => abrirPaciente(S.rascunho.patientId),
+  'descartar-rascunho': async () => {
+    if (!(await confirmar({titulo:'Descartar rascunho?', texto:'O que foi digitado neste formulário será perdido.', ok:'Descartar', perigo:true}))) return;
+    const pid = S.rascunho.patientId; delete S.dados.drafts[S.rascunho.chave]; await salvar(); abrirPaciente(pid);
+  },
+  'tirar-cid': d => { S.rascunho.cid.splice(Number(d.i), 1); $('#cid-chips').innerHTML = chipsCID(); guardarRascunho(); },
+  'alternar': d => { S.abertos.has(d.id) ? S.abertos.delete(d.id) : S.abertos.add(d.id); const y = $('#main').scrollTop; render(); $('#main').scrollTop = y; },
+  'verificar': d => verificarIntegridade(d.pid),
+  'nova-med': d => novaMedicacao(d.pid),
+  'suspender-med': d => suspenderMedicacao(d.pid, d.id),
+  'imprimir-registro': d => { const r = S.dados.records.find(x => x.id === d.id); imprimir(docImpressao(r), nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId); },
+  'imprimir-paciente': d => { const regs = registrosDe(d.id).filter(r => r.tipo !== 'adendo').sort((a, b) => a.data.localeCompare(b.data)); if (!regs.length) return aviso('Não há registros para imprimir.'); imprimir(regs.map(docImpressao).join(''), 'Prontuário completo – ' + paciente(d.id).nome, d.id); },
+  'exportar': () => exportarArquivo().catch(e => aviso(e.message)),
+  'importar': () => escolherArquivo(),
+  'drive-config': () => configurarDrive(),
+  'drive-salvar': (d, el) => driveSalvar(el),
+  'drive-puxar': (d, el) => drivePuxar(el),
+  'trocar-senha': () => trocarSenha(),
+  'demo': () => carregarDemo(),
+  'apagar-tudo': () => apagarTudo()
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || !S.chave) return;
+  const f = ACOES[el.dataset.act]; if (!f) return;
+  if (el.tagName === 'A') e.preventDefault();
+  f(el.dataset, el, e);
+});
+document.addEventListener('submit', e => {
+  if (!S.chave) return;
+  if (e.target.id === 'f-paciente') { e.preventDefault(); salvarPaciente(e.target); }
+  if (e.target.id === 'f-config') {
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target).entries());
+    Object.assign(S.dados.settings, fd, {bloqueioMin: Math.max(1, Number(fd.bloqueioMin) || 10)});
+    auditar('Ajustes alterados'); salvar().then(() => { render(); aviso('Ajustes salvos.'); });
+  }
+});
+
+/* ---------- início do app ---------- */
+if ('serviceWorker' in navigator && !emIframe && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+if (!window.crypto || !crypto.subtle) {
+  document.getElementById('app').innerHTML = '<div class="lock"><div class="card"><h1>Prontuário</h1><p>Este navegador não oferece a criptografia necessária. Abra pelo endereço seguro (https) do app.</p></div></div>';
+} else {
+  telaBloqueio();
+}
+</script>
+</body>
+</html>
