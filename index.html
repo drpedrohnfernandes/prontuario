@@ -183,7 +183,8 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.0.0';
+const APP_VERSAO = '1.0.1';
+const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
 
@@ -258,7 +259,7 @@ const Store = {
 /* ---------- estado ---------- */
 const DADOS_VAZIOS = () => ({
   versao: 1, patients: [], records: [], audit: [], drafts: {},
-  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', bloqueioMin:10, googleClientId:'', ultimoBackup:null }
+  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', bloqueioMin:10, googleClientId:GOOGLE_CLIENT_ID_PADRAO, ultimoBackup:null }
 });
 const S = { chave:null, senha:null, saltB64:null, dados:null, view:{nome:'inicio'}, busca:'', rascunho:null, ultimaAtividade:Date.now(), abertos:new Set(), temCofre:false };
 
@@ -395,6 +396,7 @@ async function telaBloqueio() {
         const dados = await decifrar(chave, cofre);
         S.chave = chave; S.senha = senha; S.saltB64 = cofre.salt; S.dados = Object.assign(DADOS_VAZIOS(), dados);
         S.dados.settings = Object.assign(DADOS_VAZIOS().settings, dados.settings || {});
+        if (!S.dados.settings.googleClientId) S.dados.settings.googleClientId = GOOGLE_CLIENT_ID_PADRAO;
         auditar('Acesso ao prontuário'); await salvar(); aposEntrar();
       } catch (err) { $('#erro').textContent = 'Senha incorreta.'; $('#s1').value = ''; }
     });
