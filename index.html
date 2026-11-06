@@ -107,6 +107,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg{border-left:4px solid var(--musgo);padding-left:1rem}
 .reg.evolucao{border-left-color:var(--azul)}
 .reg.adendo{border-left-color:var(--dourado)}
+.reg.cfm{border-left-color:var(--marrom)}
 .reg .rtop{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center;cursor:pointer}
 .reg .rtit{font-weight:600}
 .reg .rmeta{color:var(--suave);font-size:.86rem}
@@ -183,7 +184,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.0.1';
+const APP_VERSAO = '1.1.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -313,12 +314,13 @@ const FICHAS = {
   evolucao: { titulo:'Evolução', secoes:[
     {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto'],['risco','Avaliação de risco','linha'],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
   ]},
-  adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]}
+  adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
+  cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
 const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
 function resumoRegistro(r) {
   const c = r.campos || {};
-  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || '';
+  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.detalhes || '';
   return t.length > 160 ? t.slice(0,160) + '…' : t;
 }
 
@@ -491,7 +493,7 @@ const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"')
 function telaInicio() {
   const d = S.dados, hoje = hojeStr();
   const hojeN = d.records.filter(r => r.data === hoje && r.tipo !== 'adendo').length;
-  const pend = d.records.filter(r => !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const pend = d.records.filter(r => r.tipo !== 'cfm' && !(r.assinatura && r.assinatura.status === 'assinado')).length;
   const u = d.settings.ultimoBackup;
   return `
     ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
@@ -525,7 +527,7 @@ function telaPaciente() {
   <div class="card"><div class="phead">
     <div class="avatar">${esc(iniciais(p.nome))}</div>
     <div class="grow"><h1>${esc(p.nome)}</h1>
-      <div class="meta">${p.nascimento ? `<span>${fmtData(p.nascimento)} (${esc(idade(p.nascimento))})</span>` : ''}${p.telefone ? `<span>${esc(p.telefone)}</span>` : ''}${p.cpf ? `<span>CPF ${esc(p.cpf)}</span>` : ''}<span class="tag ${p.tipoAtend === 'Convênio' ? 'azul' : 'marrom'}">${esc(p.tipoAtend || 'Particular')}${p.convenio ? ' · ' + esc(p.convenio) : ''}</span></div>
+      <div class="meta">${p.nascimento ? `<span>${fmtData(p.nascimento)} (${esc(idade(p.nascimento))})</span>` : ''}${p.telefone ? `<span>${esc(p.telefone)}</span>` : ''}${p.cpf ? `<span>CPF ${esc(p.cpf)}</span>` : ''}${p.tipoAtend ? `<span class="tag ${p.tipoAtend === 'Convênio' ? 'azul' : 'marrom'}">${esc(p.tipoAtend)}${p.convenio ? ' · ' + esc(p.convenio) : ''}</span>` : ''}</div>
       ${p.alergias ? `<div style="margin-top:.4rem"><span class="tag ruim">Alergias: ${esc(p.alergias)}</span></div>` : ''}
     </div>
     <div class="row">
@@ -567,7 +569,7 @@ function cartaoRegistro(r, todos) {
   const adendos = todos.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   const integ = S.integridade && S.integridade[r.id];
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
-  const assin = r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
+  const assin = r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
@@ -852,11 +854,22 @@ async function importarObjeto(obj, origem) {
   await salvar(); render();
   aviso(`Importado: ${c.pacientes} paciente(s) novo(s), ${c.registros} registro(s) novo(s), ${c.atualizados} cadastro(s) atualizado(s).`, 6000);
 }
+async function importarLista(obj, nomeArq) {
+  const pats = obj.patients || [], regs = obj.records || [];
+  const ok = await confirmar({titulo:'Importar pacientes?', texto:`O arquivo traz <b>${pats.length}</b> paciente(s) e <b>${regs.length}</b> documento(s) de “${esc(obj.origem || 'outra fonte')}”. Pacientes e documentos que já estiverem no app não se repetem, e nada daqui é apagado.`, ok:'Importar'});
+  if (!ok) return;
+  aviso('Importando…', 20000);
+  for (const r of regs) { r.assinatura = r.assinatura || {status:'pendente'}; r.hash = await hashRegistro(r); }
+  const c = mesclar({patients: pats, records: regs, audit: []});
+  auditar('Lista de pacientes importada', `${obj.origem || ''} (${nomeArq}): +${c.pacientes} paciente(s), +${c.registros} documento(s)`);
+  await salvar(); S.view = {nome:'inicio'}; render();
+  aviso(`Importado: ${c.pacientes} paciente(s) novo(s) e ${c.registros} documento(s) novo(s). Agora apague o arquivo de importação.`, 8000);
+}
 function escolherArquivo() {
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.prontuario,.json,application/json,application/octet-stream';
   inp.onchange = async () => {
     const f = inp.files[0]; if (!f) return;
-    try { await importarObjeto(JSON.parse(await f.text()), 'arquivo ' + f.name); }
+    try { const obj = JSON.parse(await f.text()); if (obj && obj.app === 'prontuario-importacao') await importarLista(obj, f.name); else await importarObjeto(obj, 'arquivo ' + f.name); }
     catch (e) { aviso(e.message || 'Não foi possível ler o arquivo.', 5000); }
   };
   inp.click();
@@ -948,7 +961,7 @@ function telaBackup() {
   </div>
   <div class="card"><h2>Arquivo</h2>
     <p style="margin-top:0">Gera um arquivo criptografado para guardar onde quiser: pen drive, HD externo, Arquivos do iPad ou o próprio Drive. ${ehToque ? 'No iPad abre a tela de compartilhar: escolha “Salvar em Arquivos” ou o Google Drive.' : ''}</p>
-    <div class="row"><button class="btn pri" data-act="exportar">Exportar backup</button><button class="btn" data-act="importar">Importar backup</button></div>
+    <div class="row"><button class="btn pri" data-act="exportar">Exportar backup</button><button class="btn" data-act="importar">Importar backup ou lista de pacientes</button></div>
     <p style="color:var(--suave);font-size:.9rem;margin-bottom:0">Importar <b>junta</b> os dados do arquivo com os deste aparelho: nada é apagado, e registros iguais não se repetem.</p>
   </div>`;
 }
