@@ -329,7 +329,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.12.1';
+const APP_VERSAO = '1.13.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -849,20 +849,130 @@ function gerarPdfParaAssinar(r) {
   imprimir(docImpressao(r, true), 'PDF para assinatura VIDaaS – ' + nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId);
   setTimeout(() => { document.title = tituloAntes; }, 5000);
 }
+/* ---------- PDF próprio (sem tela de impressão), para assinar ---------- */
+const PDF_LARG = {R: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,350,556,350,222,556,333,1000,556,556,333,1000,667,333,1000,350,611,350,350,222,222,333,333,350,556,1000,333,1000,500,333,944,350,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,333,333,333,556,537,278,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500], B: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,350,556,350,278,556,500,1000,556,556,333,1000,667,333,1000,350,611,350,350,278,278,500,500,350,556,1000,333,1000,556,333,944,350,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,333,333,333,611,556,278,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556]};
+const CP1252 = {0x20AC:0x80,0x201A:0x82,0x192:0x83,0x201E:0x84,0x2026:0x85,0x2020:0x86,0x2021:0x87,0x2C6:0x88,0x2030:0x89,0x160:0x8A,0x2039:0x8B,0x152:0x8C,0x17D:0x8E,0x2018:0x91,0x2019:0x92,0x201C:0x93,0x201D:0x94,0x2022:0x95,0x2013:0x96,0x2014:0x97,0x2DC:0x98,0x2122:0x99,0x161:0x9A,0x203A:0x9B,0x153:0x9C,0x17E:0x9E,0x178:0x9F};
+const PDF_TROCA = {'→':'->','←':'<-','≥':'>=','≤':'<=','⚠':'!','▪':'•','✓':'v','✔':'v','✗':'x','×':'x','≈':'~','\u00A0':' ','\t':'    ','\u200B':''};
+function codigos1252(t) {
+  const out = [];
+  for (const ch of String(t)) {
+    const s = PDF_TROCA[ch] !== undefined ? PDF_TROCA[ch] : ch;
+    for (const c of s) { const u = c.codePointAt(0); if (u >= 32 && u <= 255 && !(u >= 0x80 && u <= 0x9F)) out.push(u); else if (CP1252[u]) out.push(CP1252[u]); else out.push(...[...c.normalize('NFD').replace(/[\u0300-\u036f]/g, '')].map(x => { const v = x.codePointAt(0); return v >= 32 && v < 127 ? v : 63; })); }
+  }
+  return out;
+}
+const largPdf = (cods, f, tam) => cods.reduce((s, c) => s + (PDF_LARG[f][c - 32] || 556), 0) * tam / 1000;
+function quebrarPdf(texto, f, tam, larg) {
+  const linhas = [];
+  for (const par of String(texto).split('\n')) {
+    const palavras = par.split(/ +/); let atual = '';
+    if (!par.trim()) { linhas.push(''); continue; }
+    for (const w of palavras) {
+      const tenta = atual ? atual + ' ' + w : w;
+      if (largPdf(codigos1252(tenta), f, tam) <= larg) { atual = tenta; continue; }
+      if (atual) linhas.push(atual);
+      let resto = w;
+      while (largPdf(codigos1252(resto), f, tam) > larg) { let n = resto.length; while (n > 1 && largPdf(codigos1252(resto.slice(0, n)), f, tam) > larg) n--; linhas.push(resto.slice(0, n)); resto = resto.slice(n); }
+      atual = resto;
+    }
+    linhas.push(atual);
+  }
+  return linhas;
+}
+function pdfDoRegistro(r) {
+  const s = S.dados.settings, p = paciente(r.patientId), ficha = FICHAS[r.tipo];
+  const W = 595.28, H = 841.89, M = 56, L = W - 2 * M, BASE = 60;
+  const cor = {texto: '0.12 0.15 0.13', musgo: '0.29 0.35 0.24', marrom: '0.48 0.35 0.26', cinza: '0.38 0.38 0.38', verm: '0.64 0.27 0.18'};
+  const paginas = [[]]; let y = H - M;
+  const pg = () => paginas[paginas.length - 1];
+  const novaPag = () => { paginas.push([]); y = H - M; };
+  const txt = (t, x, f, tam, c) => pg().push(`BT /${f === 'B' ? 'F2' : 'F1'} ${tam} Tf ${cor[c] || cor.texto} rg ${x.toFixed(2)} ${y.toFixed(2)} Td <${codigos1252(t).map(v => v.toString(16).padStart(2, '0')).join('')}> Tj ET`);
+  const linha = (c, w) => pg().push(`${cor[c]} RG ${w} w ${M} ${y.toFixed(2)} m ${(W - M).toFixed(2)} ${y.toFixed(2)} l S`);
+  const bloco = (texto, f, tam, c, antes, ind) => {
+    const lh = tam * 1.38; y -= antes || 0;
+    for (const l of quebrarPdf(texto, f, tam, L - (ind || 0))) { if (y - lh < BASE) novaPag(); y -= lh; if (l) txt(l, M + (ind || 0), f, tam, c); }
+  };
+  // cabeçalho
+  bloco(s.medico || '', 'B', 15, 'musgo');
+  bloco([s.crm, s.rqe ? 'RQE ' + s.rqe : ''].filter(Boolean).join(' · '), 'R', 9.5, 'marrom', 2);
+  bloco([s.endereco, s.telefone].filter(Boolean).join(' · '), 'R', 8.5, 'cinza', 1);
+  y -= 8; linha('musgo', 1.4); y -= 6;
+  bloco(`${ficha.titulo} – ${fmtData(r.data)}`, 'B', 13, 'texto', 8);
+  bloco(`Paciente: ${p.nome}${p.nascimento ? ' · Nasc. ' + fmtData(p.nascimento) + ' (' + idade(p.nascimento) + ')' : ''}${p.cpf ? ' · CPF ' + p.cpf : ''}`, 'R', 10.5, 'texto', 3);
+  const an = anulacaoDe(r.id);
+  if (an) bloco(`REGISTRO ANULADO em ${fmtDataHora(an.criadoEm)}. Motivo: ${an.campos.motivo}`, 'B', 10.5, 'verm', 8);
+  y -= 6;
+  for (const sec of ficha.secoes) {
+    const campos = sec.campos.filter(([k]) => k === 'cid' ? (r.cid || []).length : String(r.campos[k] || '').trim());
+    if (!campos.length) continue;
+    if (ficha.secoes.length > 1) { if (y - 60 < BASE) novaPag(); bloco(sec.t, 'B', 11.5, 'musgo', 10); }
+    for (const [k, rot] of campos) {
+      if (y - 40 < BASE) novaPag();
+      bloco(rot.toUpperCase(), 'B', 8, 'cinza', 7);
+      bloco(k === 'cid' ? r.cid.join('; ') : String(r.campos[k]), 'R', 10.5, 'texto', 1);
+    }
+  }
+  const adendos = S.dados.records.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
+  for (const a of adendos) { bloco('ADENDO – ' + fmtDataHora(a.criadoEm), 'B', 8, 'cinza', 10); bloco(a.campos.texto, 'R', 10.5, 'texto', 1); }
+  // rodapé de identificação
+  if (y - 90 < BASE) novaPag();
+  y -= 16; linha('cinza', .5); y -= 2;
+  bloco(`Registrado por ${r.autor} em ${fmtDataHora(r.criadoEm)}.${r.editadoEm ? ' Última edição em ' + fmtDataHora(r.editadoEm) + ' (versões anteriores guardadas no prontuário).' : ''}`, 'R', 8.5, 'cinza', 2);
+  bloco('Código de integridade (SHA-256): ' + r.hash, 'R', 8, 'cinza', 1);
+  bloco(`Documento assinado digitalmente por ${r.autor} com certificado ICP-Brasil (VIDaaS). Verifique em validar.iti.gov.br.`, 'R', 8.5, 'cinza', 1);
+  // numeração
+  const N = paginas.length;
+  const rodPag = (i) => { const t = `${p.nome} · ${ficha.titulo} ${fmtData(r.data)} · página ${i + 1} de ${N}`; const c = codigos1252(t); const x = W - M - largPdf(c, 'R', 7.5); return `BT /F1 7.5 Tf ${cor.cinza} rg ${x.toFixed(2)} 30 Td <${c.map(v => v.toString(16).padStart(2, '0')).join('')}> Tj ET`; };
+  // montar o arquivo
+  const objs = [];
+  const add = o => { objs.push(o); return objs.length; };
+  const iCat = add(null), iPags = add(null);
+  const iF1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  const iF2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  const filhos = [];
+  paginas.forEach((ops, i) => {
+    const conteudo = ops.filter(Boolean).concat(rodPag(i)).join('\n');
+    const iC = add(`<< /Length ${conteudo.length} >>\nstream\n${conteudo}\nendstream`);
+    filhos.push(add(`<< /Type /Page /Parent ${iPags} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${iF1} 0 R /F2 ${iF2} 0 R >> >> /Contents ${iC} 0 R >>`));
+  });
+  objs[iCat - 1] = `<< /Type /Catalog /Pages ${iPags} 0 R >>`;
+  objs[iPags - 1] = `<< /Type /Pages /Kids [${filhos.map(f => f + ' 0 R').join(' ')}] /Count ${filhos.length} >>`;
+  const hexStr = t => '<FEFF' + [...String(t)].map(c => { const u = c.codePointAt(0); return u > 0xFFFF ? '' : u.toString(16).padStart(4, '0'); }).join('') + '>';
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  const iInfo = add(`<< /Title ${hexStr(ficha.titulo + ' – ' + p.nome + ' – ' + fmtData(r.data))} /Author ${hexStr(s.medico || '')} /Producer (Prontuario ${APP_VERSAO}) /CreationDate (D:${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}) >>`);
+  let pdf = '%PDF-1.4\n%\u00E2\u00E3\u00CF\u00D3\n'; const offs = [];
+  objs.forEach((o, i) => { offs.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root ${iCat} 0 R /Info ${iInfo} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  const u8 = new Uint8Array(pdf.length); for (let i = 0; i < pdf.length; i++) u8[i] = pdf.charCodeAt(i) & 0xFF;
+  return u8;
+}
+function baixarPdfParaAssinar(r) {
+  let bytes; try { bytes = pdfDoRegistro(r); } catch (e) { console.error(e); aviso('Não consegui gerar o arquivo. Use a tela de impressão.', 6000); gerarPdfParaAssinar(r); return null; }
+  (S.pdfGerado = S.pdfGerado || {})[r.id] = r.hash;
+  const nome = nomeArquivoReg(r) + '.pdf';
+  const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}));
+  const a = document.createElement('a'); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  auditar('PDF para assinatura baixado', `${nomeTipo(r.tipo)} de ${fmtData(r.data)} – ${paciente(r.patientId).nome}`, r.patientId); salvar();
+  return nome;
+}
 function assinarVidaas(id) {
   const r = S.dados.records.find(x => x.id === id); if (!r) return;
   modal(`<h2>Assinar com o VIDaaS</h2>
     <ol class="passos-ass">
-      <li><b>Gere o PDF.</b> Na tela de impressão escolha <b>Salvar como PDF</b> (no iPad: Compartilhar → Salvar em Arquivos). O nome do arquivo já vem sugerido.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="pdf">Gerar PDF deste registro</button></li>
-      <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o PDF no Adobe Reader com o <b>VIDaaS Connect</b> instalado, clique em assinar e autorize lendo o QR code com o app do celular (ou use o assinador on-line da Valid). Salve o arquivo assinado.</li>
+      <li><b>Baixe o PDF.</b> O arquivo é salvo direto em Downloads, já com o nome do paciente e do registro.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="pdf">Baixar PDF deste registro</button> <span id="m-pdfnome" style="font-size:.85rem;color:var(--musgo)"></span><br><a href="#" data-m="imp" style="font-size:.82rem">ou usar a tela de impressão</a></li>
+      <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o arquivo baixado (abre no Adobe Reader), clique em assinar com o <b>VIDaaS Connect</b> e autorize lendo o QR code com o app do celular. Salve o arquivo assinado.</li>
       <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro. A partir daí o registro <b>não pode mais ser editado</b>.<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
     </ol>
     <p style="font-size:.85rem;color:var(--suave)">Não edite nem reimprima o PDF depois de assinado: qualquer alteração invalida a assinatura. Para conferir, use validar.iti.gov.br.</p>
     <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => {
     m.querySelector('[data-m=nao]').onclick = fechar;
-    m.querySelector('[data-m=pdf]').onclick = () => { fechar(); gerarPdfParaAssinar(r); setTimeout(() => assinarVidaas(id), 1200); };
+    m.querySelector('[data-m=pdf]').onclick = () => { const n = baixarPdfParaAssinar(r); if (n) m.querySelector('#m-pdfnome').textContent = '✓ ' + n; };
+    m.querySelector('[data-m=imp]').onclick = e => { e.preventDefault(); fechar(); gerarPdfParaAssinar(r); setTimeout(() => assinarVidaas(id), 1200); };
     m.querySelector('#m-pdfass').onchange = async e => {
-      const f = e.target.files[0]; if (!f) return;
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       if (f.size > 8 * 1024 * 1024) return aviso('Arquivo grande demais (máx. 8 MB).');
       const buf = new Uint8Array(await f.arrayBuffer());
       const cab = new TextDecoder('latin1').decode(buf.slice(0, 5));
