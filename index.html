@@ -108,6 +108,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg.evolucao{border-left-color:var(--azul)}
 .reg.adendo{border-left-color:var(--dourado)}
 .reg.cfm{border-left-color:var(--marrom)}
+.reg.receita{border-left-color:var(--terracota)}
+.reg.doctoralia{border-left-color:#6b5aa8}
+.item-rx{border:1px solid var(--linha);border-radius:10px;padding:.7rem .8rem .1rem;margin-bottom:.7rem;background:#fff}
+.alerta-rx{background:#fbecd9;border:1px solid #f0d3ac;color:#6b4a1f;border-radius:10px;padding:.6rem .8rem;margin:.2rem 0 .8rem;font-size:.92rem}
 .reg .rtop{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center;cursor:pointer}
 .reg .rtit{font-weight:600}
 .reg .rmeta{color:var(--suave);font-size:.86rem}
@@ -168,6 +172,38 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .p-campo b{display:block;font-size:9pt;text-transform:uppercase;color:#444}
   .p-campo div{white-space:pre-wrap}
   .p-rod{margin-top:18px;border-top:1px solid #999;padding-top:6px;font-size:8.5pt;color:#333}
+  /* Receitas */
+  .rx{font-family:Georgia,"Times New Roman",serif;color:#000;page-break-after:always;box-sizing:border-box}
+  .rx:last-child{page-break-after:auto}
+  .rx-simples{min-height:265mm;display:flex;flex-direction:column;padding:4mm 6mm}
+  .rx-cab{text-align:center;border-bottom:1.5pt solid #4a5a3c;padding-bottom:3mm;margin-bottom:6mm}
+  .rx-cab .n{font-size:17pt;font-weight:bold;letter-spacing:.2pt}
+  .rx-cab .s{font-size:10.5pt;margin-top:1mm}
+  .rx-tit{text-align:center;font-size:12pt;font-weight:bold;letter-spacing:1.5pt;margin:2mm 0 5mm}
+  .rx-pac{font-size:11.5pt;margin-bottom:6mm}
+  .rx-itens{margin:0;padding-left:7mm;font-size:12pt;line-height:1.45}
+  .rx-itens li{margin-bottom:5mm;page-break-inside:avoid}
+  .rx-med{display:flex;gap:2mm;align-items:baseline}
+  .rx-med .nm{font-weight:bold}
+  .rx-med .pt{flex:1;border-bottom:1px dotted #555;transform:translateY(-1mm)}
+  .rx-pos{margin-top:1mm;white-space:pre-wrap}
+  .rx-or{margin-top:4mm;font-size:11pt;white-space:pre-wrap}
+  .rx-ass{margin-top:auto;padding-top:14mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:11pt}
+  .rx-linha{width:78mm;border-top:1px solid #000;text-align:center;padding-top:1.5mm;font-size:10pt}
+  .rx-end{border-top:1pt solid #4a5a3c;margin-top:6mm;padding-top:2mm;text-align:center;font-size:9pt;color:#222}
+  .rx-ce{display:grid;grid-template-columns:1fr 1fr;gap:8mm;height:186mm}
+  .rx-via{border:1pt solid #000;padding:4mm;display:flex;flex-direction:column;font-size:9.5pt;overflow:hidden}
+  .rx-via .vt{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1pt solid #000;padding-bottom:1.5mm;margin-bottom:2.5mm}
+  .rx-via .vt b{font-size:11pt;letter-spacing:.6pt}
+  .rx-box{border:.8pt solid #000;padding:2mm;margin-bottom:2.5mm}
+  .rx-box .bt{font-size:7.5pt;font-weight:bold;letter-spacing:.5pt;margin-bottom:1mm}
+  .rx-via .rx-itens{font-size:10.5pt;padding-left:5mm;line-height:1.35}
+  .rx-via .rx-itens li{margin-bottom:2.5mm}
+  .rx-via .rx-ass{padding-top:6mm;font-size:9.5pt}
+  .rx-via .rx-linha{width:55mm;font-size:8.5pt}
+  .rx-baixo{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm;margin-top:3mm}
+  .rx-baixo .rx-box{margin:0;min-height:34mm;font-size:7.6pt;line-height:2;overflow:hidden;white-space:nowrap}
+  .rx-l{border-bottom:.6pt solid #000;height:4.6mm}
 }
 </style>
 </head>
@@ -184,7 +220,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.1.0';
+const APP_VERSAO = '1.2.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -260,7 +296,7 @@ const Store = {
 /* ---------- estado ---------- */
 const DADOS_VAZIOS = () => ({
   versao: 1, patients: [], records: [], audit: [], drafts: {},
-  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', bloqueioMin:10, googleClientId:GOOGLE_CLIENT_ID_PADRAO, ultimoBackup:null }
+  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', cidade:'Salvador', uf:'BA', bloqueioMin:10, googleClientId:GOOGLE_CLIENT_ID_PADRAO, ultimoBackup:null }
 });
 const S = { chave:null, senha:null, saltB64:null, dados:null, view:{nome:'inicio'}, busca:'', rascunho:null, ultimaAtividade:Date.now(), abertos:new Set(), temCofre:false };
 
@@ -315,12 +351,14 @@ const FICHAS = {
     {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto'],['risco','Avaliação de risco','linha'],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
   ]},
   adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
+  receita: { titulo:'Receita', secoes:[{t:'Receita', campos:[['tipoReceita','Tipo','linha'],['itens','Prescrição','longo'],['orientacoes','Orientações','texto']]}]},
+  doctoralia: { titulo:'Atendimento importado da Doctoralia', secoes:[{t:'Importado da Doctoralia', campos:[['texto','Registro','longo']]}]},
   cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
 const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
 function resumoRegistro(r) {
   const c = r.campos || {};
-  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.detalhes || '';
+  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.itens || c.detalhes || '';
   return t.length > 160 ? t.slice(0,160) + '…' : t;
 }
 
@@ -460,6 +498,7 @@ function render() {
   const b = $('#busca');
   b.addEventListener('input', () => { S.busca = b.value; $('#plist').innerHTML = listaPacientes(); });
   if (v === 'registro') ligarFormRegistro();
+  if (v === 'receita') ligarReceita();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -484,6 +523,7 @@ function telaPrincipal() {
     case 'backup': return telaBackup();
     case 'auditoria': return telaAuditoria();
     case 'config': return telaConfig();
+    case 'receita': return telaReceita();
     default: return telaInicio();
   }
 }
@@ -493,7 +533,7 @@ const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"')
 function telaInicio() {
   const d = S.dados, hoje = hojeStr();
   const hojeN = d.records.filter(r => r.data === hoje && r.tipo !== 'adendo').length;
-  const pend = d.records.filter(r => r.tipo !== 'cfm' && !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const pend = d.records.filter(r => !['cfm','receita','doctoralia'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
   const u = d.settings.ultimoBackup;
   return `
     ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
@@ -537,6 +577,7 @@ function telaPaciente() {
   <div class="row" style="margin-bottom:1rem">
     <button class="btn ${temPrimeira ? '' : 'pri'}" data-act="novo-registro" data-tipo="primeira" data-pid="${p.id}">+ Primeira consulta</button>
     <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
+    <button class="btn" data-act="nova-receita" data-pid="${p.id}">+ Receita</button>
   </div>
   <div class="cols">
     <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}</div>
@@ -569,7 +610,7 @@ function cartaoRegistro(r, todos) {
   const adendos = todos.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   const integ = S.integridade && S.integridade[r.id];
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
-  const assin = r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
+  const assin = r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
@@ -581,7 +622,8 @@ function cartaoRegistro(r, todos) {
       <div class="hash" style="margin-top:.7rem">SHA-256: ${esc(r.hash)}</div>
       <div class="row" style="margin-top:.8rem">
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
-        <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">Imprimir / PDF</button>
+        ${r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button>` : ''}
+        <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
         <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
       </div>` : `<div class="resumo">${esc(resumoRegistro(r))}</div>`}
   </div></div>`;
@@ -770,6 +812,134 @@ function suspenderMedicacao(pid, id) {
   });
 }
 
+/* ---------- receitas ---------- */
+const NOTIF_B = ['alprazolam','bromazepam','clobazam','clonazepam','cloxazolam','clordiazepoxido','diazepam','estazolam','flunitrazepam','flurazepam','lorazepam','midazolam','nitrazepam','zolpidem','zopiclona','eszopiclona','fenobarbital'];
+const NOTIF_A = ['metilfenidato','lisdexanfetamina','anfetamina','dextroanfetamina','morfina','metadona','oxicodona','fentanil','tapentadol','codeina'];
+function exigeNotificacao(nome) {
+  const n = semAcento(nome);
+  if (NOTIF_A.some(x => n.includes(x))) return 'A (amarela)';
+  if (NOTIF_B.some(x => n.includes(x))) return 'B (azul)';
+  return null;
+}
+function abrirReceita(pid) {
+  const p = paciente(pid);
+  const ativas = (p.medicacoes || []).filter(m => !m.fim);
+  S.receitaRasc = {patientId: pid, tipo: 'simples', data: hojeStr(), itens: [{med:'', qtd:'', pos:''}], orientacoes: ''};
+  if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({med: [m.nome, m.dose].filter(Boolean).join(' '), qtd: '', pos: m.posologia || ''}));
+  S.view = {nome:'receita', pid};
+  render();
+}
+function telaReceita() {
+  const r = S.receitaRasc, p = paciente(r.patientId);
+  const alertas = r.itens.map(i => i.med && exigeNotificacao(i.med) ? `<b>${esc(i.med)}</b> exige Notificação de Receita ${exigeNotificacao(i.med)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
+  return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Nova receita</h1>
+  <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
+  <div class="form-sec"><div class="grid2">
+    <label class="f"><span>Tipo de receita</span><select id="rx-tipo">
+      <option value="simples" ${r.tipo === 'simples' ? 'selected' : ''}>Receita simples</option>
+      <option value="especial" ${r.tipo === 'especial' ? 'selected' : ''}>Receituário de controle especial (2 vias)</option></select></label>
+    <label class="f"><span>Data</span><input type="date" id="rx-data" value="${esc(r.data)}"></label></div>
+    ${r.tipo === 'especial' && !p.endereco ? `<div class="alerta-rx">O receituário de controle especial pede o <b>endereço do paciente</b>. Ele ainda não está no cadastro: a linha sai em branco para preencher à mão, ou <a href="#" data-act="editar-paciente" data-id="${p.id}">complete o cadastro</a>.</div>` : ''}
+  </div>
+  <div class="form-sec"><h3>Medicamentos</h3>
+    ${alertas.map(a => `<div class="alerta-rx">⚠ ${a}</div>`).join('')}
+    <div id="rx-itens">${r.itens.map((it, i) => `<div class="item-rx">
+      <div class="row" style="justify-content:space-between;margin-bottom:.4rem"><b>${i + 1}.</b>${r.itens.length > 1 ? `<button type="button" class="btn sm link" data-act="rx-tirar" data-i="${i}">Remover</button>` : ''}</div>
+      <div class="grid2"><label class="f"><span>Medicamento e dose</span><input type="text" data-rx="med" data-i="${i}" value="${esc(it.med)}" placeholder="ex.: Sertralina 50 mg" list="rx-lista"></label>
+      <label class="f"><span>Quantidade</span><input type="text" data-rx="qtd" data-i="${i}" value="${esc(it.qtd)}" placeholder="ex.: 30 comprimidos (trinta)"></label></div>
+      <label class="f"><span>Como usar</span><input type="text" data-rx="pos" data-i="${i}" value="${esc(it.pos)}" placeholder="ex.: Tomar 1 comprimido pela manhã, uso contínuo"></label>
+    </div>`).join('')}</div>
+    <datalist id="rx-lista">${(p.medicacoes || []).filter(m => !m.fim).map(m => `<option value="${esc([m.nome, m.dose].filter(Boolean).join(' '))}">`).join('')}</datalist>
+    <div class="row" style="margin-bottom:1rem"><button type="button" class="btn" data-act="rx-mais">+ Outro medicamento</button>
+    ${r.sugestoes && r.sugestoes.length ? `<button type="button" class="btn" data-act="rx-copiar">Copiar medicações em uso (${r.sugestoes.length})</button>` : ''}</div>
+  </div>
+  <div class="form-sec"><label class="f"><span>Orientações (opcional)</span><textarea id="rx-or" rows="3">${esc(r.orientacoes)}</textarea></label></div>
+  <div class="barra-acoes"><span class="salvo">Sai em PDF para imprimir e assinar à mão. A receita fica registrada no prontuário.</span>
+    <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn pri" data-act="rx-gerar">Gerar receita</button></div>`;
+}
+function ligarReceita() {
+  const m = $('#main');
+  m.addEventListener('input', e => {
+    const el = e.target, r = S.receitaRasc; if (!r) return;
+    if (el.dataset.rx) r.itens[Number(el.dataset.i)][el.dataset.rx] = el.value;
+    if (el.id === 'rx-or') r.orientacoes = el.value;
+    if (el.id === 'rx-data') r.data = el.value;
+  });
+  m.addEventListener('change', e => {
+    const el = e.target, r = S.receitaRasc; if (!r) return;
+    if (el.id === 'rx-tipo') { r.tipo = el.value; rerenderReceita(); }
+    if (el.dataset.rx === 'med') rerenderReceita();
+  });
+}
+function rerenderReceita() { const y = $('#main').scrollTop; render(); $('#main').scrollTop = y; }
+const dataExtenso = iso => { const [a, m, d] = iso.split('-').map(Number); const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']; return `${d} de ${meses[m - 1]} de ${a}`; };
+function htmlItensRx(itens) {
+  return `<ol class="rx-itens">${itens.map(i => `<li><div class="rx-med"><span class="nm">${esc(i.med)}</span><span class="pt"></span><span>${esc(i.qtd)}</span></div>${i.pos ? `<div class="rx-pos">${esc(i.pos)}</div>` : ''}</li>`).join('')}</ol>`;
+}
+function htmlReceita(dados, p) {
+  const s = S.dados.settings;
+  const local = `${s.cidade || ''}${s.uf ? ' – ' + s.uf : ''}`;
+  const assinatura = `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-linha">${esc(s.medico)}<br>${esc(s.crm)}</div></div>`;
+  if (dados.tipo !== 'especial') {
+    return `<div class="rx rx-simples">
+      <div class="rx-cab"><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>
+      <div class="rx-tit">RECEITA</div>
+      <div class="rx-pac">Paciente: <b>${esc(p.nome)}</b></div>
+      ${htmlItensRx(dados.itens)}
+      ${dados.orientacoes ? `<div class="rx-or">${esc(dados.orientacoes)}</div>` : ''}
+      ${assinatura}
+      <div class="rx-end">${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</div>
+    </div>`;
+  }
+  const linhas = n => Array.from({length: n}, () => '<div class="rx-l"></div>').join('');
+  const via = rot => `<div class="rx-via">
+    <div class="vt"><b>RECEITUÁRIO DE CONTROLE ESPECIAL</b><span>${rot}</span></div>
+    <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO EMITENTE</div>
+      <b>${esc(s.medico)}</b><br>Médico · ${esc(s.crm)}<br>${esc(s.endereco)}${s.cidade && !semAcento(s.endereco).includes(semAcento(s.cidade)) ? '<br>' + esc(local) : ''}${s.telefone ? '<br>Tel. ' + esc(s.telefone) : ''}</div>
+    <div style="margin-bottom:1.5mm">Paciente: <b>${esc(p.nome)}</b></div>
+    <div style="margin-bottom:2.5mm">Endereço: ${p.endereco ? esc(p.endereco) : '<span style="display:inline-block;width:80%;border-bottom:.6pt solid #000">&nbsp;</span>'}</div>
+    <div class="bt" style="font-size:7.5pt;font-weight:bold;letter-spacing:.5pt">PRESCRIÇÃO</div>
+    ${htmlItensRx(dados.itens)}
+    ${dados.orientacoes ? `<div class="rx-or" style="font-size:9pt;margin-top:1mm">${esc(dados.orientacoes)}</div>` : ''}
+    ${assinatura}
+    <div class="rx-baixo">
+      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO COMPRADOR</div>Nome: ________________________________<br>Identidade: ______________ Órg. emissor: _______<br>Endereço: _____________________________<br>__________________________________________<br>Cidade: __________________ UF: ____<br>Telefone: _________________</div>
+      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO FORNECEDOR</div><br><br><div class="rx-l"></div><div style="text-align:center;font-size:7.5pt">Assinatura do farmacêutico</div><br>Data: ____/____/______</div>
+    </div>
+  </div>`;
+  return `<div class="rx"><div class="rx-ce">${via('1ª via – Farmácia')}${via('2ª via – Paciente')}</div></div>`;
+}
+function imprimirReceita(dados, p, desc) {
+  let estilo = $('#estilo-pagina');
+  if (!estilo) { estilo = document.createElement('style'); estilo.id = 'estilo-pagina'; document.head.appendChild(estilo); }
+  estilo.textContent = dados.tipo === 'especial' ? '@page{size:A4 landscape;margin:10mm}' : '@page{size:A4 portrait;margin:14mm}';
+  imprimir(htmlReceita(dados, p), desc, p.id);
+  setTimeout(() => { estilo.textContent = ''; }, 4000);
+}
+async function gerarReceita() {
+  const r = S.receitaRasc, p = paciente(r.patientId);
+  const itens = r.itens.map(i => ({med: i.med.trim(), qtd: i.qtd.trim(), pos: i.pos.trim()})).filter(i => i.med);
+  if (!itens.length) return aviso('Inclua ao menos um medicamento.');
+  if (!r.data) return aviso('Informe a data.');
+  const notif = itens.filter(i => exigeNotificacao(i.med));
+  const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.med)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}A receita fica registrada no prontuário e não pode ser alterada depois. Para corrigir, gere uma nova.`, ok:'Gerar e imprimir'});
+  if (!ok) return;
+  const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim()};
+  const s = S.dados.settings;
+  const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: r.data, criadoEm: agoraISO(),
+    campos: {tipoReceita: r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples', itens: itens.map((i, n) => `${n + 1}. ${i.med}${i.qtd ? ' — ' + i.qtd : ''}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
+    cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'manual'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar('Receita gerada', `${reg.campos.tipoReceita} – ${p.nome}`, p.id);
+  await salvar();
+  S.receitaRasc = null; S.abertos.add(reg.id);
+  abrirPaciente(p.id);
+  imprimirReceita(dados, p, `${reg.campos.tipoReceita} – ${p.nome}`);
+}
+
 /* ---------- impressão ---------- */
 function cabecalhoImpressao() {
   const s = S.dados.settings;
@@ -859,11 +1029,26 @@ async function importarLista(obj, nomeArq) {
   const ok = await confirmar({titulo:'Importar pacientes?', texto:`O arquivo traz <b>${pats.length}</b> paciente(s) e <b>${regs.length}</b> documento(s) de “${esc(obj.origem || 'outra fonte')}”. Pacientes e documentos que já estiverem no app não se repetem, e nada daqui é apagado.`, ok:'Importar'});
   if (!ok) return;
   aviso('Importando…', 20000);
-  for (const r of regs) { r.assinatura = r.assinatura || {status:'pendente'}; r.hash = await hashRegistro(r); }
-  const c = mesclar({patients: pats, records: regs, audit: []});
-  auditar('Lista de pacientes importada', `${obj.origem || ''} (${nomeArq}): +${c.pacientes} paciente(s), +${c.registros} documento(s)`);
+  // Casa com pacientes que já existem no app (mesmo CPF ou mesmo nome), para não duplicar
+  const soDig = x => String(x || '').replace(/\D/g, ''), nomeN = x => semAcento(x).replace(/\s+/g, ' ').trim();
+  const mapa = {}; let casados = 0; const novos = [];
+  for (const ip of pats) {
+    if (S.dados.patients.some(x => x.id === ip.id)) { novos.push(ip); continue; }
+    const cpf = soDig(ip.cpf);
+    const ex = S.dados.patients.find(x => (cpf && soDig(x.cpf) === cpf) || nomeN(x.nome) === nomeN(ip.nome));
+    if (ex) {
+      mapa[ip.id] = ex.id; casados++;
+      for (const k of ['cpf','nascimento','telefone','email','endereco','sexo']) if (!ex[k] && ip[k]) ex[k] = ip[k];
+      const ids = new Set((ex.medicacoes || []).map(m => m.id));
+      if (!(ex.medicacoes || []).some(m => !m.fim)) for (const m of ip.medicacoes || []) if (!ids.has(m.id)) (ex.medicacoes = ex.medicacoes || []).push(m);
+    } else novos.push(ip);
+  }
+  for (const r of regs) { if (mapa[r.patientId]) r.patientId = mapa[r.patientId]; r.assinatura = r.assinatura || {status:'pendente'}; r.hash = await hashRegistro(r); }
+  const c = mesclar({patients: novos, records: regs, audit: []});
+  c.casados = casados;
+  auditar('Lista de pacientes importada', `${obj.origem || ''} (${nomeArq}): +${c.pacientes} paciente(s), ${c.casados} juntado(s), +${c.registros} registro(s)`);
   await salvar(); S.view = {nome:'inicio'}; render();
-  aviso(`Importado: ${c.pacientes} paciente(s) novo(s) e ${c.registros} documento(s) novo(s). Agora apague o arquivo de importação.`, 8000);
+  aviso(`Importado: ${c.pacientes} paciente(s) novo(s), ${c.casados} juntado(s) a cadastros que já existiam e ${c.registros} registro(s) novo(s). Agora apague o arquivo de importação.`, 9000);
 }
 function escolherArquivo() {
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.prontuario,.json,application/json,application/octet-stream';
@@ -1000,6 +1185,8 @@ function telaConfig() {
     <div class="grid2"><label class="f"><span>CRM</span><input type="text" name="crm" value="${esc(s.crm)}"></label>
     <label class="f"><span>RQE (se houver)</span><input type="text" name="rqe" value="${esc(s.rqe)}"></label></div>
     <label class="f"><span>Endereço do consultório</span><input type="text" name="endereco" value="${esc(s.endereco)}"></label>
+    <div class="grid2"><label class="f"><span>Cidade (receitas)</span><input type="text" name="cidade" value="${esc(s.cidade)}"></label>
+    <label class="f"><span>UF</span><input type="text" name="uf" value="${esc(s.uf)}" maxlength="2"></label></div>
     <div class="grid2"><label class="f"><span>Telefone</span><input type="text" name="telefone" value="${esc(s.telefone)}"></label>
     <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
     <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
@@ -1078,6 +1265,12 @@ const ACOES = {
   'editar-paciente': d => { S.view = {nome:'form-paciente', pid: d.id}; render(); },
   'abrir-paciente': d => abrirPaciente(d.id),
   'novo-registro': d => abrirRegistro(d.tipo, d.pid, d.ref),
+  'nova-receita': d => abrirReceita(d.pid),
+  'rx-mais': () => { S.receitaRasc.itens.push({med:'', qtd:'', pos:''}); rerenderReceita(); },
+  'rx-tirar': d => { S.receitaRasc.itens.splice(Number(d.i), 1); rerenderReceita(); },
+  'rx-copiar': () => { const r = S.receitaRasc; r.itens = r.itens.filter(i => i.med.trim()).concat(r.sugestoes.map(x => ({...x}))); r.sugestoes = null; rerenderReceita(); },
+  'rx-gerar': () => gerarReceita(),
+  'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
   'sair-form': () => abrirPaciente(S.rascunho.patientId),
   'descartar-rascunho': async () => {
     if (!(await confirmar({titulo:'Descartar rascunho?', texto:'O que foi digitado neste formulário será perdido.', ok:'Descartar', perigo:true}))) return;
