@@ -343,7 +343,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.15.0';
+const APP_VERSAO = '1.16.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -846,7 +846,7 @@ function editarRegistro(id) {
   }
   if (r.tipo === 'receita') {
     let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); }
-    S.receitaRasc = {patientId: r.patientId, tipo: d.tipo || 'simples', data: d.data || r.data, itens: (d.itens || []).map(i => Object.assign({}, i)), orientacoes: d.orientacoes || '', editId: id, editData: r.data, hoje: []};
+    S.receitaRasc = {patientId: r.patientId, semData: !!d.semData, tipo: d.tipo || 'simples', data: d.data || r.data, itens: (d.itens || []).map(i => Object.assign({}, i)), orientacoes: d.orientacoes || '', editId: id, editData: r.data, hoje: []};
     if (!S.receitaRasc.itens.length) S.receitaRasc.itens = [itemVazio()];
     S.view = {nome: 'receita', pid: r.patientId}; render();
   }
@@ -1407,7 +1407,8 @@ function telaReceita() {
     <label class="f"><span>Tipo de receita</span><select id="rx-tipo">
       <option value="simples" ${r.tipo === 'simples' ? 'selected' : ''}>Receita simples</option>
       <option value="especial" ${r.tipo === 'especial' ? 'selected' : ''}>Receituário de controle especial (2 vias)</option></select></label>
-    <label class="f"><span>Data</span><input type="date" id="rx-data" value="${esc(r.data)}"></label></div>
+    <div class="f" style="margin-bottom:.9rem"><span style="display:block;font-size:.88rem;font-weight:600;color:#465046;margin-bottom:.3rem">Data</span><input type="date" id="rx-data" value="${esc(r.data)}">
+      <label style="display:flex;gap:.45rem;align-items:center;margin-top:.5rem;font-size:.92rem;cursor:pointer"><input type="checkbox" id="rx-semdata" ${r.semData ? 'checked' : ''} style="width:20px;height:20px;min-height:0;margin:0"> Imprimir sem data (preencher à mão)</label></div></div>
     ${r.tipo === 'especial' && !p.endereco ? `<div class="alerta-rx">O receituário de controle especial pede o <b>endereço do paciente</b>. Ele ainda não está no cadastro: a linha sai em branco para preencher à mão, ou <a href="#" data-act="editar-paciente" data-id="${p.id}">complete o cadastro</a>.</div>` : ''}
   </div>
   <div class="form-sec"><h3>Medicamentos</h3>
@@ -1447,6 +1448,7 @@ function ligarReceita() {
   m.addEventListener('change', e => {
     const el = e.target, r = S.receitaRasc; if (!r) return;
     if (el.id === 'rx-tipo') { r.tipo = el.value; rerenderReceita(); }
+    if (el.id === 'rx-semdata') r.semData = el.checked;
     if (el.dataset.rx === 'nome') rerenderReceita();
     if (el.id === 'rx-modelo' && el.value !== '') {
       const md = MODELOS_RX[Number(el.value)];
@@ -1471,11 +1473,12 @@ function escalaRx(dados, cpl, cabe) {
   return n <= cabe ? 1 : Math.max(0.66, Math.sqrt(cabe / n));
 }
 function htmlReceita(dados, p) {
+  const dtRx = dados.semData ? '_____/_____/________' : dataExtenso(dados.data);
   const s = S.dados.settings;
   const local = `${s.cidade || ''}${s.uf ? ' – ' + s.uf : ''}`;
   const assinatura = dados.carimbo
-    ? `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-carimbo"><div class="rx-cx">carimbo</div><div class="rx-linha">Assinatura</div></div></div>`
-    : `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-linha"><b>${esc(s.medico)}</b><br>${esc(s.crm)}</div></div>`;
+    ? `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dtRx}</div><div class="rx-carimbo"><div class="rx-cx">carimbo</div><div class="rx-linha">Assinatura</div></div></div>`
+    : `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dtRx}</div><div class="rx-linha"><b>${esc(s.medico)}</b><br>${esc(s.crm)}</div></div>`;
   if (dados.tipo !== 'especial') {
     return `<div class="rx rx-simples" style="--k:${escalaRx(dados, 78, 30).toFixed(3)}">
       <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
@@ -1504,7 +1507,7 @@ function htmlReceita(dados, p) {
       <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO FORNECEDOR</div><div style="height:12mm"></div><div class="rx-l"></div><div style="text-align:center;font-size:7pt;margin-top:.8mm">Assinatura do farmacêutico</div><div class="rx-ln" style="margin-top:4mm">Data:<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 12mm"></i></div></div>
     </div>
   </div>`;
-  const pagOr = orFora ? `<div class="rx"><div class="rx-orpag"><div class="vt"><b>ORIENTAÇÕES AO PACIENTE</b><span>${esc(p.nome)}</span></div><div class="rx-or">${esc(dados.orientacoes)}</div><div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div><b>${esc(s.medico)}</b> · ${esc(s.crm)}</div></div></div></div>` : '';
+  const pagOr = orFora ? `<div class="rx"><div class="rx-orpag"><div class="vt"><b>ORIENTAÇÕES AO PACIENTE</b><span>${esc(p.nome)}</span></div><div class="rx-or">${esc(dados.orientacoes)}</div><div class="rx-ass"><div>${esc(s.cidade || '')}, ${dtRx}</div><div><b>${esc(s.medico)}</b> · ${esc(s.crm)}</div></div></div></div>` : '';
   return `<div class="rx" style="--k:${escalaRx(orFora ? {...dados, orientacoes: ''} : dados, 64, 11).toFixed(3)}"><div class="rx-ce">${via('1ª via – Farmácia')}${via('2ª via – Paciente')}</div></div>${pagOr}`;
 }
 function imprimirReceita(dados, p, desc) {
@@ -1559,10 +1562,10 @@ async function gerarReceita(carimbo) {
   const notif = itens.filter(i => exigeNotificacao(i.nome));
   const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.nome)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}${r.editId ? 'A versão anterior da receita fica guardada no histórico.' : 'A receita fica registrada no prontuário. Enquanto não for assinada digitalmente, você ainda pode editá-la.'}`, ok: r.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
   if (!ok) return;
-  const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim(), carimbo: !!carimbo};
+  const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim(), carimbo: !!carimbo, semData: !!r.semData};
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: r.data, criadoEm: agoraISO(),
-    campos: {tipoReceita: r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples', itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
+    campos: {tipoReceita: (r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples') + (r.semData ? ' (impressa sem data)' : ''), itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
     cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'manual'}};
   const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
   auditar(r.editId ? 'Receita editada' : 'Receita gerada', `${reg.campos.tipoReceita} – ${p.nome}`, p.id);
