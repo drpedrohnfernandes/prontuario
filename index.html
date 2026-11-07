@@ -125,6 +125,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .hist-det summary{cursor:pointer;color:var(--azul,#2f4a63);font-weight:600;padding:.3rem 0}
 .hist-det .hist-meds{max-height:220px;margin-top:.4rem}
 .passos-ass{padding-left:1.2rem;margin:.4rem 0 .8rem}
+.aviso-edit{background:#f3ead9;border:1px solid #d9c29a;color:#5a4326;font-size:.92rem}
+.versoes{margin-top:.8rem;border-top:1px dashed var(--linha,#d9cfbd);padding-top:.5rem}
+.versoes summary{cursor:pointer;color:var(--suave);font-size:.9rem}
+.versao{margin:.6rem 0;padding:.5rem .7rem;background:#faf6ee;border-radius:8px;opacity:.85}
+.versao .vt{font-size:.82rem;color:var(--suave);margin-bottom:.3rem}
 .passos-ass li{margin-bottom:.8rem;line-height:1.45}
 .card.anulado{opacity:.62}
 .card.anulado .rtit{text-decoration:line-through}
@@ -324,7 +329,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.11.0';
+const APP_VERSAO = '1.12.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -367,7 +372,7 @@ function canonico(v) {
   return JSON.stringify(v);
 }
 async function sha256(txt) { const h = await crypto.subtle.digest('SHA-256', enc.encode(txt)); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2,'0')).join(''); }
-const conteudoRegistro = r => ({id:r.id, patientId:r.patientId, tipo:r.tipo, data:r.data, criadoEm:r.criadoEm, campos:r.campos, cid:r.cid, refId:r.refId || null, autor:r.autor});
+const conteudoRegistro = r => { const c = {id:r.id, patientId:r.patientId, tipo:r.tipo, data:r.data, criadoEm:r.criadoEm, campos:r.campos, cid:r.cid, refId:r.refId || null, autor:r.autor}; if (r.versoes && r.versoes.length) { c.versoes = r.versoes.map(v => v.hash); c.editadoEm = r.editadoEm; } return c; };
 async function hashRegistro(r) { return sha256(canonico(conteudoRegistro(r))); }
 
 /* ---------- armazenamento local (IndexedDB) ---------- */
@@ -797,6 +802,42 @@ async function anularRegistro(id) {
   aviso('Registro anulado e retirado da tela. Fica guardado no sistema, como exigem as normas.', 5000);
 }
 const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia'];
+const EDITAVEIS = ['primeira', 'evolucao', 'documento', 'receita'];
+function travado(r) { return !!r.pdfAssinado || !!(r.assinatura && ['assinado', 'cfm'].includes(r.assinatura.status)); }
+function editavel(r) { return EDITAVEIS.includes(r.tipo) && !anulado(r) && !travado(r); }
+async function gravarOuEditar(reg, editId) {
+  if (!editId) { reg.hash = await hashRegistro(reg); S.dados.records.push(reg); return reg; }
+  const r = S.dados.records.find(x => x.id === editId);
+  if (!r || !editavel(r)) { aviso('Esse registro não pode mais ser editado: já foi assinado ou anulado. Use um adendo.', 6000); return null; }
+  (r.versoes = r.versoes || []).push({data: r.data, campos: r.campos, cid: r.cid || [], hash: r.hash, assinatura: r.assinatura, ate: agoraISO()});
+  Object.assign(r, {data: reg.data, campos: reg.campos, cid: reg.cid, assinatura: reg.assinatura, editadoEm: agoraISO()});
+  r.hash = await hashRegistro(r);
+  return r;
+}
+function editarRegistro(id) {
+  const r = S.dados.records.find(x => x.id === id); if (!r) return;
+  if (!editavel(r)) return aviso('Esse registro já foi assinado ou anulado e não pode ser editado. Use um adendo.', 6000);
+  if (r.tipo === 'primeira' || r.tipo === 'evolucao') {
+    const chave = 'edit|' + id;
+    S.rascunho = S.dados.drafts[chave] || {chave, tipo: r.tipo, patientId: r.patientId, refId: r.refId || null, data: r.data, campos: Object.assign({}, r.campos), cid: (r.cid || []).slice(), editId: id};
+    S.view = {nome: 'registro', pid: r.patientId}; render();
+    if (S.dados.drafts[chave]) aviso('Edição anterior recuperada.');
+    return;
+  }
+  if (r.tipo === 'documento') {
+    let d; try { d = JSON.parse(r.campos.dadosDoc); } catch (e) { return aviso('Não foi possível ler este documento.'); }
+    if (!MODELOS_DOC[d.chave]) return aviso('O modelo deste documento não existe mais.');
+    S.docRasc = Object.assign({}, d, {patientId: r.patientId, etapa: 'editar', exames: (d.exames || []).slice(), outros: '', nota: '', editId: id, editData: r.data});
+    S.view = {nome: 'documento', pid: r.patientId}; render(); return;
+  }
+  if (r.tipo === 'receita') {
+    let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); }
+    S.receitaRasc = {patientId: r.patientId, tipo: d.tipo || 'simples', data: d.data || r.data, itens: (d.itens || []).map(i => Object.assign({}, i)), orientacoes: d.orientacoes || '', editId: id, editData: r.data, hoje: []};
+    if (!S.receitaRasc.itens.length) S.receitaRasc.itens = [itemVazio()];
+    S.view = {nome: 'receita', pid: r.patientId}; render();
+  }
+}
+function bannerEdicao(rasc) { return rasc && rasc.editId ? `<div class="banner aviso-edit"><b>Editando o registro de ${fmtData(rasc.editData || rasc.data)}.</b> Ao salvar, a versão anterior fica guardada no histórico, com data e hora.</div>` : ''; }
 function nomeArquivoReg(r) {
   const p = paciente(r.patientId);
   return `Prontuario_${semAcento(p.nome).replace(/[^A-Za-z0-9]+/g, '_')}_${r.data}_${semAcento(nomeTipo(r.tipo)).replace(/[^A-Za-z0-9]+/g, '_')}`.slice(0, 120);
@@ -804,6 +845,7 @@ function nomeArquivoReg(r) {
 function gerarPdfParaAssinar(r) {
   const tituloAntes = document.title;
   document.title = nomeArquivoReg(r);
+  (S.pdfGerado = S.pdfGerado || {})[r.id] = r.hash;
   imprimir(docImpressao(r, true), 'PDF para assinatura VIDaaS – ' + nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId);
   setTimeout(() => { document.title = tituloAntes; }, 5000);
 }
@@ -813,7 +855,7 @@ function assinarVidaas(id) {
     <ol class="passos-ass">
       <li><b>Gere o PDF.</b> Na tela de impressão escolha <b>Salvar como PDF</b> (no iPad: Compartilhar → Salvar em Arquivos). O nome do arquivo já vem sugerido.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="pdf">Gerar PDF deste registro</button></li>
       <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o PDF no Adobe Reader com o <b>VIDaaS Connect</b> instalado, clique em assinar e autorize lendo o QR code com o app do celular (ou use o assinador on-line da Valid). Salve o arquivo assinado.</li>
-      <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro.<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
+      <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro. A partir daí o registro <b>não pode mais ser editado</b>.<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
     </ol>
     <p style="font-size:.85rem;color:var(--suave)">Não edite nem reimprima o PDF depois de assinado: qualquer alteração invalida a assinatura. Para conferir, use validar.iti.gov.br.</p>
     <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => {
@@ -827,10 +869,11 @@ function assinarVidaas(id) {
       if (cab !== '%PDF-') return aviso('Esse arquivo não é um PDF.');
       const txt = new TextDecoder('latin1').decode(buf);
       if (!/\/ByteRange/.test(txt) || !/\/Type\s*\/Sig|adbe\.pkcs7|ETSI\.CAdES/.test(txt)) return aviso('Esse PDF não tem assinatura digital. Assine no app do VIDaaS e anexe o arquivo que ele devolver.', 7000);
+      if (S.pdfGerado && S.pdfGerado[r.id] && S.pdfGerado[r.id] !== r.hash) return aviso('O registro foi editado depois que o PDF foi gerado. Gere o PDF de novo, assine e anexe.', 8000);
       let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
       const hashArq = await sha256Bytes(buf);
       r.pdfAssinado = btoa(bin);
-      r.assinatura = {status: 'assinado', via: 'VIDaaS (PDF)', em: agoraISO(), arquivo: {nome: f.name, tamanho: f.size, sha256: hashArq}};
+      r.assinatura = {status: 'assinado', via: 'VIDaaS (PDF)', em: agoraISO(), hashRegistro: r.hash, arquivo: {nome: f.name, tamanho: f.size, sha256: hashArq}};
       auditar('Registro assinado digitalmente', `${nomeTipo(r.tipo)} de ${fmtData(r.data)} – ${paciente(r.patientId).nome} – arquivo ${f.name}`, r.patientId);
       await salvar(); fechar(); render();
       aviso('PDF assinado anexado. O registro aparece como Assinado.', 5000);
@@ -856,17 +899,21 @@ function cartaoRegistro(r, todos) {
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
   const anul = anulacaoDe(r.id);
   const tagVidaas = r.pdfAssinado ? '<span class="tag ok">Assinado · VIDaaS</span>' : '';
+  const nv = (r.versoes || []).length;
+  const tagEdit = nv && !anul ? '<span class="tag marrom">Editado</span>' : '';
   const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card${anul ? ' anulado' : ''}"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
-      <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}finalizado ${fmtDataHora(r.criadoEm)}</div></div>
-      <div class="row">${tagInteg}${anul ? '<span class="tag ruim">Anulado</span>' : tagVidaas || assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
+      <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}registrado ${fmtDataHora(r.criadoEm)}${nv ? ' · editado ' + fmtDataHora(r.editadoEm) : ''}</div></div>
+      <div class="row">${tagInteg}${tagEdit}${anul ? '<span class="tag ruim">Anulado</span>' : tagVidaas || assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
     </div>
     ${aberto ? `${anul ? `<div class="banner aviso-anul"><b>Registro anulado em ${fmtDataHora(anul.criadoEm)}.</b> Motivo: ${esc(anul.campos.motivo)}<br><small>Continua guardado no prontuário, mas sem validade.</small></div>` : ''}${camposHTML(r, ficha)}
       ${adendos.length ? `<div class="adendos">${adendos.map(a => `<div class="campo"><div class="k">Adendo · ${fmtDataHora(a.criadoEm)}</div><div class="v">${esc(a.campos.texto)}</div></div>`).join('')}</div>` : ''}
+      ${nv ? `<details class="versoes"><summary>${nv} versão(ões) anterior(es) guardada(s)</summary>${r.versoes.slice().reverse().map((v, i) => `<div class="versao"><div class="vt">Versão ${nv - i} · válida até ${fmtDataHora(v.ate)} · data ${fmtData(v.data)}${(v.cid || []).length ? ' · ' + esc(v.cid.join('; ')) : ''}</div>${camposHTML(Object.assign({}, r, {campos: v.campos}), ficha)}<div class="hash">SHA-256: ${esc(v.hash)}</div></div>`).join('')}</details>` : ''}
       <div class="hash" style="margin-top:.7rem">SHA-256: ${esc(r.hash)}</div>
       <div class="row" style="margin-top:.8rem">
+        ${editavel(r) ? `<button class="btn sm pri" data-act="editar-registro" data-id="${r.id}">Editar</button>` : ''}
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
         ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
@@ -950,14 +997,15 @@ function telaFormRegistro() {
     return `<label class="f"><span>${esc(rot)}</span><textarea data-c="${k}" rows="${tipo === 'longo' ? 6 : 3}">${val}</textarea></label>${sugs}`;
   };
   return `<button class="btn link" data-act="sair-form">‹ Voltar ao paciente</button>
-  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(ficha.titulo)}</h1>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${r.editId ? 'Editar · ' : ''}${esc(ficha.titulo)}</h1>
+  ${bannerEdicao(r)}
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}${orig ? `<span>referente a: ${esc(nomeTipo(orig.tipo))} de ${fmtData(orig.data)}</span>` : ''}</div>
   <form id="f-registro" autocomplete="off">
     ${r.tipo !== 'adendo' ? `<div class="form-sec"><label class="f" style="max-width:240px"><span>Data do atendimento</span><input type="date" id="r-data" value="${esc(r.data)}"></label></div>` : ''}
     ${ficha.secoes.map(s => `<div class="form-sec"><div class="row" style="justify-content:space-between;margin-bottom:.6rem"><h3 style="margin:0">${esc(s.t)}</h3>${s.eem ? '<button type="button" class="btn sm" data-act="eem-normal">Preencher sem alterações</button>' : ''}</div>${s.campos.map(campo).join('')}</div>`).join('')}
     <div class="barra-acoes"><span class="salvo" id="salvo">Rascunho salvo automaticamente</span>
       <button type="button" class="btn perigo" data-act="descartar-rascunho">Descartar</button>
-      <button type="submit" class="btn pri">Finalizar registro</button></div>
+      <button type="submit" class="btn pri">${r.editId ? 'Salvar alterações' : r.tipo === 'adendo' ? 'Finalizar adendo' : 'Salvar registro'}</button></div>
   </form>`;
 }
 function chipsCID() { return (S.rascunho.cid || []).map((c, i) => `<span class="chip">${esc(c)}<button type="button" data-act="tirar-cid" data-i="${i}" aria-label="Remover">×</button></span>`).join(''); }
@@ -1004,19 +1052,20 @@ async function finalizarRegistro() {
   const campos = {}; for (const k in r.campos) if ((r.campos[k] || '').trim()) campos[k] = r.campos[k].trim();
   if (!Object.keys(campos).length) return aviso('Preencha ao menos um campo antes de finalizar.');
   if (r.tipo !== 'adendo' && !r.data) return aviso('Informe a data do atendimento.');
-  const ok = await confirmar({titulo:'Finalizar registro?', texto:'Depois de finalizado, este registro <b>não pode mais ser alterado</b>. Correções ou complementos entram como adendo, com data e hora.', ok:'Finalizar'});
+  const ok = await confirmar(r.tipo === 'adendo' ? {titulo:'Finalizar adendo?', texto:'O adendo entra no prontuário com data e hora e <b>não pode ser alterado</b> depois.', ok:'Finalizar'}
+    : r.editId ? {titulo:'Salvar alterações?', texto:'A versão anterior fica guardada no histórico do registro, com data e hora.', ok:'Salvar'}
+    : {titulo:'Salvar registro?', texto:'Você ainda pode <b>editar</b> este registro enquanto ele não for assinado. Cada alteração fica guardada no histórico. Depois de assinado, correções entram como adendo.', ok:'Salvar'});
   if (!ok) return;
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: r.patientId, tipo: r.tipo, data: r.tipo === 'adendo' ? hojeStr() : r.data, criadoEm: agoraISO(), campos, cid: r.cid.slice(), refId: r.refId || null, autor: `${s.medico} – ${s.crm}`, assinatura: {status:'pendente'}};
-  reg.hash = await hashRegistro(reg);
-  S.dados.records.push(reg);
+  const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
   delete S.dados.drafts[r.chave];
-  auditar(`${nomeTipo(r.tipo)} finalizado(a)`, paciente(r.patientId).nome, r.patientId);
+  auditar(r.editId ? `${nomeTipo(r.tipo)} editado(a)` : `${nomeTipo(r.tipo)} salvo(a)`, `${paciente(r.patientId).nome}${r.editId ? ' – registro de ' + fmtData(salvo.data) + ', versão ' + (salvo.versoes.length + 1) : ''}`, r.patientId);
   await salvar();
   S.rascunho = null;
-  S.abertos.add(r.refId || reg.id);
+  S.abertos.add(r.refId || salvo.id);
   abrirPaciente(r.patientId);
-  aviso('Registro finalizado.');
+  aviso(r.editId ? 'Alterações salvas. A versão anterior ficou no histórico.' : 'Registro salvo.');
 }
 
 /* ---------- integridade ---------- */
@@ -1160,7 +1209,8 @@ function telaReceita() {
   const r = S.receitaRasc, p = paciente(r.patientId);
   const alertas = r.itens.map(i => i.nome && exigeNotificacao(i.nome) ? `<b>${esc(i.nome)}</b> exige Notificação de Receita ${exigeNotificacao(i.nome)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
   return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
-  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Nova receita</h1>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${r.editId ? 'Editar receita' : 'Nova receita'}</h1>
+  ${bannerEdicao(r)}
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
   ${r.hoje && r.hoje.length ? `<div class="banner info" style="font-size:.92rem"><b>Hoje você já fez ${r.hoje.length} receita(s) para este paciente.</b> ${r.hoje.map(x => `<button type="button" class="btn sm" style="margin:.3rem .3rem 0 0" data-act="rx-repetir" data-id="${x.id}">Repetir a de ${new Date(x.criadoEm).toTimeString().slice(0, 5)} (${esc(x.campos.tipoReceita.split(' (')[0])})</button>`).join('')}</div>` : ''}
   <div class="form-sec"><div class="grid2">
@@ -1194,7 +1244,7 @@ function telaReceita() {
     <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
     <button type="button" class="btn azul" data-act="rx-cfm" title="Copia a prescrição e abre a Prescrição Eletrônica do CFM">Levar para o CFM</button>
     <button type="button" class="btn" data-act="rx-gerar" data-carimbo="1">Gerar para carimbar</button>
-    <button type="button" class="btn pri" data-act="rx-gerar">Gerar receita</button></div>`;
+    <button type="button" class="btn pri" data-act="rx-gerar">${r.editId ? 'Salvar e imprimir' : 'Gerar receita'}</button></div>`;
 }
 function ligarReceita() {
   const m = $('#main');
@@ -1301,12 +1351,11 @@ function levarAoCFM() {
     const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: dados.data, criadoEm: agoraISO(),
       campos: {tipoReceita: (r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples') + ' (emitida na Prescrição Eletrônica do CFM)', itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
       cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'cfm'}};
-    reg.hash = await hashRegistro(reg);
-    S.dados.records.push(reg);
-    auditar('Receita levada ao CFM', `${p.nome}`, p.id);
+    const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
+    auditar(r.editId ? 'Receita editada e levada ao CFM' : 'Receita levada ao CFM', `${p.nome}`, p.id);
     atualizarMedsDaReceita(p, itens, dados.data);
     await salvar();
-    S.receitaRasc = null; S.abertos.add(reg.id);
+    S.receitaRasc = null; S.abertos.add(salvo.id);
     abrirPaciente(p.id);
     aviso(copiou ? 'Prescrição copiada. No CFM, escolha o paciente e cole a posologia de cada item.' : 'Abri o CFM. Não consegui copiar automaticamente: use a prescrição registrada aqui no prontuário.', 8000);
   })();
@@ -1318,20 +1367,19 @@ async function gerarReceita(carimbo) {
   if (!itens.length) return aviso('Inclua ao menos um medicamento.');
   if (!r.data) return aviso('Informe a data.');
   const notif = itens.filter(i => exigeNotificacao(i.nome));
-  const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.nome)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}A receita fica registrada no prontuário e não pode ser alterada depois. Para corrigir, gere uma nova.`, ok:'Gerar e imprimir'});
+  const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.nome)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}${r.editId ? 'A versão anterior da receita fica guardada no histórico.' : 'A receita fica registrada no prontuário. Enquanto não for assinada digitalmente, você ainda pode editá-la.'}`, ok: r.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
   if (!ok) return;
   const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim(), carimbo: !!carimbo};
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: r.data, criadoEm: agoraISO(),
     campos: {tipoReceita: r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples', itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
     cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'manual'}};
-  reg.hash = await hashRegistro(reg);
-  S.dados.records.push(reg);
-  auditar('Receita gerada', `${reg.campos.tipoReceita} – ${p.nome}`, p.id);
+  const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
+  auditar(r.editId ? 'Receita editada' : 'Receita gerada', `${reg.campos.tipoReceita} – ${p.nome}`, p.id);
   const mu = atualizarMedsDaReceita(p, itens, r.data);
   await salvar();
   if (mu.novos || mu.atual) setTimeout(() => aviso(`Medicações em uso: ${mu.novos ? mu.novos + ' adicionada(s)' : ''}${mu.novos && mu.atual ? ', ' : ''}${mu.atual ? mu.atual + ' atualizada(s)' : ''}.`, 5000), 1500);
-  S.receitaRasc = null; S.abertos.add(reg.id);
+  S.receitaRasc = null; S.abertos.add(salvo.id);
   abrirPaciente(p.id);
   imprimirReceita(dados, p, `${reg.campos.tipoReceita} – ${p.nome}`);
 }
@@ -1680,7 +1728,8 @@ function telaDocumento() {
     corpo = `<div class="form-sec"><label class="f"><span>Texto (os trechos entre [colchetes] são para completar)</span><textarea id="doc-texto" rows="16">${esc(r.texto)}</textarea></label></div>`;
   }
   const mostraCid = !m.ipi && (r.cat === 'exames' || r.cat === 'relatorio' || r.cat === 'encaminhamento' || r.cat === 'laudo');
-  return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(m.rotulo)}</h1>
+  return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${r.editId ? 'Editar · ' : ''}${esc(m.rotulo)}</h1>
+  ${bannerEdicao(r)}
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
   <div class="form-sec"><div class="grid2">
     <label class="f"><span>Título no documento</span><input type="text" id="doc-titulo" value="${esc(r.titulo)}"></label>
@@ -1692,7 +1741,7 @@ function telaDocumento() {
   <div class="barra-acoes"><span class="salvo">O documento fica registrado no prontuário.</span>
     ${m.cfm ? `<button type="button" class="btn azul" data-act="doc-cfm">Levar para o CFM</button>` : ''}
     ${m.ipi ? '' : '<button type="button" class="btn" data-act="doc-gerar" data-carimbo="1">Gerar para carimbar</button>'}
-    <button type="button" class="btn pri" data-act="doc-gerar">${m.ipi ? 'Gerar laudo' : 'Gerar documento'}</button></div>`;
+    <button type="button" class="btn pri" data-act="doc-gerar">${r.editId ? 'Salvar e imprimir' : m.ipi ? 'Gerar laudo' : 'Gerar documento'}</button></div>`;
 }
 function ligarDocumento() {
   const mm = $('#main'), r = S.docRasc; if (!r || r.etapa !== 'editar') return;
@@ -1780,28 +1829,28 @@ async function salvarDocumento(d, p, statusAss) {
   const reg = {id: uid(), patientId: p.id, tipo: 'documento', data: d.data, criadoEm: agoraISO(),
     campos: {tipoDoc: MODELOS_DOC[d.chave].rotulo, titulo: d.titulo, texto: d.cat === 'exames' ? d.exames.map(e => '- ' + e).join('\n') + (d.indicacao ? '\n\nIndicação clínica: ' + d.indicacao : '') : d.texto, dadosDoc: JSON.stringify(d)},
     cid: [d.cid1, d.cid2].filter(Boolean), refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: statusAss}};
-  reg.hash = await hashRegistro(reg);
-  S.dados.records.push(reg);
-  auditar(statusAss === 'cfm' ? 'Documento levado ao CFM' : 'Documento gerado', `${d.titulo} – ${p.nome}`, p.id);
+  const editId = S.docRasc && S.docRasc.editId;
+  const salvo = await gravarOuEditar(reg, editId); if (!salvo) return null;
+  auditar((editId ? 'Documento editado' : 'Documento gerado') + (statusAss === 'cfm' ? ' e levado ao CFM' : ''), `${d.titulo} – ${p.nome}`, p.id);
   await salvar();
-  S.docRasc = null; S.abertos.add(reg.id);
+  S.docRasc = null; S.abertos.add(salvo.id);
   abrirPaciente(p.id);
-  return reg;
+  return salvo;
 }
 async function gerarDocumento(carimbo) {
   const p = paciente(S.docRasc.patientId), d = dadosDoDocumento(carimbo);
   const v = validarDocumento(d); if (!v) return;
   if (d.ipi) { S.dados.settings.cpfMedico = d.ipi.medCpf; S.dados.settings.especialidadeLaudo = d.ipi.especialidade; }
-  const ok = await confirmar({titulo:'Gerar documento?', texto:`${v === 'colchetes' ? '<b>Atenção:</b> ainda há trechos entre [colchetes] para completar.<br><br>' : ''}${v === 'criterios' ? '<b>Atenção:</b> ' + esc(checarCriteriosIPI(d.ipi)) + '<br><br>' : ''}O documento fica registrado no prontuário e não pode ser alterado depois. Para corrigir, gere um novo.`, ok:'Gerar e imprimir'});
+  const ok = await confirmar({titulo:'Gerar documento?', texto:`${v === 'colchetes' ? '<b>Atenção:</b> ainda há trechos entre [colchetes] para completar.<br><br>' : ''}${v === 'criterios' ? '<b>Atenção:</b> ' + esc(checarCriteriosIPI(d.ipi)) + '<br><br>' : ''}${S.docRasc.editId ? 'A versão anterior do documento fica guardada no histórico.' : 'O documento fica registrado no prontuário. Enquanto não for assinado digitalmente, você ainda pode editá-lo.'}`, ok: S.docRasc.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
   if (!ok) return;
-  await salvarDocumento(d, p, 'manual');
+  if (!(await salvarDocumento(d, p, 'manual'))) return;
   imprimirFolha(htmlDocumento(d, p), 'portrait', `${d.titulo} – ${p.nome}`, p.id);
 }
 function levarDocAoCFM() {
   const p = paciente(S.docRasc.patientId), d = dadosDoDocumento(false);
   const v = validarDocumento(d); if (!v) return;
   const copiou = copiarEAbrirCFM(textoDocParaCFM(d, p));
-  salvarDocumento(d, p, 'cfm').then(() => aviso(copiou ? 'Documento copiado. No CFM, escolha o tipo de documento e o paciente e cole o texto.' : 'Abri o CFM.', 8000));
+  salvarDocumento(d, p, 'cfm').then(x => x && aviso(copiou ? 'Documento copiado. No CFM, escolha o tipo de documento e o paciente e cole o texto.' : 'Abri o CFM.', 8000));
 }
 function imprimirFolha(html, orientacao, desc, pid) {
   let estilo = $('#estilo-pagina');
@@ -1833,7 +1882,7 @@ function docImpressao(r, paraAssinar) {
     <h2 style="font-size:13pt;margin:0 0 4px">${esc(ficha.titulo)} – ${fmtData(r.data)}</h2>
     <div style="margin-bottom:10px">Paciente: <b>${esc(p.nome)}</b>${p.nascimento ? ' · Nasc. ' + fmtData(p.nascimento) + ' (' + esc(idade(p.nascimento)) + ')' : ''}${p.cpf ? ' · CPF ' + esc(p.cpf) : ''}</div>
     ${corpo}
-    <div class="p-rod">Registrado por ${esc(r.autor)} em ${fmtDataHora(r.criadoEm)}.<br>Código de integridade (SHA-256): ${esc(r.hash)}<br>${paraAssinar ? `Documento assinado digitalmente por ${esc(r.autor)} com certificado ICP-Brasil (VIDaaS). Verifique em validar.iti.gov.br.` : `Assinatura digital ICP-Brasil: ${r.assinatura && r.assinatura.status === 'assinado' ? 'assinado' + (r.assinatura.via ? ' (' + esc(r.assinatura.via) + ')' : '') : 'pendente'}.`}</div>
+    <div class="p-rod">Registrado por ${esc(r.autor)} em ${fmtDataHora(r.criadoEm)}.${r.editadoEm ? ' Última edição em ' + fmtDataHora(r.editadoEm) + ' (versões anteriores guardadas no prontuário).' : ''}<br>Código de integridade (SHA-256): ${esc(r.hash)}<br>${paraAssinar ? `Documento assinado digitalmente por ${esc(r.autor)} com certificado ICP-Brasil (VIDaaS). Verifique em validar.iti.gov.br.` : `Assinatura digital ICP-Brasil: ${r.assinatura && r.assinatura.status === 'assinado' ? 'assinado' + (r.assinatura.via ? ' (' + esc(r.assinatura.via) + ')' : '') : 'pendente'}.`}</div>
   </div>`;
 }
 function imprimir(html, desc, pid) {
@@ -1884,7 +1933,9 @@ function mesclar(inc) {
   const ids = new Set(d.records.map(r => r.id));
   for (const r of inc.records || []) {
     if (!ids.has(r.id)) { d.records.push(r); cont.registros++; continue; }
-    if (r.pdfAssinado) { const ex = d.records.find(x => x.id === r.id); if (ex && !ex.pdfAssinado) { ex.pdfAssinado = r.pdfAssinado; ex.assinatura = r.assinatura; cont.atualizados++; } }
+    const ex = d.records.find(x => x.id === r.id); if (!ex) continue;
+    if (r.pdfAssinado && !ex.pdfAssinado) { Object.assign(ex, r); cont.atualizados++; continue; }
+    if (!ex.pdfAssinado && !travado(ex) && (r.editadoEm || '') > (ex.editadoEm || '')) { Object.assign(ex, {data: r.data, campos: r.campos, cid: r.cid, versoes: r.versoes, editadoEm: r.editadoEm, hash: r.hash, assinatura: r.assinatura}); cont.atualizados++; }
   }
   const aids = new Set(d.audit.map(a => a.id));
   for (const a of inc.audit || []) if (!aids.has(a.id)) d.audit.push(a);
@@ -2468,7 +2519,7 @@ const ACOES = {
   'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } dados.carimbo = d.carimbo === '1'; imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
   'sair-form': () => abrirPaciente(S.rascunho.patientId),
   'descartar-rascunho': async () => {
-    if (!(await confirmar({titulo:'Descartar rascunho?', texto:'O que foi digitado neste formulário será perdido.', ok:'Descartar', perigo:true}))) return;
+    if (!(await confirmar(S.rascunho.editId ? {titulo:'Descartar alterações?', texto:'O registro continua como estava antes da edição.', ok:'Descartar', perigo:true} : {titulo:'Descartar rascunho?', texto:'O que foi digitado neste formulário será perdido.', ok:'Descartar', perigo:true}))) return;
     const pid = S.rascunho.patientId; delete S.dados.drafts[S.rascunho.chave]; await salvar(); abrirPaciente(pid);
   },
   'tirar-cid': d => { S.rascunho.cid.splice(Number(d.i), 1); $('#cid-chips').innerHTML = chipsCID(); guardarRascunho(); },
@@ -2478,6 +2529,7 @@ const ACOES = {
   'suspender-med': d => suspenderMedicacao(d.pid, d.id),
   'anular': d => anularRegistro(d.id),
   'assinar-vidaas': d => assinarVidaas(d.id),
+  'editar-registro': d => editarRegistro(d.id),
   'ver-assinado': d => verAssinado(d.id),
   'ver-anulados': d => { S.mostrarAnulados = S.mostrarAnulados === d.pid ? null : d.pid; render(); },
   'rx-hist': () => { S.receitaRasc.verHist = !S.receitaRasc.verHist; rerenderReceita(); },
