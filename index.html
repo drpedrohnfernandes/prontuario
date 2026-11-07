@@ -158,8 +158,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .esc-item{padding:.7rem .9rem}
 .esc-q{font-weight:600;margin-bottom:.45rem}
 .esc-ops{display:flex;flex-wrap:wrap;gap:.4rem}
-.esc-op{display:flex;align-items:center;gap:.45rem;border:1px solid var(--linha,#d9cfbd);border-radius:10px;padding:.45rem .7rem;cursor:pointer;background:#fff;font-size:.92rem;min-height:44px}
-.esc-op input{position:absolute;opacity:0;pointer-events:none}
+.esc-op{position:relative;display:flex;align-items:center;gap:.45rem;border:1px solid var(--linha,#d9cfbd);border-radius:10px;padding:.45rem .7rem;cursor:pointer;background:#fff;font-size:.92rem;min-height:44px}
+.esc-op input{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.esc-item:last-of-type{margin-bottom:1rem}
 .esc-op .v{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:var(--bege,#efe7d8);font-weight:600;font-size:.85rem}
 .esc-op.on{border-color:var(--musgo,#4a5a3c);background:var(--musgo-claro,#e3e8d9)}
 .esc-op.on .v{background:var(--musgo,#4a5a3c);color:#fff}
@@ -343,7 +344,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.16.0';
+const APP_VERSAO = '1.16.1';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
