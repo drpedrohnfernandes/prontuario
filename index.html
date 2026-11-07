@@ -119,6 +119,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .sugs{display:flex;flex-wrap:wrap;gap:.35rem;margin:-.4rem 0 .9rem}
 .sug{border:1px solid var(--linha);background:#fff;border-radius:99px;padding:.25em .7em;font-size:.82rem;cursor:pointer;color:#465046;min-height:30px}
 .sug:hover{background:var(--musgo-claro)}
+.sug.atalho{border-color:var(--dourado,#b08d3c);font-weight:600}
 .item-rx{border:1px solid var(--linha);border-radius:10px;padding:.7rem .8rem .1rem;margin-bottom:.7rem;background:#fff}
 .alerta-rx{background:#fbecd9;border:1px solid #f0d3ac;color:#6b4a1f;border-radius:10px;padding:.6rem .8rem;margin:.2rem 0 .8rem;font-size:.92rem}
 .reg .rtop{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center;cursor:pointer}
@@ -193,7 +194,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .rx-tit{display:inline-block;align-self:flex-start;font-size:10pt;font-weight:600;letter-spacing:3pt;color:#f3ead7;background:#7a5a43;padding:1.3mm 4mm;border-radius:1.2mm;margin:0 0 6mm}
   .rx-pac{font-size:11pt;margin-bottom:7mm;padding-bottom:2mm;border-bottom:.5pt solid #ddd5c6}
   .rx-pac b{font-weight:600}
-  .rx-itens{margin:0;padding-left:0;list-style:none;counter-reset:rx;font-size:11.2pt;line-height:1.45}
+  .rx-itens{margin:0;padding-left:0;list-style:none;counter-reset:rx;font-size:calc(11.2pt * var(--k,1));line-height:1.45}
   .rx-itens li{counter-increment:rx;position:relative;padding-left:8mm;margin-bottom:5.5mm;page-break-inside:avoid}
   .rx-itens li:before{content:counter(rx);position:absolute;left:0;top:.4mm;width:5.2mm;height:5.2mm;border-radius:50%;background:#4a5a3c;color:#f3ead7;font-size:8pt;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1}
   .rx-med{display:flex;gap:2mm;align-items:baseline}
@@ -201,7 +202,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .rx-med .pt{flex:1;border-bottom:1px dotted #9a8f7c;transform:translateY(-1mm)}
   .rx-med .qt{font-weight:500;color:#4a5a3c;white-space:nowrap}
   .rx-pos{margin-top:.8mm;white-space:pre-wrap;color:#3a3f39}
-  .rx-or{margin-top:3mm;font-size:10pt;white-space:pre-wrap;background:#f5f0e7;border-left:2pt solid #2f4a63;padding:2.5mm 3.5mm;border-radius:1mm}
+  .rx-or{margin-top:3mm;font-size:calc(10pt * var(--k,1));white-space:pre-wrap;background:#f5f0e7;border-left:2pt solid #2f4a63;padding:2.5mm 3.5mm;border-radius:1mm}
   .rx-ass{margin-top:auto;padding-top:12mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:10pt;color:#3a3f39}
   .rx-linha{width:76mm;border-top:.8pt solid #1f2620;text-align:center;padding-top:1.5mm;font-size:9.5pt}
   .rx-linha b{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
@@ -215,8 +216,14 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .rx-box{border:.7pt solid #b9ae98;border-radius:1mm;padding:2mm 2.5mm;margin-bottom:2.5mm}
   .rx-box .bt,.rx-bt{font-size:6.8pt;font-weight:600;letter-spacing:.8pt;color:#7a5a43;margin-bottom:1mm}
   .rx-box .em{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
-  .rx-via .rx-itens{font-size:9.2pt;line-height:1.35}
-  .rx-via .rx-itens li{margin-bottom:2.5mm;padding-left:6.5mm}
+  .rx-orpag{width:150mm;margin:0 auto;border:1pt solid #4a5a3c;border-radius:1.5mm;padding:4mm;font-size:10.5pt}
+  .rx-orpag .vt{display:flex;justify-content:space-between;align-items:center;background:#4a5a3c;color:#f3ead7;margin:-4mm -4mm 4mm;padding:2.2mm 4mm}
+  .rx-orpag .vt b{font-size:9.5pt;font-weight:600;letter-spacing:1pt}
+  .rx-orpag .vt span{font-family:Lora,Georgia,serif;font-style:italic}
+  .rx-orpag .rx-ass{padding-top:8mm;font-size:9pt}
+  .rx-via .rx-itens{font-size:calc(9.2pt * var(--k,1));line-height:1.3}
+  .rx-via .rx-itens li{margin-bottom:calc(2.5mm * var(--k,1));padding-left:6.5mm}
+  .rx-via .rx-or{font-size:calc(8.8pt * var(--k,1)) !important;padding:1.8mm 3mm}
   .rx-via .rx-itens li:before{width:4.4mm;height:4.4mm;font-size:7pt}
   .rx-via .rx-ass{padding-top:5mm;font-size:9pt}
   .rx-via .rx-linha{width:54mm;font-size:8pt}
@@ -254,7 +261,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.4.0';
+const APP_VERSAO = '1.5.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -396,10 +403,10 @@ const FICHAS = {
       ['ris_protecao','Fatores de proteção','texto',['Suporte familiar','Filhos/dependentes','Religiosidade','Vínculo terapêutico','Planos para o futuro','Adesão ao tratamento']],
       ['ris_nivel','Risco estimado','sel',['','Baixo','Moderado','Alto']],
       ['ris_conduta','Conduta','texto',['Plano de segurança elaborado com o paciente','Orientações à família sobre vigilância e guarda das medicações entregues','Medicações sob guarda de familiar','Retorno precoce','Contato do CVV (188) e SAMU (192) fornecido','Encaminhado para emergência']]]},
-    {t:'Conclusão', campos:[['hipotese','Hipótese diagnóstica','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['plano','Plano e orientações','texto'],['retorno','Retorno','linha']]}
+    {t:'Conclusão', campos:[['hipotese','Hipótese diagnóstica','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo',[['Atalho: orientações de conduta (efeitos, retorno, sinais de alarme)','§conduta']]],['plano','Plano e orientações','texto'],['retorno','Retorno','linha']]}
   ]},
   evolucao: { titulo:'Evolução', secoes:[
-    {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto',['Sem alterações significativas','Eutímico','Deprimido','Ansioso','Afeto congruente','Pensamento lógico, sem delírios','Sem alterações de sensopercepção','Insight presente']],['ris_ideacao','Ideação suicida','sel',['','Ausente','Passiva (desejo de morrer, sem plano)','Ativa, sem plano','Ativa, com plano','Ativa, com plano e intenção']],['risco','Avaliação de risco','linha',['Risco baixo','Risco moderado','Risco alto','Orientações à família entregues']],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
+    {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto',[['Atalho: EEM sem alterações (texto completo)','§eem'],'Sem alterações significativas','Eutímico','Deprimido','Ansioso','Afeto congruente','Pensamento lógico, sem delírios','Sem alterações de sensopercepção','Insight presente']],['ris_ideacao','Ideação suicida','sel',['','Ausente','Passiva (desejo de morrer, sem plano)','Ativa, sem plano','Ativa, com plano','Ativa, com plano e intenção']],['risco','Avaliação de risco','linha',['Risco baixo','Risco moderado','Risco alto','Orientações à família entregues']],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo',[['Atalho: orientações de conduta (efeitos, retorno, sinais de alarme)','§conduta']]],['retorno','Retorno','linha']]}
   ]},
   adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
   receita: { titulo:'Receita', secoes:[{t:'Receita', campos:[['tipoReceita','Tipo','linha'],['itens','Prescrição','longo'],['orientacoes','Orientações','texto']]}]},
@@ -407,7 +414,12 @@ const FICHAS = {
   doctoralia: { titulo:'Atendimento importado da Doctoralia', secoes:[{t:'Importado da Doctoralia', campos:[['texto','Registro','longo']]}]},
   cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
-const EEM_NORMAL = {em_aparencia:'Vestes adequadas, higiene preservada; colaborativo, contato visual adequado.', em_consciencia:'Vígil, orientado auto e alopsiquicamente.', em_atencao:'Normovigil e normotenaz; memória preservada.', em_humor:'Eutímico; afeto congruente e modulado.', em_pensamento:'Curso normal, forma lógica e coerente, sem ideias delirantes.', em_senso:'Sem alterações.', em_psicomotor:'Normal.', em_juizo:'Juízo preservado; insight presente.'};
+const gen = (p, fem, masc) => p && p.sexo === 'Feminino' ? fem : masc;
+const eemNormal = p => { const o = gen(p, 'a', 'o'); return {em_aparencia:`Aparência e higiene preservadas; colaborativ${o}.`, em_consciencia:`Vígil, orientad${o} auto e alopsiquicamente.`, em_atencao:`Normoproséxic${o}; memória e inteligência preservadas.`, em_humor:`Eutímic${o}, afeto modulado.`, em_pensamento:'Pensamento de curso regular, organizado, conteúdo voltado para a entrevista, conexo.', em_senso:'Sem sinais de alteração de sensopercepção.', em_psicomotor:`Psicomotricidade regular; normobúlic${o}.`, em_juizo:'Insight presente.'}; };
+const ATALHOS_TXT = {
+  eem: p => { const o = gen(p, 'a', 'o'); return `Aparência e higiene preservadas, vígil, colaborativ${o}, orientad${o} auto e alopsiquicamente, normoproséxic${o}, normobúlic${o}, sem sinais de alteração de sensopercepção, eutímic${o}, afeto modulado, pensamento de curso regular, organizado, conteúdo voltado para a entrevista, conexo, psicomotricidade regular, memória e inteligência preservadas, insight presente.`; },
+  conduta: () => '- Explico sobre possíveis efeitos colaterais nas primeiras duas semanas;\n- Retorno em 02 meses;\n- Oriento procura de serviço de pronto atendimento se piora do quadro, ideação ou tentativa de suicídio, sintomas de (hipo)mania, delírios, alucinações, agitação psicomotora ou outros sinais de alarme.'
+};
 const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
 function resumoRegistro(r) {
   const c = r.campos || {};
@@ -753,7 +765,7 @@ function telaFormRegistro() {
       <datalist id="cid-lista">${CIDS.map(([c, n]) => `<option value="${c} – ${esc(n)}">`).join('')}</datalist></label>`;
     const val = esc(r.campos[k] || '');
     if (tipo === 'sel') return `<label class="f"><span>${esc(rot)}</span><select data-c="${k}">${extra.map(o => `<option value="${esc(o)}" ${(r.campos[k] || '') === o ? 'selected' : ''}>${o ? esc(o) : 'Selecione…'}</option>`).join('')}</select></label>`;
-    const sugs = Array.isArray(extra) ? `<div class="sugs">${extra.map(t => `<button type="button" class="sug" data-act="sug" data-c="${k}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : '';
+    const sugs = Array.isArray(extra) ? `<div class="sugs">${extra.map(t => { const [rotulo, v] = Array.isArray(t) ? t : [t, t]; return `<button type="button" class="sug${Array.isArray(t) ? ' atalho' : ''}" data-act="sug" data-c="${k}" data-t="${esc(v)}">${esc(rotulo)}</button>`; }).join('')}</div>` : '';
     if (tipo === 'linha') return `<label class="f"><span>${esc(rot)}</span><input type="text" data-c="${k}" value="${val}"></label>${sugs}`;
     return `<label class="f"><span>${esc(rot)}</span><textarea data-c="${k}" rows="${tipo === 'longo' ? 6 : 3}">${val}</textarea></label>${sugs}`;
   };
@@ -907,6 +919,28 @@ function abrirReceita(pid) {
   S.view = {nome:'receita', pid};
   render();
 }
+const ORIENT_CRISE = `Em caso de crise, além da medicação:
+- Deixe a medicação em local de fácil acesso, mas use-a apenas quando necessário.
+- Respiração diafragmática: inspire pelo nariz contando até 4 e enchendo a barriga, segure por 4 segundos e solte o ar pela boca, murchando a barriga. Se ficar mais fácil, comece soltando todo o ar e depois inspire fundo.
+- Concentre-se no momento presente: cores, formas dos objetos, o que está acontecendo ao redor.`;
+const MODELOS_RX = [
+  {rot:'Venlift OD 37,5 mg – início (titulação)', nome:'Venlift OD (venlafaxina)', dose:'37,5 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã por 6 dias. Em seguida, 2 comprimidos pela manhã. Comprar apenas uma caixa desta dose.\nEquivalentes: Venlaxin XR.'},
+  {rot:'Venlift OD 75 mg – após a caixa de 37,5 mg', nome:'Venlift OD (venlafaxina)', dose:'75 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã. Iniciar após o término da caixa de 37,5 mg.\nEquivalentes: Efexor XR, Venlaxin XR.'},
+  {rot:'Reconter (escitalopram) 10 mg – titulação', nome:'Reconter (escitalopram)', dose:'10 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar meio comprimido por via oral pela manhã por 6 dias. Em seguida, 1 comprimido pela manhã.\nEquivalentes: Lexapro, Esc, Exodus, Espran.'},
+  {rot:'Sertralina 50 mg – titulação', nome:'Sertralina', dose:'50 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar meio comprimido por via oral pela manhã por 6 dias. Em seguida, 1 comprimido pela manhã.\nEquivalentes: Zoloft, Serenata, Tolrest, Assert, Afetus.'},
+  {rot:'Brintellix (vortioxetina) 10 mg', nome:'Brintellix / Voextor / Vurtuoso (vortioxetina)', dose:'10 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral ao deitar.\nSe enjoo: Vonau 4 mg de 6/6 h ou 8 mg de 12/12 h.'},
+  {rot:'Donaren (trazodona) 50 mg', nome:'Donaren / Sonic (trazodona)', dose:'50 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral ao deitar.'},
+  {rot:'Donaren Retard 150 mg', nome:'Donaren Retard CR (trazodona)', dose:'150 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar de 1/3 (um terço) a 1 comprimido por via oral às 20 h (2 horas antes de deitar).'},
+  {rot:'Mirtazapina OD 15 mg', nome:'Mirtazapina OD', dose:'15 mg', forma:'comprimido orodispersível', qtd:'1 caixa', pos:'Dissolver 1 comprimido na boca ao deitar (sem água).\nEquivalentes: Razapina, Menelat, Remeron.'},
+  {rot:'Zetron XL (bupropiona) 150 mg', nome:'Zetron XL (bupropiona)', dose:'150 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã, após o café.'},
+  {rot:'Luvox (fluvoxamina) 50 mg – titulação', nome:'Luvox / Revoc (fluvoxamina)', dose:'50 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar meio comprimido por via oral à noite por 6 dias. Em seguida, 1 comprimido à noite.\nNão utilizar com melatonina.'},
+  {rot:'Aymee (vilazodona) 10 mg – titulação', nome:'Aymee (vilazodona)', dose:'10 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã ou à noite por uma semana. Em seguida, 2 comprimidos pela manhã ou à noite.\nUtilizar com refeição (jantar ou café).'},
+  {rot:'Aymee (vilazodona) 20 mg', nome:'Aymee (vilazodona)', dose:'20 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã ou à noite.\nUtilizar com refeição (jantar ou café).'},
+  {rot:'Desvenlafaxina 50 mg – desmame', nome:'Desvenlafaxina', dose:'50 mg', forma:'comprimido', qtd:'1 caixa', pos:'Tomar 1 comprimido por via oral pela manhã por uma semana. Em seguida:\n1 comprimido dia sim, dia não;\n1 comprimido dia sim, 2 dias não;\n1 comprimido dia sim, 3 dias não;\n1 comprimido e interromper.'},
+  {rot:'Rivotril SL 0,25 mg – se crise', nome:'Rivotril SL (clonazepam)', dose:'0,25 mg', forma:'comprimido sublingual', qtd:'1 caixa', pos:'Colocar 1 comprimido abaixo da língua se crise intensa. Esperar 20 a 30 minutos; se não melhorar, repetir a dose (até 4 vezes).', or:ORIENT_CRISE},
+  {rot:'Rivotril gotas 2,5 mg/mL – se crise', nome:'Rivotril (clonazepam)', dose:'2,5 mg/mL', forma:'solução oral (gotas)', qtd:'1 frasco', pos:'Tomar de 3 a 6 gotas por via oral se crise intensa. Esperar 20 a 30 minutos; se não melhorar, repetir a dose (até 4 vezes).', or:ORIENT_CRISE},
+  {rot:'Rivotril gotas – desmame (1 gota por semana)', nome:'Rivotril (clonazepam)', dose:'2,5 mg/mL', forma:'solução oral (gotas)', qtd:'1 frasco', pos:'Desmame: reduzir 1 gota por semana, à noite.\n1ª semana: 15 gotas; 2ª semana: 14 gotas; 3ª semana: 13 gotas; 4ª semana: 12 gotas; e assim por diante.\nSe não tolerar a redução, voltar à dose da semana anterior e tentar de novo após 3 dias.'}
+];
 function telaReceita() {
   const r = S.receitaRasc, p = paciente(r.patientId);
   const alertas = r.itens.map(i => i.nome && exigeNotificacao(i.nome) ? `<b>${esc(i.nome)}</b> exige Notificação de Receita ${exigeNotificacao(i.nome)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
@@ -928,11 +962,12 @@ function telaReceita() {
       <label class="f"><span>Dose / concentração</span><input type="text" data-rx="dose" data-i="${i}" value="${esc(it.dose)}" placeholder="ex.: 50 mg"></label></div>
       <div class="grid2"><label class="f"><span>Forma farmacêutica</span><input type="text" data-rx="forma" data-i="${i}" value="${esc(it.forma)}" placeholder="ex.: comprimido" list="rx-formas"></label>
       <label class="f"><span>Quantidade</span><input type="text" data-rx="qtd" data-i="${i}" value="${esc(it.qtd)}" placeholder="ex.: 30 comprimidos"></label></div>
-      <label class="f"><span>Como usar</span><input type="text" data-rx="pos" data-i="${i}" value="${esc(it.pos)}" placeholder="ex.: Tomar 1 comprimido pela manhã, uso contínuo"></label>
+      <label class="f"><span>Como usar</span><textarea data-rx="pos" data-i="${i}" rows="${Math.min(6, Math.max(2, String(it.pos || '').split('\n').length + 1))}" placeholder="ex.: Tomar 1 comprimido pela manhã, uso contínuo">${esc(it.pos)}</textarea></label>
     </div>`).join('')}</div>
     <datalist id="rx-lista">${[...new Set((p.medicacoes || []).map(m => m.nome).filter(Boolean))].map(n => `<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="rx-formas">${FORMAS.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
     <p style="color:var(--suave);font-size:.88rem;margin:-.3rem 0 .8rem">A quantidade sai também por extenso na receita (ex.: 30 → “30 (trinta) comprimidos”).</p>
+    <label class="f"><span>Atalhos de prescrição</span><select id="rx-modelo"><option value="">Escolha um atalho para incluir…</option>${MODELOS_RX.map((m, i) => `<option value="${i}">${esc(m.rot)}</option>`).join('')}</select></label>
     <div class="row" style="margin-bottom:1rem"><button type="button" class="btn" data-act="rx-mais">+ Outro medicamento</button>
     ${r.sugestoes && r.sugestoes.length ? `<button type="button" class="btn" data-act="rx-copiar">Copiar medicações em uso (${r.sugestoes.length})</button>` : ''}</div>
   </div>
@@ -955,12 +990,27 @@ function ligarReceita() {
     const el = e.target, r = S.receitaRasc; if (!r) return;
     if (el.id === 'rx-tipo') { r.tipo = el.value; rerenderReceita(); }
     if (el.dataset.rx === 'nome') rerenderReceita();
+    if (el.id === 'rx-modelo' && el.value !== '') {
+      const md = MODELOS_RX[Number(el.value)];
+      const item = {nome: md.nome, dose: md.dose, forma: md.forma, qtd: md.qtd, pos: md.pos};
+      const vazio = r.itens.findIndex(i => !(i.nome || '').trim() && !(i.pos || '').trim());
+      if (vazio >= 0) r.itens[vazio] = item; else r.itens.push(item);
+      if (md.or && !(r.orientacoes || '').includes(md.or)) r.orientacoes = (r.orientacoes ? r.orientacoes.trim() + '\n\n' : '') + md.or;
+      rerenderReceita();
+    }
   });
 }
 function rerenderReceita() { const y = $('#main').scrollTop; render(); $('#main').scrollTop = y; }
 const dataExtenso = iso => { const [a, m, d] = iso.split('-').map(Number); const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']; return `${d} de ${meses[m - 1]} de ${a}`; };
 function htmlItensRx(itens) {
   return `<ol class="rx-itens">${itens.map(i => `<li><div class="rx-med"><span><span class="nm">${esc(nomeItem(i))}</span>${i.forma ? ' – ' + esc(i.forma) : ''}</span><span class="pt"></span><span class="qt">${esc(qtdComExtenso(i.qtd))}</span></div>${i.pos ? `<div class="rx-pos">${esc(i.pos)}</div>` : ''}</li>`).join('')}</ol>`;
+}
+function escalaRx(dados, cpl, cabe) {
+  let n = 0;
+  const conta = t => String(t || '').split('\n').reduce((a, l) => a + Math.max(1, Math.ceil(l.length / cpl)), 0);
+  for (const i of dados.itens) n += Math.ceil((nomeItem(i).length + (i.forma || '').length + 22) / cpl) + (i.pos ? conta(i.pos) : 0) + 0.6;
+  if (dados.orientacoes) n += conta(dados.orientacoes) + 1.2;
+  return n <= cabe ? 1 : Math.max(0.66, Math.sqrt(cabe / n));
 }
 function htmlReceita(dados, p) {
   const s = S.dados.settings;
@@ -969,7 +1019,7 @@ function htmlReceita(dados, p) {
     ? `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-carimbo"><div class="rx-cx">carimbo</div><div class="rx-linha">Assinatura</div></div></div>`
     : `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-linha"><b>${esc(s.medico)}</b><br>${esc(s.crm)}</div></div>`;
   if (dados.tipo !== 'especial') {
-    return `<div class="rx rx-simples">
+    return `<div class="rx rx-simples" style="--k:${escalaRx(dados, 78, 30).toFixed(3)}">
       <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
       <div class="rx-tit">RECEITA</div>
       <div class="rx-pac">Paciente: <b>${esc(p.nome)}</b></div>
@@ -980,6 +1030,7 @@ function htmlReceita(dados, p) {
     </div>`;
   }
   const linhas = n => Array.from({length: n}, () => '<div class="rx-l"></div>').join('');
+  const orFora = (dados.orientacoes || '').length > 200;
   const via = rot => `<div class="rx-via">
     <div class="vt"><b>RECEITUÁRIO DE CONTROLE ESPECIAL</b><span>${rot}</span></div>
     <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO EMITENTE</div>
@@ -988,14 +1039,15 @@ function htmlReceita(dados, p) {
     <div style="margin-bottom:2.5mm">Endereço: ${p.endereco ? esc(p.endereco) : '<span style="display:inline-block;width:80%;border-bottom:.6pt solid #000">&nbsp;</span>'}</div>
     <div class="rx-bt">PRESCRIÇÃO</div>
     ${htmlItensRx(dados.itens)}
-    ${dados.orientacoes ? `<div class="rx-or" style="font-size:9pt;margin-top:1mm">${esc(dados.orientacoes)}</div>` : ''}
+    ${dados.orientacoes && !orFora ? `<div class="rx-or" style="margin-top:1mm">${esc(dados.orientacoes)}</div>` : ''}
     ${assinatura}
     <div class="rx-baixo">
       <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO COMPRADOR</div><div class="rx-ln">Nome:<i></i></div><div class="rx-ln">Identidade:<i></i>Órg. emissor:<i style="flex:.5"></i></div><div class="rx-ln">Endereço:<i></i></div><div class="rx-ln"><i></i></div><div class="rx-ln">Cidade:<i></i>UF:<i style="flex:.25"></i></div><div class="rx-ln">Telefone:<i></i></div></div>
       <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO FORNECEDOR</div><div style="height:12mm"></div><div class="rx-l"></div><div style="text-align:center;font-size:7pt;margin-top:.8mm">Assinatura do farmacêutico</div><div class="rx-ln" style="margin-top:4mm">Data:<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 12mm"></i></div></div>
     </div>
   </div>`;
-  return `<div class="rx"><div class="rx-ce">${via('1ª via – Farmácia')}${via('2ª via – Paciente')}</div></div>`;
+  const pagOr = orFora ? `<div class="rx"><div class="rx-orpag"><div class="vt"><b>ORIENTAÇÕES AO PACIENTE</b><span>${esc(p.nome)}</span></div><div class="rx-or">${esc(dados.orientacoes)}</div><div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div><b>${esc(s.medico)}</b> · ${esc(s.crm)}</div></div></div></div>` : '';
+  return `<div class="rx" style="--k:${escalaRx(orFora ? {...dados, orientacoes: ''} : dados, 64, 11).toFixed(3)}"><div class="rx-ce">${via('1ª via – Farmácia')}${via('2ª via – Paciente')}</div></div>${pagOr}`;
 }
 function imprimirReceita(dados, p, desc) {
   let estilo = $('#estilo-pagina');
@@ -1110,21 +1162,33 @@ const RELATORIOS = {
   toc: {diag:'transtorno obsessivo-compulsivo', cid:'F42.2', quadro:'Apresenta pensamentos obsessivos intrusivos e comportamentos compulsivos que consomem tempo significativo do dia e causam sofrimento e prejuízo do funcionamento.'}
 };
 const NOMES_REL = {depressao:'Depressão', ansiedade:'Ansiedade generalizada', panico:'Transtorno de pânico', bipolar:'Transtorno bipolar', esquizofrenia:'Esquizofrenia', tdah:'TDAH', alcool:'Dependência de álcool', cocaina:'Dependência de cocaína', apostas:'Apostas (jogo patológico)', burnout:'Burnout', tept:'Estresse pós-traumático', toc:'TOC'};
-const ORIENT_SONO = `Orientações para um sono melhor
+const ORIENT_SONO = `Orientações de higiene do sono
 
-1. Deite e levante sempre no mesmo horário, inclusive nos fins de semana.
-2. Use a cama só para dormir (e para a vida sexual). Evite celular, TV, trabalho e refeições na cama.
-3. Se não dormir em cerca de 20 minutos, levante, vá para outro cômodo com pouca luz e faça algo calmo. Volte quando sentir sono.
-4. Desligue telas (celular, computador, TV) pelo menos 1 hora antes de deitar.
-5. Evite café, chá preto, chá-mate, refrigerante de cola, energéticos e chocolate a partir das 14 h.
-6. Evite bebida alcoólica e cigarro, principalmente à noite: o álcool piora a qualidade do sono.
-7. Faça atividade física regularmente, de preferência pela manhã ou à tarde, e não perto da hora de dormir.
-8. Jante de forma leve, pelo menos 2 horas antes de deitar.
-9. Deixe o quarto escuro, silencioso, ventilado e com temperatura agradável.
-10. Se for cochilar, faça cochilos curtos (até 30 minutos) e antes das 15 h.
-11. Pegue luz do sol pela manhã: isso ajuda a regular o relógio do corpo.
-12. Crie uma rotina de relaxamento antes de dormir: banho morno, leitura leve, respiração lenta.
-13. Não fique olhando o relógio durante a noite.
+Rotina e horário
+- Mantenha horários regulares para dormir e acordar, inclusive nos fins de semana.
+- Evite cochilos longos durante o dia (se necessário, limite a 20 a 30 minutos e nunca no fim da tarde).
+- Crie um ritual de relaxamento antes de dormir: ler, meditar, tomar um banho morno, ouvir música calma.
+
+Ambiente do quarto
+- Deixe o quarto escuro, silencioso e fresco.
+- Evite luzes fortes e telas (celular, computador, TV) pelo menos 1 hora antes de dormir.
+- Use a cama apenas para dormir ou ter intimidade, não para trabalhar, estudar ou comer.
+- Invista em um colchão e travesseiro confortáveis.
+
+Alimentação e substâncias
+- Evite cafeína, nicotina e álcool nas 4 a 6 horas que antecedem o sono.
+- Evite refeições pesadas à noite; opte por algo leve se sentir fome.
+- Não vá para a cama com fome, mas também evite exageros.
+
+Hábitos diurnos
+- Pratique atividade física regularmente, mas evite exercícios intensos nas 2 a 3 horas antes de dormir.
+- Tome sol pela manhã: ajuda a regular o relógio biológico.
+- Controle o estresse com técnicas de relaxamento, respiração ou mindfulness.
+
+Durante a noite
+- Se não conseguir dormir após 20 a 30 minutos, levante-se e faça algo relaxante (ler um livro, respirar fundo); depois volte à cama.
+- Evite olhar o relógio repetidamente: isso aumenta a ansiedade.
+- Mantenha um horário fixo para levantar-se, mesmo após uma noite ruim.
 
 Use as medicações exatamente como prescrito e não tome remédios para dormir por conta própria.`;
 const ORIENT_FAMILIA = `Orientações à família: segurança e cuidado com as medicações
@@ -1189,6 +1253,7 @@ const MODELOS_DOC = {
   neuropsico: {cat:'encaminhamento', rotulo:'Avaliação neuropsicológica', titulo:'Solicitação de avaliação neuropsicológica', texto:'Encaminho {nome}{idade_txt}, em acompanhamento psiquiátrico, para avaliação neuropsicológica.\n\nHipótese diagnóstica: [ ] (CID-10 [ ]).\n\nMotivo da solicitação: [auxílio diagnóstico / avaliação do perfil cognitivo / acompanhamento de resposta ao tratamento].\n\nSolicito avaliação de: atenção (sustentada, seletiva e dividida), funções executivas, memória (operacional, episódica verbal e visual), velocidade de processamento, linguagem, habilidades visuoespaciais e nível intelectual, além de aspectos emocionais e comportamentais pertinentes.\n\nPeço que o laudo contenha conclusão e sugestões de intervenção.\n\nTratamento atual: {medicacoes}.'},
   psicoterapia: {cat:'encaminhamento', rotulo:'Psicoterapia', titulo:'Encaminhamento para psicoterapia', texto:'Encaminho {nome}{idade_txt}, em acompanhamento psiquiátrico comigo, para psicoterapia.\n\nMotivo: [ ] (CID-10 [ ]).\n\nAbordagem sugerida: [terapia cognitivo-comportamental / outra], com frequência [semanal].\n\nObjetivos: [manejo de sintomas, prevenção de recaídas, desenvolvimento de estratégias de enfrentamento].\n\nColoco-me à disposição para contato e discussão do caso.'},
   sono: {cat:'orientacao', rotulo:'Higiene do sono', titulo:'Prescrição de higiene do sono', texto:ORIENT_SONO},
+  crise: {cat:'orientacao', rotulo:'Orientações para crise de ansiedade', titulo:'Orientações para crise de ansiedade', texto:ORIENT_CRISE},
   familia: {cat:'orientacao', rotulo:'Orientações à família (vigilância e guarda das medicações)', titulo:'Orientações à família', texto:ORIENT_FAMILIA},
   or_litio: {cat:'orientacao', rotulo:'Orientações: uso do lítio', titulo:'Orientações: uso do lítio', texto:ORIENT_LITIO},
   or_clozapina: {cat:'orientacao', rotulo:'Orientações: uso da clozapina', titulo:'Orientações: uso da clozapina', texto:ORIENT_CLOZAPINA},
@@ -1691,8 +1756,8 @@ const ACOES = {
   'doc-gerar': d => gerarDocumento(d.carimbo === '1'),
   'doc-cfm': () => levarDocAoCFM(),
   'doc-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosDoc); } catch (e) { return aviso('Não foi possível ler este documento.'); } dd.carimbo = d.carimbo === '1'; imprimirFolha(htmlDocumento(dd, paciente(r.patientId)), 'portrait', 'Reimpressão – ' + dd.titulo + ' – ' + paciente(r.patientId).nome, r.patientId); },
-  'sug': (d, el) => { const f = document.querySelector(`#f-registro [data-c="${d.c}"]`); if (!f) return; const atual = f.value.trim(); f.value = atual ? (atual.endsWith('.') || atual.endsWith(';') ? atual + ' ' : atual + '; ') + d.t : d.t; S.rascunho.campos[d.c] = f.value; guardarRascunho(); },
-  'eem-normal': () => { for (const [k, v] of Object.entries(EEM_NORMAL)) { const f = document.querySelector(`#f-registro [data-c="${k}"]`); if (f && !f.value.trim()) { f.value = v; S.rascunho.campos[k] = v; } } guardarRascunho(); aviso('Campos vazios do exame preenchidos com achados sem alterações. Ajuste o que for diferente.'); },
+  'sug': (d, el) => { const f = document.querySelector(`#f-registro [data-c="${d.c}"]`); if (!f) return; const atual = f.value.trim(); const at = d.t.startsWith('§') && ATALHOS_TXT[d.t.slice(1)]; const t = at ? at(paciente(S.rascunho.patientId)) : d.t; f.value = !atual ? t : at ? atual + '\n' + t : (atual.endsWith('.') || atual.endsWith(';') ? atual + ' ' : atual + '; ') + t; S.rascunho.campos[d.c] = f.value; guardarRascunho(); },
+  'eem-normal': () => { for (const [k, v] of Object.entries(eemNormal(paciente(S.rascunho.patientId)))) { const f = document.querySelector(`#f-registro [data-c="${k}"]`); if (f && !f.value.trim()) { f.value = v; S.rascunho.campos[k] = v; } } guardarRascunho(); aviso('Campos vazios do exame preenchidos com achados sem alterações. Ajuste o que for diferente.'); },
   'cfm-copiar': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } const ok = copiarEAbrirCFM(textoParaCFM(dados, paciente(r.patientId))); auditar('Receita levada ao CFM (de novo)', paciente(r.patientId).nome, r.patientId); salvar(); aviso(ok ? 'Prescrição copiada. No CFM, escolha o paciente e cole a posologia de cada item.' : 'Abri o CFM.', 7000); },
   'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } dados.carimbo = d.carimbo === '1'; imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
   'sair-form': () => abrirPaciente(S.rascunho.patientId),
