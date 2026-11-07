@@ -209,6 +209,32 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#2b332a;color:#fff;padding:.75rem 1.1rem;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 #print-root{display:none}
+.lme-tab{display:grid;gap:.5rem}
+.lme-lin{display:grid;grid-template-columns:1.6rem minmax(12rem,1.4fr) 2fr;gap:.4rem;align-items:center}
+.lme-n{font-weight:700;color:var(--musgo,#4a5a3c);text-align:center}
+.lme-qs{display:grid;grid-template-columns:repeat(6,1fr) auto;gap:.3rem;align-items:center}
+.lme-qs input{padding:.55em .35em;text-align:center}
+@media (max-width:900px){.lme-lin{grid-template-columns:1.6rem 1fr}.lme-qs{grid-column:2}}
+.op-r{display:inline-flex;gap:.35rem;align-items:center;margin-right:1rem;cursor:pointer}
+.op-r input{width:20px;height:20px;min-height:0;margin:0}
+.rot-f{display:block;font-size:.88rem;font-weight:600;color:#465046;margin-bottom:.35rem}
+.lme{font-family:Arial,Helvetica,sans-serif;font-size:8.6pt;color:#000;line-height:1.25}
+.lme-cab{display:flex;gap:4mm;align-items:center;border:1px solid #000;padding:2mm 3mm}
+.lme-org{flex:0 0 32%;font-size:8pt}
+.lme-tit{flex:1;text-align:center;font-size:8.5pt}
+.lme-tit b{display:block;font-size:9.6pt;margin:.6mm 0}
+.lme-faixa{background:#ddd;border:1px solid #000;border-top:0;text-align:center;font-weight:700;font-size:7.6pt;padding:.8mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lme-r{display:flex}
+.lme-r .lme-b{flex:1}
+.lme-r .lme-b + .lme-b{border-left:0}
+.lme-b{border:1px solid #000;border-top:0;padding:1mm 1.6mm;min-height:8.5mm;box-sizing:border-box}
+.lme-b i{display:block;font-style:normal;font-size:6.8pt;font-weight:700;margin-bottom:.4mm}
+.lme-txt{white-space:pre-wrap}
+.lme-t{width:100%;border-collapse:collapse;font-size:8.4pt}
+.lme-t th,.lme-t td{border:1px solid #000;border-top:0;padding:.8mm 1mm;text-align:center}
+.lme-t th{font-size:6.8pt}
+.lme-ck{display:inline-block;width:3mm;height:3mm;border:1px solid #000;text-align:center;line-height:3mm;font-size:7pt;font-weight:700;vertical-align:-.4mm}
+.lme-rod{font-size:7pt;margin-top:1mm}
 
 /* Tela estreita (iPad em pé, celular) */
 @media (max-width:900px){
@@ -344,7 +370,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.16.1';
+const APP_VERSAO = '1.17.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -497,6 +523,7 @@ const FICHAS = {
   documento: { titulo:'Documento', secoes:[{t:'Documento', campos:[['tipoDoc','Modelo','linha'],['titulo','Título','linha'],['cid','CID','cid'],['texto','Conteúdo','longo']]}]},
   escala: { titulo:'Escala', secoes:[{t:'Escala', campos:[['nome','Escala','linha'],['resultado','Resultado','linha'],['detalhe','Subescalas e alertas','texto'],['respostas','Respostas','longo'],['obs','Observações','texto']]}]},
   litemia: { titulo:'Litemia', secoes:[{t:'Litemia', campos:[['valor','Litemia (mEq/L)','linha'],['interp','Interpretação','texto'],['horas','Horas após a última dose','linha'],['dose','Dose diária de lítio (mg)','linha'],['creatinina','Creatinina / TFG','linha'],['tsh','TSH','linha'],['calcio','Cálcio','linha'],['obs','Observações','texto']]}]},
+  lme: { titulo:'LME – Componente Especializado', secoes:[{t:'LME', campos:[['estabelecimento','Estabelecimento solicitante','linha'],['medicamentos','Medicamentos e quantidades por mês','longo'],['cid','CID-10','cid'],['diagnostico','Diagnóstico','linha'],['anamnese','Anamnese','longo'],['tratamento','Tratamento prévio ou atual','texto'],['capacidade','Atestado de capacidade','linha'],['validade','Validade','linha']]}]},
   doctoralia: { titulo:'Atendimento importado da Doctoralia', secoes:[{t:'Importado da Doctoralia', campos:[['texto','Registro','longo']]}]},
   cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
@@ -655,6 +682,7 @@ function render() {
   if (v === 'receita') ligarReceita();
   if (v === 'documento') ligarDocumento();
   if (v === 'escala') ligarEscala();
+  if (v === 'lme') ligarLME();
   if (v === 'litemia') ligarLitemia();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
@@ -705,6 +733,7 @@ function telaPrincipal() {
     case 'documento': return telaDocumento();
     case 'escala': return telaEscala();
     case 'litemia': return telaLitemia();
+    case 'lme': return telaLME();
     default: return telaInicio();
   }
 }
@@ -714,7 +743,7 @@ const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"')
 function telaInicio() {
   const d = S.dados, hoje = hojeStr();
   const hojeN = d.records.filter(r => r.data === hoje && !TIPOS_AUX.includes(r.tipo)).length;
-  const pend = d.records.filter(r => !['cfm','receita','doctoralia','documento','anulacao'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const pend = d.records.filter(r => !['cfm','receita','doctoralia','documento','anulacao','lme'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
   const u = d.settings.ultimoBackup;
   return `
     ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
@@ -763,6 +792,7 @@ function telaPaciente() {
     <button class="btn" data-act="nova-receita" data-pid="${p.id}">+ Receita</button>
     <button class="btn" data-act="novo-doc" data-pid="${p.id}">+ Documento</button>
     <button class="btn" data-act="nova-escala" data-pid="${p.id}">+ Escala</button>
+    <button class="btn" data-act="nova-lme" data-pid="${p.id}">+ LME</button>
   </div>
   <div class="cols">
     <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}
@@ -816,8 +846,8 @@ async function anularRegistro(id) {
   abrirPaciente(p.id);
   aviso('Registro anulado e retirado da tela. Fica guardado no sistema, como exigem as normas.', 5000);
 }
-const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia'];
-const EDITAVEIS = ['primeira', 'evolucao', 'documento', 'receita'];
+const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia', 'lme'];
+const EDITAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'lme'];
 function travado(r) { return !!r.pdfAssinado || !!(r.assinatura && ['assinado', 'cfm'].includes(r.assinatura.status)); }
 function editavel(r) { return EDITAVEIS.includes(r.tipo) && !anulado(r) && !travado(r); }
 async function gravarOuEditar(reg, editId) {
@@ -844,6 +874,12 @@ function editarRegistro(id) {
     if (!MODELOS_DOC[d.chave]) return aviso('O modelo deste documento não existe mais.');
     S.docRasc = Object.assign({}, d, {patientId: r.patientId, etapa: 'editar', exames: (d.exames || []).slice(), outros: '', nota: '', editId: id, editData: r.data});
     S.view = {nome: 'documento', pid: r.patientId}; render(); return;
+  }
+  if (r.tipo === 'lme') {
+    let d; try { d = JSON.parse(r.campos.dadosLME); } catch (e) { return aviso('Não foi possível ler esta LME.'); }
+    const meds = d.meds.map(m => ({nome: m.nome, q: m.q.slice()})); while (meds.length < 5) meds.push({nome: '', q: ['', '', '', '', '', '']});
+    S.lmeRasc = Object.assign({}, d, {patientId: r.patientId, meds, editId: id, editData: r.data});
+    S.view = {nome: 'lme', pid: r.patientId}; render(); return;
   }
   if (r.tipo === 'receita') {
     let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); }
@@ -1041,6 +1077,7 @@ function cartaoRegistro(r, todos) {
         ${editavel(r) ? `<button class="btn sm pri" data-act="editar-registro" data-id="${r.id}">Editar</button>` : ''}
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
         ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
+        ${!anul && r.tipo === 'lme' ? `<button class="btn sm pri" data-act="lme-reimprimir" data-id="${r.id}">Imprimir LME</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
         ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : `<button class="btn sm azul" data-act="assinar-vidaas" data-id="${r.id}">Assinar com VIDaaS</button>`}
         <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' || r.tipo === 'documento' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
@@ -1063,6 +1100,10 @@ function telaFormPaciente() {
         <label class="f"><span>Data de nascimento</span><input type="date" name="nascimento" value="${v('nascimento')}"></label>
         <label class="f"><span>Sexo</span><select name="sexo">${['','Feminino','Masculino','Outro'].map(o => `<option ${p.sexo === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
         <label class="f"><span>CPF</span><input type="text" name="cpf" value="${v('cpf')}" inputmode="numeric"></label>
+      </div>
+      <div class="grid2">
+        <label class="f"><span>Nome da mãe</span><input type="text" name="mae" value="${v('mae')}"></label>
+        <label class="f"><span>Cartão SUS (CNS)</span><input type="text" name="cns" value="${v('cns')}" inputmode="numeric"></label>
       </div>
       <div class="grid2">
         <label class="f"><span>Nome social (se houver)</span><input type="text" name="nomeSocial" value="${v('nomeSocial')}"></label>
@@ -2049,7 +2090,7 @@ function levarDocAoCFM() {
 function imprimirFolha(html, orientacao, desc, pid) {
   let estilo = $('#estilo-pagina');
   if (!estilo) { estilo = document.createElement('style'); estilo.id = 'estilo-pagina'; document.head.appendChild(estilo); }
-  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : '@page{size:A4 portrait;margin:14mm}';
+  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : orientacao === 'lme' ? '@page{size:A4 portrait;margin:8mm}' : '@page{size:A4 portrait;margin:14mm}';
   imprimir(html, desc, pid);
   setTimeout(() => { estilo.textContent = ''; }, 4000);
 }
@@ -2160,7 +2201,7 @@ async function importarLista(obj, nomeArq) {
     const ex = S.dados.patients.find(x => (cpf && soDig(x.cpf) === cpf) || nomeN(x.nome) === nomeN(ip.nome));
     if (ex) {
       mapa[ip.id] = ex.id; casados++;
-      for (const k of ['cpf','nascimento','telefone','email','endereco','sexo']) if (!ex[k] && ip[k]) ex[k] = ip[k];
+      for (const k of ['cpf','nascimento','telefone','email','endereco','sexo','mae','cns']) if (!ex[k] && ip[k]) ex[k] = ip[k];
       const ids = new Set((ex.medicacoes || []).map(m => m.id));
       if (!(ex.medicacoes || []).some(m => !m.fim)) for (const m of ip.medicacoes || []) if (!ids.has(m.id)) (ex.medicacoes = ex.medicacoes || []).push(m);
     } else novos.push(ip);
@@ -2311,6 +2352,8 @@ function telaConfig() {
     <label class="f"><span>UF</span><input type="text" name="uf" value="${esc(s.uf)}" maxlength="2"></label></div>
     <div class="grid2"><label class="f"><span>Instagram (rodapé das receitas)</span><input type="text" name="instagram" value="${esc(s.instagram || '')}"></label>
     <label class="f"><span>Slogan (cabeçalho das receitas)</span><input type="text" name="slogan" value="${esc(s.slogan || '')}"></label></div>
+    <div class="grid2"><label class="f"><span>CNS do médico (cartão SUS, para a LME)</span><input type="text" name="cnsMedico" value="${esc(s.cnsMedico || '')}" inputmode="numeric"></label>
+    <label class="f"><span>CPF do médico (laudos)</span><input type="text" name="cpfMedico" value="${esc(s.cpfMedico || '')}" inputmode="numeric"></label></div>
     <div class="grid2"><label class="f"><span>Telefone</span><input type="text" name="telefone" value="${esc(s.telefone)}"></label>
     <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
     <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
@@ -2351,6 +2394,176 @@ async function apagarTudo() {
     };
   });
 }
+
+/* ---------- LME – Componente Especializado da Assistência Farmacêutica ---------- */
+const RACAS_LME = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Sem informação'];
+const QUEM_LME = ['Paciente', 'Mãe do paciente', 'Responsável (descrito no item 13)', 'Médico solicitante', 'Outro'];
+function ultimoCid(pid) {
+  const r = S.dados.records.filter(x => x.patientId === pid && (x.tipo === 'evolucao' || x.tipo === 'primeira') && !anulado(x) && (x.cid || []).length).sort(ordDesc)[0];
+  if (!r) return {cid: '', diag: ''};
+  const [c, ...d] = String(r.cid[0]).split(/\s+[–-]\s+/);
+  return {cid: c.trim(), diag: d.join(' – ').trim()};
+}
+function abrirLME(pid) {
+  const p = paciente(pid), s = S.dados.settings, u = s.lmeUltimo || {}, c = ultimoCid(pid);
+  S.lmeRasc = {patientId: pid, cnes: u.cnes || '', estab: u.estab || '', mae: p.mae || '', peso: '', altura: '',
+    meds: Array.from({length: 5}, () => ({nome: '', q: ['', '', '', '', '', '']})), cid: c.cid, diag: c.diag, anamnese: '',
+    trat: '', tratTxt: '', incapaz: 'nao', resp: '', data: hojeStr(), branco: false, quem: 'Médico solicitante', outroNome: '', outroCpf: '',
+    raca: '', etnia: '', tel: p.telefone || '', docTipo: p.cns ? 'CNS' : 'CPF', docNum: p.cns || p.cpf || '', email: p.email || ''};
+  S.view = {nome: 'lme', pid}; render();
+}
+function telaLME() {
+  const r = S.lmeRasc, p = paciente(r.patientId), s = S.dados.settings;
+  const voltar = `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>`;
+  const f = (k, rot, extra = '') => `<label class="f"><span>${rot}</span><input type="text" data-l="${k}" value="${esc(r[k] || '')}" ${extra}></label>`;
+  const ativas = (p.medicacoes || []).filter(m => !m.fim);
+  return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${r.editId ? 'Editar · ' : ''}LME – Componente Especializado</h1>
+  ${bannerEdicao(r)}
+  <div class="meta" style="margin-bottom:.8rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}<span>Laudo de Solicitação, Avaliação e Autorização de Medicamentos · vale 90 dias</span></div>
+  <div class="form-sec"><h3>Estabelecimento</h3><div class="grid2">${f('cnes', '1 · Número do CNES *', 'inputmode="numeric"')}${f('estab', '2 · Nome do estabelecimento de saúde solicitante')}</div>
+    <p style="font-size:.85rem;color:var(--suave);margin:-.3rem 0 .8rem">Seu CNS precisa estar vinculado a este CNES. O app lembra o último usado.</p></div>
+  <div class="form-sec"><h3>Paciente</h3>
+    <div class="grid2"><label class="f"><span>3 · Nome completo do paciente</span><input type="text" value="${esc(p.nome)}" disabled></label>${f('mae', '4 · Nome da mãe do paciente *')}</div>
+    <div class="grid2">${f('peso', '5 · Peso (kg) *', 'inputmode="decimal"')}${f('altura', '6 · Altura (cm) *', 'inputmode="numeric"')}</div></div>
+  <div class="form-sec"><h3>7 · Medicamentos e 8 · quantidade solicitada por mês *</h3>
+    ${ativas.length ? `<div class="sugs" style="margin-bottom:.6rem"><span style="font-size:.85rem;color:var(--suave)">Em uso:</span> ${ativas.map((m, i) => `<button type="button" class="sug" data-act="lme-med" data-i="${i}">${esc(m.nome)} ${esc(m.dose || '')}</button>`).join('')}</div>` : ''}
+    <div class="lme-tab">${r.meds.map((m, i) => `<div class="lme-lin"><div class="lme-n">${i + 1}</div>
+      <input type="text" class="lme-nome" data-lm="${i}" placeholder="Medicamento e concentração" value="${esc(m.nome)}" list="rx-lista-lme">
+      <div class="lme-qs">${m.q.map((q, j) => `<input type="text" data-lm="${i}" data-lq="${j}" value="${esc(q)}" placeholder="${j + 1}º" inputmode="numeric" aria-label="${j + 1}º mês">`).join('')}
+      <button type="button" class="btn sm link" data-act="lme-copiar" data-i="${i}" title="Repetir a quantidade do 1º mês nos demais">repetir</button></div></div>`).join('')}</div>
+    <datalist id="rx-lista-lme">${[...new Set((p.medicacoes || []).map(m => [m.nome, m.dose].filter(Boolean).join(' ')))].map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <p style="font-size:.85rem;color:var(--suave);margin:.5rem 0 .9rem">Quantidade em unidades (comprimidos, cápsulas…). Até 5 medicamentos por LME para o mesmo CID.</p></div>
+  <div class="form-sec"><h3>Diagnóstico e história</h3>
+    <div class="grid2" style="grid-template-columns:1fr 3fr">${f('cid', '9 · CID-10 *')}${f('diag', '10 · Diagnóstico')}</div>
+    <label class="f"><span>11 · Anamnese * <button type="button" class="btn sm link" data-act="lme-hma">puxar da 1ª consulta e última evolução</button></span><textarea data-l="anamnese" rows="5">${esc(r.anamnese)}</textarea></label>
+    <div class="f" style="margin-bottom:.9rem"><span class="rot-f">12 · Paciente realizou tratamento prévio ou está em tratamento da doença? *</span>
+      <div class="row"><label class="op-r"><input type="radio" name="lme-trat" value="nao" ${r.trat === 'nao' ? 'checked' : ''}> Não</label><label class="op-r"><input type="radio" name="lme-trat" value="sim" ${r.trat === 'sim' ? 'checked' : ''}> Sim</label>
+      <button type="button" class="btn sm link" data-act="lme-trat">puxar tratamentos do prontuário</button></div>
+      <textarea data-l="tratTxt" rows="3" placeholder="Relatar: medicamentos, doses, tempo de uso, resposta e efeitos" style="margin-top:.4rem">${esc(r.tratTxt)}</textarea></div>
+    <div class="f" style="margin-bottom:.9rem"><span class="rot-f">13 · Atestado de capacidade * — o paciente é considerado incapaz (arts. 3º e 4º do Código Civil)?</span>
+      <div class="row"><label class="op-r"><input type="radio" name="lme-incapaz" value="nao" ${r.incapaz !== 'sim' ? 'checked' : ''}> Não</label><label class="op-r"><input type="radio" name="lme-incapaz" value="sim" ${r.incapaz === 'sim' ? 'checked' : ''}> Sim</label></div>
+      <input type="text" data-l="resp" value="${esc(r.resp)}" placeholder="Nome do responsável (se Sim)" style="margin-top:.4rem"></div></div>
+  <div class="form-sec"><h3>Médico solicitante</h3>
+    <div class="grid3"><label class="f"><span>14 · Nome do médico</span><input type="text" value="${esc(s.medico)}" disabled></label>
+      <label class="f"><span>15 · CNS do médico *</span><input type="text" data-cfg="cnsMedico" value="${esc(s.cnsMedico || '')}" inputmode="numeric" placeholder="15 dígitos"></label>
+      <label class="f"><span>16 · Data da solicitação *</span><input type="date" data-l="data" value="${esc(r.data)}"></label></div></div>
+  <div class="form-sec"><h3>Campos 18 a 23 (podem ser preenchidos pelo paciente)</h3>
+    <label style="display:flex;gap:.45rem;align-items:center;margin-bottom:.8rem;cursor:pointer"><input type="checkbox" id="lme-branco" ${r.branco ? 'checked' : ''} style="width:20px;height:20px;min-height:0;margin:0"> Deixar os campos 18 a 23 em branco para o paciente preencher</label>
+    <div id="lme-pac" style="${r.branco ? 'display:none' : ''}">
+      <div class="grid2"><label class="f"><span>18 · Campos preenchidos por</span><select data-l="quem">${QUEM_LME.map(o => `<option ${r.quem === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
+        <label class="f"><span>19 · Raça/cor/etnia (informada pelo paciente)</span><select data-l="raca"><option value="">— deixar em branco —</option>${RACAS_LME.map(o => `<option ${r.raca === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label></div>
+      <div class="grid3">${f('outroNome', 'Se "Outro": nome')}${f('outroCpf', 'Se "Outro": CPF', 'inputmode="numeric"')}${f('etnia', 'Se indígena: etnia')}</div>
+      <div class="grid3">${f('tel', '20 · Telefone(s) do paciente')}
+        <label class="f"><span>21 · Documento do paciente</span><div class="row" style="flex-wrap:nowrap"><select data-l="docTipo" style="width:auto">${['CPF', 'CNS'].map(o => `<option ${r.docTipo === o ? 'selected' : ''}>${o}</option>`).join('')}</select><input type="text" data-l="docNum" value="${esc(r.docNum)}" inputmode="numeric"></div></label>
+        ${f('email', '22 · E-mail do paciente')}</div></div></div>
+  <div class="barra-acoes"><button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn pri" data-act="lme-gerar">${r.editId ? 'Salvar e imprimir' : 'Gerar LME'}</button></div>`;
+}
+function ligarLME() {
+  const m = $('#main'), r = S.lmeRasc; if (!r) return;
+  const upd = el => {
+    if (el.dataset.l) r[el.dataset.l] = el.value;
+    if (el.dataset.lm !== undefined) { const i = Number(el.dataset.lm); if (el.dataset.lq !== undefined) r.meds[i].q[Number(el.dataset.lq)] = el.value; else r.meds[i].nome = el.value; }
+    if (el.dataset.cfg) S.dados.settings[el.dataset.cfg] = el.value.replace(/\D/g, '') || el.value.trim();
+    if (el.name === 'lme-trat') r.trat = el.value;
+    if (el.name === 'lme-incapaz') r.incapaz = el.value;
+    if (el.id === 'lme-branco') { r.branco = el.checked; const d = $('#lme-pac'); if (d) d.style.display = el.checked ? 'none' : ''; }
+  };
+  m.addEventListener('input', e => upd(e.target));
+  m.addEventListener('change', e => upd(e.target));
+}
+function lmeMed(i) {
+  const r = S.lmeRasc, p = paciente(r.patientId), med = (p.medicacoes || []).filter(m => !m.fim)[Number(i)]; if (!med) return;
+  const nome = [med.nome, med.dose].filter(Boolean).join(' ');
+  if (r.meds.some(x => x.nome.trim().toLowerCase() === nome.toLowerCase())) return aviso('Esse medicamento já está na lista.');
+  const vazio = r.meds.find(x => !x.nome.trim()); if (!vazio) return aviso('A LME aceita até 5 medicamentos. Para mais, faça outra LME.');
+  vazio.nome = nome; render();
+}
+function lmeHma() {
+  const r = S.lmeRasc, regs = S.dados.records.filter(x => x.patientId === r.patientId && !anulado(x));
+  const prim = regs.filter(x => x.tipo === 'primeira').sort(ordDesc)[0], ev = regs.filter(x => x.tipo === 'evolucao').sort(ordDesc)[0];
+  const partes = [];
+  if (prim) { if (prim.campos.queixa) partes.push(prim.campos.queixa.trim()); if (prim.campos.hda) partes.push(prim.campos.hda.trim()); }
+  if (ev) partes.push(`Evolução em ${fmtData(ev.data)}: ${[ev.campos.subjetivo, ev.campos.avaliacao].filter(Boolean).join(' ').trim()}`);
+  if (!partes.length) return aviso('Não há primeira consulta ou evolução para puxar.');
+  r.anamnese = (r.anamnese.trim() ? r.anamnese.trim() + '\n\n' : '') + partes.join('\n\n'); render();
+  aviso('Texto puxado do prontuário. Revise e resuma antes de gerar.', 5000);
+}
+function lmeTrat() {
+  const r = S.lmeRasc, p = paciente(r.patientId);
+  const prim = S.dados.records.filter(x => x.patientId === r.patientId && x.tipo === 'primeira' && !anulado(x)).sort(ordDesc)[0];
+  const linhas = [];
+  if (prim && prim.campos.med_previas) linhas.push(prim.campos.med_previas.trim());
+  const susp = (p.medicacoes || []).filter(m => m.fim), at = (p.medicacoes || []).filter(m => !m.fim);
+  if (susp.length) linhas.push('Usou: ' + susp.map(m => `${m.nome} ${m.dose || ''}`.trim() + (m.inicio ? ` (${fmtData(m.inicio)} a ${fmtData(m.fim)})` : '')).join('; ') + '.');
+  if (at.length) linhas.push('Em uso: ' + at.map(m => [m.nome, m.dose, m.posologia].filter(Boolean).join(' ')).join('; ') + '.');
+  if (!linhas.length) return aviso('Não há tratamentos registrados para puxar.');
+  r.trat = 'sim'; r.tratTxt = (r.tratTxt.trim() ? r.tratTxt.trim() + '\n' : '') + linhas.join('\n'); render();
+}
+const cxLme = on => `<span class="lme-ck">${on ? 'X' : ''}</span>`;
+function htmlLME(d, p) {
+  const s = S.dados.settings, b = d.branco;
+  const v = x => esc(x || '');
+  const meds = d.meds.concat(Array.from({length: Math.max(0, 5 - d.meds.length)}, () => ({nome: '', q: ['', '', '', '', '', '']}))).slice(0, 5);
+  return `<div class="lme">
+  <div class="lme-cab"><div class="lme-org"><b>Sistema Único de Saúde</b><br>Ministério da Saúde<br>Secretaria de Estado da Saúde</div>
+    <div class="lme-tit"><div>COMPONENTE ESPECIALIZADO DA ASSISTÊNCIA FARMACÊUTICA</div><b>LAUDO DE SOLICITAÇÃO, AVALIAÇÃO E AUTORIZAÇÃO DE MEDICAMENTO(S)</b><div>SOLICITAÇÃO DE MEDICAMENTO(S)</div></div></div>
+  <div class="lme-faixa">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MÉDICO SOLICITANTE</div>
+  <div class="lme-r"><div class="lme-b" style="flex:0 0 26%"><i>1- Número do CNES*</i>${v(d.cnes)}</div><div class="lme-b"><i>2- Nome do estabelecimento de saúde solicitante</i>${v(d.estab)}</div></div>
+  <div class="lme-r"><div class="lme-b"><i>3- Nome completo do Paciente*</i>${v(p.nome)}</div><div class="lme-b" style="flex:0 0 20%"><i>5- Peso do paciente*</i>${v(d.peso)} kg</div></div>
+  <div class="lme-r"><div class="lme-b"><i>4- Nome da Mãe do Paciente*</i>${v(d.mae)}</div><div class="lme-b" style="flex:0 0 20%"><i>6- Altura do paciente*</i>${v(d.altura)} cm</div></div>
+  <table class="lme-t"><thead><tr><th style="width:5%"></th><th style="text-align:left">7- Medicamento(s)*</th><th colspan="6">8- Quantidade solicitada*</th></tr>
+    <tr><th></th><th></th>${[1, 2, 3, 4, 5, 6].map(n => `<th style="width:8%">${n}º mês</th>`).join('')}</tr></thead>
+    <tbody>${meds.map((m, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${v(m.nome)}</td>${m.q.map(q => `<td>${v(m.nome ? q : '')}</td>`).join('')}</tr>`).join('')}</tbody></table>
+  <div class="lme-r"><div class="lme-b" style="flex:0 0 20%"><i>9- CID-10*</i>${v(d.cid)}</div><div class="lme-b"><i>10- Diagnóstico</i>${v(d.diag)}</div></div>
+  <div class="lme-b lme-txt" style="min-height:30mm"><i>11- Anamnese*</i>${v(d.anamnese)}</div>
+  <div class="lme-b lme-txt"><i>12- Paciente realizou tratamento prévio ou está em tratamento da doença?*</i>${cxLme(d.trat === 'nao')} NÃO &nbsp; ${cxLme(d.trat === 'sim')} SIM. Relatar: ${v(d.tratTxt)}</div>
+  <div class="lme-b"><i>13- Atestado de capacidade*</i>A solicitação do medicamento deverá ser realizada pelo paciente. Entretanto, fica dispensada a obrigatoriedade da presença física do paciente considerado incapaz de acordo com os artigos 3º e 4º do Código Civil. O paciente é considerado incapaz?
+    <div style="margin-top:1mm">${cxLme(d.incapaz !== 'sim')} NÃO &nbsp; ${cxLme(d.incapaz === 'sim')} SIM. Indicar o nome do responsável pelo paciente, o qual poderá realizar a solicitação do medicamento: <b>${d.incapaz === 'sim' ? v(d.resp) : ''}</b></div></div>
+  <div class="lme-r"><div class="lme-b"><i>14- Nome do médico solicitante*</i>${v(s.medico)} – ${v(s.crm)}</div><div class="lme-b" style="flex:0 0 30%"><i>15- Número do Cartão Nacional de Saúde (CNS) do médico solicitante*</i>${v(d.cnsMedico)}</div><div class="lme-b" style="flex:0 0 18%"><i>16- Data da solicitação*</i>${d.data ? fmtData(d.data) : ''}</div></div>
+  <div class="lme-b" style="height:17mm"><i>17- Assinatura e carimbo do médico*</i></div>
+  <div class="lme-faixa">CAMPOS ABAIXO PREENCHIDOS POR*:</div>
+  <div class="lme-b"><i>18</i>${QUEM_LME.slice(0, 4).map(o => `${cxLme(!b && d.quem === o)} ${o}`).join(' &nbsp; ')} &nbsp; ${cxLme(!b && d.quem === 'Outro')} Outro, informar nome: ${!b && d.quem === 'Outro' ? v(d.outroNome) : '____________________'} e CPF ${!b && d.quem === 'Outro' ? v(d.outroCpf) : '______________'}</div>
+  <div class="lme-b"><i>19- Raça/Cor/Etnia informado pelo paciente ou responsável*</i>${RACAS_LME.map(o => `${cxLme(!b && d.raca === o)} ${o === 'Indígena' ? `Indígena. Informar etnia: ${!b && d.raca === 'Indígena' ? v(d.etnia) : '__________'}` : o}`).join(' &nbsp; ')}</div>
+  <div class="lme-r"><div class="lme-b"><i>20- Telefone(s) para contato do paciente</i>${b ? '' : v(d.tel)}</div><div class="lme-b"><i>21- Número do documento do paciente</i>${cxLme(!b && d.docTipo === 'CPF')} CPF ou ${cxLme(!b && d.docTipo === 'CNS')} CNS: ${b ? '' : v(d.docNum)}</div></div>
+  <div class="lme-b"><i>22- Correio eletrônico do paciente</i>${b ? '' : v(d.email)}</div>
+  <div class="lme-b" style="height:13mm"><i>23- Assinatura do responsável pelo preenchimento*</i></div>
+  <div class="lme-rod">* CAMPOS DE PREENCHIMENTO OBRIGATÓRIO</div>
+</div>`;
+}
+function dadosLmeDe(r) {
+  return {cnes: r.cnes.trim(), estab: r.estab.trim(), mae: r.mae.trim(), peso: r.peso.trim(), altura: r.altura.trim(),
+    meds: r.meds.filter(m => m.nome.trim()).map(m => ({nome: m.nome.trim(), q: m.q.map(x => String(x).trim())})),
+    cid: r.cid.trim(), diag: r.diag.trim(), anamnese: r.anamnese.trim(), trat: r.trat, tratTxt: r.tratTxt.trim(), incapaz: r.incapaz, resp: r.resp.trim(),
+    cnsMedico: (S.dados.settings.cnsMedico || '').trim(), data: r.data, branco: !!r.branco, quem: r.quem, outroNome: r.outroNome.trim(), outroCpf: r.outroCpf.trim(),
+    raca: r.raca, etnia: r.etnia.trim(), tel: r.tel.trim(), docTipo: r.docTipo, docNum: r.docNum.trim(), email: r.email.trim()};
+}
+async function gerarLME() {
+  const r = S.lmeRasc, p = paciente(r.patientId), s = S.dados.settings, d = dadosLmeDe(r);
+  const falta = [];
+  if (!d.cnes) falta.push('1 CNES'); if (!d.mae) falta.push('4 nome da mãe'); if (!d.peso) falta.push('5 peso'); if (!d.altura) falta.push('6 altura');
+  if (!d.meds.length) falta.push('7 medicamento'); else if (d.meds.some(m => !m.q[0])) falta.push('8 quantidade do 1º mês');
+  if (!d.cid) falta.push('9 CID-10'); if (!d.anamnese) falta.push('11 anamnese'); if (!d.trat) falta.push('12 tratamento prévio');
+  if (d.incapaz === 'sim' && !d.resp) falta.push('13 nome do responsável'); if (!d.cnsMedico) falta.push('15 seu CNS'); if (!d.data) falta.push('16 data');
+  if (d.cnsMedico && d.cnsMedico.replace(/\D/g, '').length !== 15) falta.push('15 CNS com 15 dígitos');
+  const ok = await confirmar({titulo: r.editId ? 'Salvar alterações da LME?' : 'Gerar LME?', texto: `${falta.length ? `<b>Atenção — campos obrigatórios em branco:</b> ${esc(falta.join(', '))}. Eles sairão vazios para preencher à mão.<br><br>` : ''}A LME vale <b>90 dias</b> a partir da data de preenchimento (até ${fmtData(somaDias(d.data || hojeStr(), 90))}). Fica registrada no prontuário e pode ser editada enquanto não for assinada digitalmente.`, ok: r.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
+  if (!ok) return;
+  if (d.cnes) s.lmeUltimo = {cnes: d.cnes, estab: d.estab};
+  if (d.mae && !p.mae) p.mae = d.mae;
+  const reg = {id: uid(), patientId: p.id, tipo: 'lme', data: d.data || hojeStr(), criadoEm: agoraISO(),
+    campos: {estabelecimento: [d.cnes && 'CNES ' + d.cnes, d.estab].filter(Boolean).join(' – '),
+      medicamentos: d.meds.map((m, i) => `${i + 1}. ${m.nome} — ${m.q.map((q, j) => q ? `${j + 1}º mês: ${q}` : '').filter(Boolean).join(' · ')}`).join('\n'),
+      diagnostico: d.diag, anamnese: d.anamnese, tratamento: d.trat === 'sim' ? 'Sim. ' + d.tratTxt : d.trat === 'nao' ? 'Não' : '',
+      capacidade: d.incapaz === 'sim' ? 'Incapaz – responsável: ' + d.resp : 'Capaz', validade: `90 dias (até ${fmtData(somaDias(d.data || hojeStr(), 90))})`, dadosLME: JSON.stringify(d)},
+    cid: d.cid ? [d.cid + (d.diag ? ' – ' + d.diag : '')] : [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'manual'}};
+  const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
+  auditar(r.editId ? 'LME editada' : 'LME gerada', `${d.meds.map(m => m.nome).join(', ')} – ${p.nome}`, p.id);
+  await salvar();
+  S.lmeRasc = null; S.abertos.add(salvo.id);
+  abrirPaciente(p.id);
+  imprimirFolha(htmlLME(d, p), 'lme', `LME – ${p.nome}`, p.id);
+}
+const somaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
 /* ---------- pacientes fictícios ---------- */
 async function carregarDemo() {
@@ -2697,6 +2910,13 @@ const ACOES = {
   'novo-doc': d => abrirDocumento(d.pid),
   'aba-lista': d => { S.abaLista = d.aba; $('#plist').innerHTML = listaPacientes(); $('#abas-lista').innerHTML = abasLista(); $('#plist').scrollTop = 0; },
   'nova-escala': d => abrirEscala(d.pid),
+  'nova-lme': d => abrirLME(d.pid),
+  'lme-med': d => lmeMed(d.i),
+  'lme-hma': () => lmeHma(),
+  'lme-trat': () => lmeTrat(),
+  'lme-copiar': d => { const r = S.lmeRasc, m = r.meds[Number(d.i)]; if (!m.q[0]) return aviso('Preencha primeiro a quantidade do 1º mês.'); m.q = m.q.map(() => m.q[0]); render(); },
+  'lme-gerar': () => gerarLME(),
+  'lme-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosLME); } catch (e) { return aviso('Não foi possível ler esta LME.'); } imprimirFolha(htmlLME(dd, paciente(r.patientId)), 'lme', 'LME – ' + paciente(r.patientId).nome, r.patientId); },
   'esc-escolher': d => { S.escRasc.chave = d.k; S.escRasc.resp = []; render(); },
   'esc-trocar': () => { S.escRasc.chave = null; S.escRasc.resp = []; render(); },
   'esc-salvar': () => salvarEscala(),
