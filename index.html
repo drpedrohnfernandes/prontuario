@@ -124,6 +124,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .hist-det{margin-bottom:.7rem}
 .hist-det summary{cursor:pointer;color:var(--azul,#2f4a63);font-weight:600;padding:.3rem 0}
 .hist-det .hist-meds{max-height:220px;margin-top:.4rem}
+.passos-ass{padding-left:1.2rem;margin:.4rem 0 .8rem}
+.passos-ass li{margin-bottom:.8rem;line-height:1.45}
 .card.anulado{opacity:.62}
 .card.anulado .rtit{text-decoration:line-through}
 .aviso-anul{background:#f8e6e1;border:1px solid #e3b9ad;color:#7a2e1e;border-radius:10px;padding:.6rem .8rem;margin:.6rem 0}
@@ -322,7 +324,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.10.0';
+const APP_VERSAO = '1.11.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -794,6 +796,58 @@ async function anularRegistro(id) {
   abrirPaciente(p.id);
   aviso('Registro anulado e retirado da tela. Fica guardado no sistema, como exigem as normas.', 5000);
 }
+const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia'];
+function nomeArquivoReg(r) {
+  const p = paciente(r.patientId);
+  return `Prontuario_${semAcento(p.nome).replace(/[^A-Za-z0-9]+/g, '_')}_${r.data}_${semAcento(nomeTipo(r.tipo)).replace(/[^A-Za-z0-9]+/g, '_')}`.slice(0, 120);
+}
+function gerarPdfParaAssinar(r) {
+  const tituloAntes = document.title;
+  document.title = nomeArquivoReg(r);
+  imprimir(docImpressao(r, true), 'PDF para assinatura VIDaaS – ' + nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId);
+  setTimeout(() => { document.title = tituloAntes; }, 5000);
+}
+function assinarVidaas(id) {
+  const r = S.dados.records.find(x => x.id === id); if (!r) return;
+  modal(`<h2>Assinar com o VIDaaS</h2>
+    <ol class="passos-ass">
+      <li><b>Gere o PDF.</b> Na tela de impressão escolha <b>Salvar como PDF</b> (no iPad: Compartilhar → Salvar em Arquivos). O nome do arquivo já vem sugerido.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="pdf">Gerar PDF deste registro</button></li>
+      <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o PDF no Adobe Reader com o <b>VIDaaS Connect</b> instalado, clique em assinar e autorize lendo o QR code com o app do celular (ou use o assinador on-line da Valid). Salve o arquivo assinado.</li>
+      <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro.<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
+    </ol>
+    <p style="font-size:.85rem;color:var(--suave)">Não edite nem reimprima o PDF depois de assinado: qualquer alteração invalida a assinatura. Para conferir, use validar.iti.gov.br.</p>
+    <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=pdf]').onclick = () => { fechar(); gerarPdfParaAssinar(r); setTimeout(() => assinarVidaas(id), 1200); };
+    m.querySelector('#m-pdfass').onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 8 * 1024 * 1024) return aviso('Arquivo grande demais (máx. 8 MB).');
+      const buf = new Uint8Array(await f.arrayBuffer());
+      const cab = new TextDecoder('latin1').decode(buf.slice(0, 5));
+      if (cab !== '%PDF-') return aviso('Esse arquivo não é um PDF.');
+      const txt = new TextDecoder('latin1').decode(buf);
+      if (!/\/ByteRange/.test(txt) || !/\/Type\s*\/Sig|adbe\.pkcs7|ETSI\.CAdES/.test(txt)) return aviso('Esse PDF não tem assinatura digital. Assine no app do VIDaaS e anexe o arquivo que ele devolver.', 7000);
+      let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      const hashArq = await sha256Bytes(buf);
+      r.pdfAssinado = btoa(bin);
+      r.assinatura = {status: 'assinado', via: 'VIDaaS (PDF)', em: agoraISO(), arquivo: {nome: f.name, tamanho: f.size, sha256: hashArq}};
+      auditar('Registro assinado digitalmente', `${nomeTipo(r.tipo)} de ${fmtData(r.data)} – ${paciente(r.patientId).nome} – arquivo ${f.name}`, r.patientId);
+      await salvar(); fechar(); render();
+      aviso('PDF assinado anexado. O registro aparece como Assinado.', 5000);
+    };
+  });
+}
+async function sha256Bytes(buf) { const h = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+function verAssinado(id) {
+  const r = S.dados.records.find(x => x.id === id); if (!r || !r.pdfAssinado) return;
+  const bin = atob(r.pdfAssinado), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], {type: 'application/pdf'}));
+  const a = r.assinatura || {}, arq = a.arquivo || {};
+  modal(`<h2>PDF assinado</h2><p><b>${esc(arq.nome || 'documento.pdf')}</b><br>Anexado em ${a.em ? fmtDataHora(a.em) : '—'} · ${Math.round((arq.tamanho || u8.length) / 1024)} KB</p>
+    <div class="row"><a class="btn pri" href="${url}" target="_blank" rel="noopener">Abrir</a><a class="btn" href="${url}" download="${esc(arq.nome || nomeArquivoReg(r) + '_assinado.pdf')}">Baixar</a></div>
+    <p style="font-size:.85rem;color:var(--suave);margin-top:.8rem">Para conferir a assinatura, baixe o arquivo e envie em validar.iti.gov.br.</p>
+    <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => { m.querySelector('[data-m=nao]').onclick = () => { fechar(); setTimeout(() => URL.revokeObjectURL(url), 60000); }; });
+}
 function cartaoRegistro(r, todos) {
   const aberto = S.abertos.has(r.id);
   const ficha = FICHAS[r.tipo];
@@ -801,12 +855,13 @@ function cartaoRegistro(r, todos) {
   const integ = S.integridade && S.integridade[r.id];
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
   const anul = anulacaoDe(r.id);
+  const tagVidaas = r.pdfAssinado ? '<span class="tag ok">Assinado · VIDaaS</span>' : '';
   const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card${anul ? ' anulado' : ''}"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
       <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}finalizado ${fmtDataHora(r.criadoEm)}</div></div>
-      <div class="row">${tagInteg}${anul ? '<span class="tag ruim">Anulado</span>' : assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
+      <div class="row">${tagInteg}${anul ? '<span class="tag ruim">Anulado</span>' : tagVidaas || assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
     </div>
     ${aberto ? `${anul ? `<div class="banner aviso-anul"><b>Registro anulado em ${fmtDataHora(anul.criadoEm)}.</b> Motivo: ${esc(anul.campos.motivo)}<br><small>Continua guardado no prontuário, mas sem validade.</small></div>` : ''}${camposHTML(r, ficha)}
       ${adendos.length ? `<div class="adendos">${adendos.map(a => `<div class="campo"><div class="k">Adendo · ${fmtDataHora(a.criadoEm)}</div><div class="v">${esc(a.campos.texto)}</div></div>`).join('')}</div>` : ''}
@@ -815,6 +870,7 @@ function cartaoRegistro(r, todos) {
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
         ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
+        ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : `<button class="btn sm azul" data-act="assinar-vidaas" data-id="${r.id}">Assinar com VIDaaS</button>`}
         <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' || r.tipo === 'documento' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
         <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
         ${anul ? '' : `<button class="btn sm link perigo-txt" data-act="anular" data-id="${r.id}">Anular</button>`}
@@ -1760,7 +1816,7 @@ function cabecalhoImpressao() {
   const s = S.dados.settings;
   return `<div class="p-cab"><h1>${esc(s.medico)}</h1><div>${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div><div>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</div></div>`;
 }
-function docImpressao(r) {
+function docImpressao(r, paraAssinar) {
   const p = paciente(r.patientId), ficha = FICHAS[r.tipo];
   const adendos = S.dados.records.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   let corpo = '';
@@ -1777,7 +1833,7 @@ function docImpressao(r) {
     <h2 style="font-size:13pt;margin:0 0 4px">${esc(ficha.titulo)} – ${fmtData(r.data)}</h2>
     <div style="margin-bottom:10px">Paciente: <b>${esc(p.nome)}</b>${p.nascimento ? ' · Nasc. ' + fmtData(p.nascimento) + ' (' + esc(idade(p.nascimento)) + ')' : ''}${p.cpf ? ' · CPF ' + esc(p.cpf) : ''}</div>
     ${corpo}
-    <div class="p-rod">Registrado por ${esc(r.autor)} em ${fmtDataHora(r.criadoEm)}.<br>Código de integridade (SHA-256): ${esc(r.hash)}<br>Assinatura digital ICP-Brasil: ${r.assinatura && r.assinatura.status === 'assinado' ? 'assinado' : 'pendente'}.</div>
+    <div class="p-rod">Registrado por ${esc(r.autor)} em ${fmtDataHora(r.criadoEm)}.<br>Código de integridade (SHA-256): ${esc(r.hash)}<br>${paraAssinar ? `Documento assinado digitalmente por ${esc(r.autor)} com certificado ICP-Brasil (VIDaaS). Verifique em validar.iti.gov.br.` : `Assinatura digital ICP-Brasil: ${r.assinatura && r.assinatura.status === 'assinado' ? 'assinado' + (r.assinatura.via ? ' (' + esc(r.assinatura.via) + ')' : '') : 'pendente'}.`}</div>
   </div>`;
 }
 function imprimir(html, desc, pid) {
@@ -1826,7 +1882,10 @@ function mesclar(inc) {
     else if ((p.atualizadoEm || '') > (d.patients[i].atualizadoEm || '')) { d.patients[i] = p; cont.atualizados++; }
   }
   const ids = new Set(d.records.map(r => r.id));
-  for (const r of inc.records || []) if (!ids.has(r.id)) { d.records.push(r); cont.registros++; }
+  for (const r of inc.records || []) {
+    if (!ids.has(r.id)) { d.records.push(r); cont.registros++; continue; }
+    if (r.pdfAssinado) { const ex = d.records.find(x => x.id === r.id); if (ex && !ex.pdfAssinado) { ex.pdfAssinado = r.pdfAssinado; ex.assinatura = r.assinatura; cont.atualizados++; } }
+  }
   const aids = new Set(d.audit.map(a => a.id));
   for (const a of inc.audit || []) if (!aids.has(a.id)) d.audit.push(a);
   d.audit.sort((a, b) => a.em.localeCompare(b.em));
@@ -2418,6 +2477,8 @@ const ACOES = {
   'nova-med': d => novaMedicacao(d.pid),
   'suspender-med': d => suspenderMedicacao(d.pid, d.id),
   'anular': d => anularRegistro(d.id),
+  'assinar-vidaas': d => assinarVidaas(d.id),
+  'ver-assinado': d => verAssinado(d.id),
   'ver-anulados': d => { S.mostrarAnulados = S.mostrarAnulados === d.pid ? null : d.pid; render(); },
   'rx-hist': () => { S.receitaRasc.verHist = !S.receitaRasc.verHist; rerenderReceita(); },
   'rx-hist-add': d => { const r = S.receitaRasc, h = historicoMeds(paciente(r.patientId))[Number(d.i)]; if (!h) return; const item = {nome: h.nome, dose: h.dose, forma: h.forma, qtd: h.qtd, pos: h.pos}; const vazio = r.itens.findIndex(i => !(i.nome || '').trim() && !(i.pos || '').trim()); if (vazio >= 0) r.itens[vazio] = item; else r.itens.push(item); rerenderReceita(); aviso(h.nome + ' incluído na receita.'); },
