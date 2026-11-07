@@ -74,6 +74,20 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .sidebar .busca{padding:.8rem;border-bottom:1px solid var(--linha);display:flex;flex-direction:column;gap:.55rem}
 .plist{overflow:auto;flex:1;padding:.4rem}
 .abas-lista{display:flex;gap:.35rem;padding:.6rem .75rem .35rem}
+.apoio{border:1px solid var(--linha,#d9cfbd);border-radius:12px;background:#faf6ee;margin:0 0 1.2rem;overflow:hidden}
+.apoio-topo{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;padding:.55rem .6rem;border-bottom:1px solid var(--linha,#d9cfbd);background:#f3ead9}
+.apoio-topo .aba{border:1px solid var(--linha,#d9cfbd);background:#fffdf8;border-radius:999px;padding:.4rem .8rem;font-weight:600;font-size:.88rem;cursor:pointer;color:var(--texto,#2b2b2b);min-height:36px}
+.apoio-topo .aba.on{background:var(--musgo,#4a5a3c);border-color:var(--musgo,#4a5a3c);color:#fff}
+.apoio-topo .ocultar{margin-left:auto}
+.apoio-p{display:none;padding:.8rem 1rem;max-height:24rem;overflow:auto}
+.apoio-p.on{display:block}
+.apoio.fechado .apoio-p{display:none}
+.apoio .ap-data{font-size:.85rem;color:var(--suave);margin-bottom:.4rem}
+.apoio .ap-txt{white-space:pre-wrap;line-height:1.5}
+.apoio details{border-bottom:1px dashed var(--linha,#d9cfbd);padding:.45rem 0}
+.apoio details summary{cursor:pointer;font-weight:600}
+.apoio details summary small{font-weight:400;color:var(--suave)}
+.apoio .vazio{color:var(--suave);font-size:.92rem}
 .abas-lista:empty{display:none}
 .abas-lista .aba{flex:1;border:1px solid var(--linha,#d9cfbd);background:transparent;border-radius:999px;padding:.45rem .6rem;font-weight:600;font-size:.88rem;cursor:pointer;color:var(--texto,#2b2b2b);min-height:38px}
 .abas-lista .aba.on{background:var(--musgo,#4a5a3c);border-color:var(--musgo,#4a5a3c);color:#fff}
@@ -329,7 +343,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.13.0';
+const APP_VERSAO = '1.14.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -1092,6 +1106,42 @@ async function salvarPaciente(form) {
 
 /* ---------- formulário de registro ---------- */
 function chaveRascunho(tipo, pid, ref) { return [tipo, pid, ref || ''].join('|'); }
+const ordDesc = (a, b) => (b.data || '').localeCompare(a.data || '') || (b.criadoEm || '').localeCompare(a.criadoEm || '');
+function painelApoio(r) {
+  if (r.tipo !== 'evolucao') return '';
+  const p = paciente(r.patientId);
+  const editado = r.editId ? S.dados.records.find(x => x.id === r.editId) : null;
+  const antes = x => !editado || x.data < editado.data || (x.data === editado.data && x.criadoEm < editado.criadoEm);
+  const vis = S.dados.records.filter(x => x.patientId === r.patientId && !TIPOS_AUX.includes(x.tipo) && !anulado(x) && x.id !== r.editId && antes(x));
+  const evols = vis.filter(x => x.tipo === 'evolucao' || x.tipo === 'doctoralia').sort(ordDesc);
+  const primeira = vis.filter(x => x.tipo === 'primeira').sort(ordDesc)[0];
+  const ultCond = vis.filter(x => (x.tipo === 'evolucao' || x.tipo === 'primeira') && String(x.campos.conduta || '').trim()).sort(ordDesc)[0];
+  const ativas = (p.medicacoes || []).filter(m => !m.fim);
+  const aba = S.apoioAba || (ultCond ? 'conduta' : evols.length ? 'evol' : 'hma');
+  const cab = x => `${fmtData(x.data)} · ${esc(x.tipo === 'doctoralia' ? 'Doctoralia' : nomeTipo(x.tipo))}`;
+  const pCond = ultCond ? `<div class="ap-data">Conduta registrada em ${cab(ultCond)}</div><div class="ap-txt">${esc(ultCond.campos.conduta)}</div>
+      ${ultCond.campos.retorno ? `<div class="ap-data" style="margin-top:.5rem">Retorno combinado: ${esc(ultCond.campos.retorno)}</div>` : ''}
+      ${ultCond.campos.plano ? `<div class="ap-data" style="margin-top:.5rem">Plano: ${esc(ultCond.campos.plano)}</div>` : ''}
+      <button type="button" class="btn sm" style="margin-top:.6rem" data-act="apoio-copiar" data-id="${ultCond.id}">Copiar para a conduta de hoje</button>`
+    : '<div class="vazio">Nenhuma conduta registrada antes.</div>';
+  const pMeds = ativas.length ? `<div class="ap-data" style="margin-top:.9rem;font-weight:600;color:var(--texto)">Medicações em uso</div><div>${ativas.map(m => `• <b>${esc(m.nome)}</b> ${esc(m.dose || '')}${m.posologia ? ' – ' + esc(m.posologia) : ''}`).join('<br>')}</div>` : '';
+  const pEvol = evols.length ? evols.map((x, i) => `<details ${i === 0 ? 'open' : ''}><summary>${cab(x)}${(x.cid || []).length ? ` <small>· ${esc(x.cid.join('; '))}</small>` : ''}</summary><div style="margin-top:.4rem">${camposHTML(x, FICHAS[x.tipo])}</div></details>`).join('')
+    : '<div class="vazio">Esta é a primeira evolução deste paciente.</div>';
+  const pHma = primeira ? `<div class="ap-data">Primeira consulta de ${fmtData(primeira.data)}</div>
+      ${primeira.campos.queixa ? `<div class="campo"><div class="k">Queixa principal</div><div class="v">${esc(primeira.campos.queixa)}</div></div>` : ''}
+      ${primeira.campos.hda ? `<div class="campo"><div class="k">História da doença atual (HMA)</div><div class="v">${esc(primeira.campos.hda)}</div></div>` : '<div class="vazio">A HMA não foi preenchida na primeira consulta.</div>'}
+      ${primeira.campos.hipotese || (primeira.cid || []).length ? `<div class="campo"><div class="k">Hipótese diagnóstica</div><div class="v">${esc([primeira.campos.hipotese, (primeira.cid || []).join('; ')].filter(Boolean).join(' · '))}</div></div>` : ''}
+      <details style="border:0"><summary style="font-weight:400;color:var(--musgo)">Ver a primeira consulta completa</summary><div style="margin-top:.4rem">${camposHTML(primeira, FICHAS.primeira)}</div></details>`
+    : '<div class="vazio">Nenhuma primeira consulta registrada para este paciente.</div>';
+  const tabs = [['conduta', 'Última conduta'], ['evol', `Evoluções anteriores (${evols.length})`], ['hma', 'HMA da 1ª consulta']];
+  return `<div class="apoio${S.apoioFechado ? ' fechado' : ''}" id="apoio">
+    <div class="apoio-topo">${tabs.map(([k, t]) => `<button type="button" class="aba${k === aba ? ' on' : ''}" data-act="apoio-aba" data-aba="${k}">${t}</button>`).join('')}
+      <button type="button" class="btn sm link ocultar" data-act="apoio-ocultar">${S.apoioFechado ? 'Mostrar' : 'Ocultar'}</button></div>
+    <div class="apoio-p${aba === 'conduta' ? ' on' : ''}" data-p="conduta">${pCond}${pMeds}</div>
+    <div class="apoio-p${aba === 'evol' ? ' on' : ''}" data-p="evol">${pEvol}</div>
+    <div class="apoio-p${aba === 'hma' ? ' on' : ''}" data-p="hma">${pHma}</div>
+  </div>`;
+}
 function telaFormRegistro() {
   const r = S.rascunho, p = paciente(r.patientId), ficha = FICHAS[r.tipo];
   const orig = r.refId ? S.dados.records.find(x => x.id === r.refId) : null;
@@ -1110,6 +1160,7 @@ function telaFormRegistro() {
   <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${r.editId ? 'Editar · ' : ''}${esc(ficha.titulo)}</h1>
   ${bannerEdicao(r)}
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}${orig ? `<span>referente a: ${esc(nomeTipo(orig.tipo))} de ${fmtData(orig.data)}</span>` : ''}</div>
+  ${painelApoio(r)}
   <form id="f-registro" autocomplete="off">
     ${r.tipo !== 'adendo' ? `<div class="form-sec"><label class="f" style="max-width:240px"><span>Data do atendimento</span><input type="date" id="r-data" value="${esc(r.data)}"></label></div>` : ''}
     ${ficha.secoes.map(s => `<div class="form-sec"><div class="row" style="justify-content:space-between;margin-bottom:.6rem"><h3 style="margin:0">${esc(s.t)}</h3>${s.eem ? '<button type="button" class="btn sm" data-act="eem-normal">Preencher sem alterações</button>' : ''}</div>${s.campos.map(campo).join('')}</div>`).join('')}
@@ -2647,6 +2698,9 @@ const ACOES = {
   'doc-cfm': () => levarDocAoCFM(),
   'doc-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosDoc); } catch (e) { return aviso('Não foi possível ler este documento.'); } dd.carimbo = d.carimbo === '1'; imprimirFolha(htmlDocumento(dd, paciente(r.patientId)), 'portrait', 'Reimpressão – ' + dd.titulo + ' – ' + paciente(r.patientId).nome, r.patientId); },
   'sug': (d, el) => { const f = document.querySelector(`#f-registro [data-c="${d.c}"]`); if (!f) return; const atual = f.value.trim(); const at = d.t.startsWith('§') && ATALHOS_TXT[d.t.slice(1)]; const t = at ? at(paciente(S.rascunho.patientId)) : d.t; f.value = !atual ? t : at ? atual + '\n' + t : (atual.endsWith('.') || atual.endsWith(';') ? atual + ' ' : atual + '; ') + t; S.rascunho.campos[d.c] = f.value; guardarRascunho(); },
+  'apoio-aba': d => { S.apoioAba = d.aba; S.apoioFechado = false; const a = $('#apoio'); if (!a) return; a.classList.remove('fechado'); a.querySelectorAll('.aba').forEach(b => b.classList.toggle('on', b.dataset.aba === d.aba)); a.querySelectorAll('.apoio-p').forEach(x => x.classList.toggle('on', x.dataset.p === d.aba)); const o = a.querySelector('.ocultar'); if (o) o.textContent = 'Ocultar'; },
+  'apoio-ocultar': () => { S.apoioFechado = !S.apoioFechado; const a = $('#apoio'); if (!a) return; a.classList.toggle('fechado', S.apoioFechado); a.querySelector('.ocultar').textContent = S.apoioFechado ? 'Mostrar' : 'Ocultar'; },
+  'apoio-copiar': d => { const x = S.dados.records.find(y => y.id === d.id); const f = document.querySelector('#f-registro [data-c="conduta"]'); if (!x || !f) return; const t = String(x.campos.conduta || '').trim(); f.value = f.value.trim() ? f.value.trim() + '\n' + t : t; S.rascunho.campos.conduta = f.value; guardarRascunho(); f.focus(); aviso('Conduta anterior copiada. Ajuste o que mudou hoje.'); },
   'eem-normal': () => { for (const [k, v] of Object.entries(eemNormal(paciente(S.rascunho.patientId)))) { const f = document.querySelector(`#f-registro [data-c="${k}"]`); if (f && !f.value.trim()) { f.value = v; S.rascunho.campos[k] = v; } } guardarRascunho(); aviso('Campos vazios do exame preenchidos com achados sem alterações. Ajuste o que for diferente.'); },
   'cfm-copiar': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } const ok = copiarEAbrirCFM(textoParaCFM(dados, paciente(r.patientId))); auditar('Receita levada ao CFM (de novo)', paciente(r.patientId).nome, r.patientId); salvar(); aviso(ok ? 'Prescrição copiada. No CFM, escolha o paciente e cole a posologia de cada item.' : 'Abri o CFM.', 7000); },
   'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } dados.carimbo = d.carimbo === '1'; imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
