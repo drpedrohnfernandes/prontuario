@@ -117,6 +117,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg{border-left:4px solid var(--musgo);padding-left:1rem}
 .reg.evolucao{border-left-color:var(--azul)}
 .reg.adendo{border-left-color:var(--dourado)}
+.card.anulado{opacity:.62}
+.card.anulado .rtit{text-decoration:line-through}
+.aviso-anul{background:#f8e6e1;border:1px solid #e3b9ad;color:#7a2e1e;border-radius:10px;padding:.6rem .8rem;margin:.6rem 0}
+.btn.link.perigo-txt{color:#a3442f}
 .reg.cfm{border-left-color:var(--marrom)}
 .reg.receita{border-left-color:var(--terracota)}
 .reg.doctoralia{border-left-color:#6b5aa8}
@@ -311,7 +315,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.8.0';
+const APP_VERSAO = '1.9.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -458,6 +462,7 @@ const FICHAS = {
   evolucao: { titulo:'Evolução', secoes:[
     {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto',[['Atalho: EEM sem alterações (texto completo)','§eem'],'Sem alterações significativas','Eutímico','Deprimido','Ansioso','Afeto congruente','Pensamento lógico, sem delírios','Sem alterações de sensopercepção','Insight presente']],['ris_ideacao','Ideação suicida','sel',['','Ausente','Passiva (desejo de morrer, sem plano)','Ativa, sem plano','Ativa, com plano','Ativa, com plano e intenção']],['risco','Avaliação de risco','linha',['Risco baixo','Risco moderado','Risco alto','Orientações à família entregues']],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo',[['Atalho: orientações de conduta (efeitos, retorno, sinais de alarme)','§conduta']]],['retorno','Retorno','linha']]}
   ]},
+  anulacao: { titulo:'Anulação de registro', secoes:[{t:'Anulação', campos:[['registro','Registro anulado','linha'],['motivo','Motivo','texto']]}]},
   adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
   receita: { titulo:'Receita', secoes:[{t:'Receita', campos:[['tipoReceita','Tipo','linha'],['itens','Prescrição','longo'],['orientacoes','Orientações','texto']]}]},
   documento: { titulo:'Documento', secoes:[{t:'Documento', campos:[['tipoDoc','Modelo','linha'],['titulo','Título','linha'],['cid','CID','cid'],['texto','Conteúdo','longo']]}]},
@@ -625,11 +630,14 @@ function render() {
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
+const TIPOS_AUX = ['adendo', 'anulacao'];
+const anulacaoDe = id => S.dados.records.find(a => a.tipo === 'anulacao' && a.refId === id);
+const anulado = r => !!anulacaoDe(r.id);
 const N_RECENTES = 20;
 function ultimoAtendimento(pid) {
   const hoje = hojeStr();
   let ult = null;
-  for (const r of S.dados.records) if (r.patientId === pid && r.tipo !== 'adendo' && r.data && r.data <= hoje && (!ult || r.data > ult.data || (r.data === ult.data && (r.criadoEm || '') > (ult.criadoEm || '')))) ult = r;
+  for (const r of S.dados.records) if (r.patientId === pid && !TIPOS_AUX.includes(r.tipo) && r.data && r.data <= hoje && !anulado(r) && (!ult || r.data > ult.data || (r.data === ult.data && (r.criadoEm || '') > (ult.criadoEm || '')))) ult = r;
   return ult;
 }
 function pacientesRecentes() {
@@ -676,8 +684,8 @@ const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"')
 /* ---------- início ---------- */
 function telaInicio() {
   const d = S.dados, hoje = hojeStr();
-  const hojeN = d.records.filter(r => r.data === hoje && r.tipo !== 'adendo').length;
-  const pend = d.records.filter(r => !['cfm','receita','doctoralia','documento'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const hojeN = d.records.filter(r => r.data === hoje && !TIPOS_AUX.includes(r.tipo)).length;
+  const pend = d.records.filter(r => !['cfm','receita','doctoralia','documento','anulacao'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
   const u = d.settings.ultimoBackup;
   return `
     ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
@@ -703,7 +711,7 @@ function telaPaciente() {
   const p = paciente(S.view.pid);
   if (!p) return telaInicio();
   const regs = registrosDe(p.id);
-  const principais = regs.filter(r => r.tipo !== 'adendo').sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+  const principais = regs.filter(r => !TIPOS_AUX.includes(r.tipo)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
   const meds = p.medicacoes || [];
   const ativas = meds.filter(m => !m.fim), suspensas = meds.filter(m => m.fim);
   const temPrimeira = regs.some(r => r.tipo === 'primeira');
@@ -752,29 +760,55 @@ function camposHTML(r, ficha) {
   }
   return h;
 }
+function pedirMotivo(titulo, texto) {
+  return new Promise(res => {
+    modal(`<h2>${esc(titulo)}</h2><p>${texto}</p><label class="f"><span>Motivo (obrigatório)</span><textarea id="m-motivo" rows="3" placeholder="ex.: exame solicitado por engano; documento gerado para o paciente errado"></textarea></label><div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn perigo cheio" data-m="sim">Anular registro</button></div>`, (m, fechar) => {
+      const campo = m.querySelector('#m-motivo'); setTimeout(() => campo.focus(), 50);
+      m.querySelector('[data-m=nao]').onclick = () => { fechar(); res(null); };
+      m.querySelector('[data-m=sim]').onclick = () => { const v = campo.value.trim(); if (v.length < 4) { campo.style.borderColor = '#a3442f'; campo.focus(); return; } fechar(); res(v); };
+    });
+  });
+}
+async function anularRegistro(id) {
+  const r = S.dados.records.find(x => x.id === id); if (!r || anulado(r)) return;
+  const p = paciente(r.patientId), s = S.dados.settings;
+  const desc = `${r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo)}${r.campos.titulo ? ' – ' + r.campos.titulo : ''} de ${fmtData(r.data)}`;
+  const motivo = await pedirMotivo('Anular registro?', `<b>${esc(desc)}</b><br><br>Pelas normas do CFM o prontuário não pode ter registros apagados. O registro anulado continua guardado, marcado como <b>sem validade</b>, com a data, a hora e o motivo, e some das escalas, da litemia e dos pacientes recentes. A anulação não pode ser desfeita.`);
+  if (!motivo) return;
+  const reg = {id: uid(), patientId: r.patientId, tipo: 'anulacao', data: hojeStr(), criadoEm: agoraISO(), campos: {registro: desc, motivo}, cid: [], refId: r.id, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'pendente'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar('Registro anulado', `${desc} – ${p.nome} – motivo: ${motivo}`, p.id);
+  await salvar();
+  S.abertos.delete(r.id);
+  abrirPaciente(p.id);
+  aviso('Registro anulado. Ele continua no prontuário, marcado como sem validade.', 5000);
+}
 function cartaoRegistro(r, todos) {
   const aberto = S.abertos.has(r.id);
   const ficha = FICHAS[r.tipo];
   const adendos = todos.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   const integ = S.integridade && S.integridade[r.id];
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
+  const anul = anulacaoDe(r.id);
   const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
-  return `<div class="card"><div class="reg ${r.tipo}">
+  return `<div class="card${anul ? ' anulado' : ''}"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
       <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}finalizado ${fmtDataHora(r.criadoEm)}</div></div>
-      <div class="row">${tagInteg}${assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
+      <div class="row">${tagInteg}${anul ? '<span class="tag ruim">Anulado</span>' : assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
     </div>
-    ${aberto ? `${camposHTML(r, ficha)}
+    ${aberto ? `${anul ? `<div class="banner aviso-anul"><b>Registro anulado em ${fmtDataHora(anul.criadoEm)}.</b> Motivo: ${esc(anul.campos.motivo)}<br><small>Continua guardado no prontuário, mas sem validade.</small></div>` : ''}${camposHTML(r, ficha)}
       ${adendos.length ? `<div class="adendos">${adendos.map(a => `<div class="campo"><div class="k">Adendo · ${fmtDataHora(a.criadoEm)}</div><div class="v">${esc(a.campos.texto)}</div></div>`).join('')}</div>` : ''}
       <div class="hash" style="margin-top:.7rem">SHA-256: ${esc(r.hash)}</div>
       <div class="row" style="margin-top:.8rem">
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
-        ${r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
-        ${r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
+        ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
+        ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
         <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' || r.tipo === 'documento' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
         <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
-      </div>` : `<div class="resumo">${esc(resumoRegistro(r))}</div>`}
+        ${anul ? '' : `<button class="btn sm link perigo-txt" data-act="anular" data-id="${r.id}">Anular</button>`}
+      </div>` : `<div class="resumo">${anul ? 'Anulado: ' + esc(anul.campos.motivo) : esc(resumoRegistro(r))}</div>`}
   </div></div>`;
 }
 
@@ -1686,6 +1720,8 @@ function docImpressao(r) {
     for (const [k, rot] of linhas) corpo += `<div class="p-campo"><b>${esc(rot)}</b><div>${esc(k === 'cid' ? r.cid.join('; ') : r.campos[k])}</div></div>`;
   }
   for (const a of adendos) corpo += `<div class="p-campo" style="margin-top:10px"><b>Adendo – ${fmtDataHora(a.criadoEm)}</b><div>${esc(a.campos.texto)}</div></div>`;
+  const an = anulacaoDe(r.id);
+  if (an) corpo = `<div class="p-campo" style="border:1.5pt solid #a3442f;padding:6px 8px;color:#a3442f"><b>REGISTRO ANULADO em ${fmtDataHora(an.criadoEm)}</b><div>Motivo: ${esc(an.campos.motivo)}</div></div>` + corpo;
   return `<div class="p-doc">${cabecalhoImpressao()}
     <h2 style="font-size:13pt;margin:0 0 4px">${esc(ficha.titulo)} – ${fmtData(r.data)}</h2>
     <div style="margin-bottom:10px">Paciente: <b>${esc(p.nome)}</b>${p.nascimento ? ' · Nasc. ' + fmtData(p.nascimento) + ' (' + esc(idade(p.nascimento)) + ')' : ''}${p.cpf ? ' · CPF ' + esc(p.cpf) : ''}</div>
@@ -2189,7 +2225,7 @@ function minigrafico(pontos, opts = {}) {
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:64px;display:block;margin:.3rem 0">${faixaSvg}<polyline fill="none" stroke="#2f4a63" stroke-width="2" points="${pontos.map((p, i) => sx(i) + ',' + sy(p.y)).join(' ')}"/>${pontos.map((p, i) => `<circle cx="${sx(i)}" cy="${sy(p.y)}" r="3" fill="${opts.cor ? opts.cor(p.y) : '#2f4a63'}"><title>${fmtData(p.x)}: ${p.y}</title></circle>`).join('')}</svg>`;
 }
 function cartaoEscalas(p) {
-  const regs = registrosDe(p.id).filter(r => r.tipo === 'escala').sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
+  const regs = registrosDe(p.id).filter(r => r.tipo === 'escala' && !anulado(r)).sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
   const porEscala = {};
   for (const r of regs) { const d = dadosEscalaReg(r); if (d) (porEscala[d.chave] = porEscala[d.chave] || []).push({x: r.data, y: d.total, r}); }
   const chaves = Object.keys(porEscala);
@@ -2216,7 +2252,7 @@ function interpretarLitemia(v) {
 const numBR = x => { const n = parseFloat(String(x || '').replace(',', '.')); return isNaN(n) ? null : n; };
 const somarMeses = (iso, m) => { const d = new Date(iso + 'T12:00'); d.setMonth(d.getMonth() + m); return d.toISOString().slice(0, 10); };
 function cartaoLitio(p) {
-  const regs = registrosDe(p.id).filter(r => r.tipo === 'litemia').sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
+  const regs = registrosDe(p.id).filter(r => r.tipo === 'litemia' && !anulado(r)).sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
   if (!regs.length && !usaLitio(p)) return '';
   const pts = regs.map(r => ({x: r.data, y: numBR(r.campos.valor)})).filter(x => x.y !== null);
   const ult = regs[regs.length - 1];
@@ -2330,8 +2366,9 @@ const ACOES = {
   'verificar': d => verificarIntegridade(d.pid),
   'nova-med': d => novaMedicacao(d.pid),
   'suspender-med': d => suspenderMedicacao(d.pid, d.id),
+  'anular': d => anularRegistro(d.id),
   'imprimir-registro': d => { const r = S.dados.records.find(x => x.id === d.id); imprimir(docImpressao(r), nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId); },
-  'imprimir-paciente': d => { const regs = registrosDe(d.id).filter(r => r.tipo !== 'adendo').sort((a, b) => a.data.localeCompare(b.data)); if (!regs.length) return aviso('Não há registros para imprimir.'); imprimir(regs.map(docImpressao).join(''), 'Prontuário completo – ' + paciente(d.id).nome, d.id); },
+  'imprimir-paciente': d => { const regs = registrosDe(d.id).filter(r => !TIPOS_AUX.includes(r.tipo)).sort((a, b) => a.data.localeCompare(b.data)); if (!regs.length) return aviso('Não há registros para imprimir.'); imprimir(regs.map(docImpressao).join(''), 'Prontuário completo – ' + paciente(d.id).nome, d.id); },
   'exportar': () => exportarArquivo().catch(e => aviso(e.message)),
   'importar': () => escolherArquivo(),
   'drive-config': () => configurarDrive(),
