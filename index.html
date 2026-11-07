@@ -116,6 +116,21 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg.receita{border-left-color:var(--terracota)}
 .reg.doctoralia{border-left-color:#6b5aa8}
 .reg.documento{border-left-color:var(--azul)}
+.reg.escala{border-left-color:var(--dourado,#b08d3c)}
+.reg.litemia{border-left-color:var(--marrom,#7a5a43)}
+.esc-item{padding:.7rem .9rem}
+.esc-q{font-weight:600;margin-bottom:.45rem}
+.esc-ops{display:flex;flex-wrap:wrap;gap:.4rem}
+.esc-op{display:flex;align-items:center;gap:.45rem;border:1px solid var(--linha,#d9cfbd);border-radius:10px;padding:.45rem .7rem;cursor:pointer;background:#fff;font-size:.92rem;min-height:44px}
+.esc-op input{position:absolute;opacity:0;pointer-events:none}
+.esc-op .v{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:var(--bege,#efe7d8);font-weight:600;font-size:.85rem}
+.esc-op.on{border-color:var(--musgo,#4a5a3c);background:var(--musgo-claro,#e3e8d9)}
+.esc-op.on .v{background:var(--musgo,#4a5a3c);color:#fff}
+.esc-barra{position:sticky;bottom:0}
+.esc-res{border-top:1px solid var(--linha,#e6dccb);padding:.55rem 0 .2rem}
+.esc-res small{color:var(--suave)}
+.lit-ex{display:flex;justify-content:space-between;gap:.6rem;padding:.25rem 0;border-top:1px dashed var(--linha,#e6dccb);font-size:.9rem}
+.lit-ex small{color:var(--suave)}
 .sugs{display:flex;flex-wrap:wrap;gap:.35rem;margin:-.4rem 0 .9rem}
 .sug{border:1px solid var(--linha);background:#fff;border-radius:99px;padding:.25em .7em;font-size:.82rem;cursor:pointer;color:#465046;min-height:30px}
 .sug:hover{background:var(--musgo-claro)}
@@ -216,6 +231,11 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .rx-box{border:.7pt solid #b9ae98;border-radius:1mm;padding:2mm 2.5mm;margin-bottom:2.5mm}
   .rx-box .bt,.rx-bt{font-size:6.8pt;font-weight:600;letter-spacing:.8pt;color:#7a5a43;margin-bottom:1mm}
   .rx-box .em{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
+  .esc-folha .esc-instr{font-size:9.5pt;color:#3a3f39;margin:0 0 3mm}
+  .esc-pq{page-break-inside:avoid;margin-bottom:2.6mm;font-size:9.6pt}
+  .esc-pq .q{font-weight:600;margin-bottom:.8mm}
+  .esc-pq .o{display:flex;flex-wrap:wrap;gap:1mm 5mm;color:#3a3f39;font-size:9pt}
+  .esc-folha .rx-end{margin-top:auto}
   .rx-orpag{width:150mm;margin:0 auto;border:1pt solid #4a5a3c;border-radius:1.5mm;padding:4mm;font-size:10.5pt}
   .rx-orpag .vt{display:flex;justify-content:space-between;align-items:center;background:#4a5a3c;color:#f3ead7;margin:-4mm -4mm 4mm;padding:2.2mm 4mm}
   .rx-orpag .vt b{font-size:9.5pt;font-weight:600;letter-spacing:1pt}
@@ -261,7 +281,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.5.0';
+const APP_VERSAO = '1.6.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -411,6 +431,8 @@ const FICHAS = {
   adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
   receita: { titulo:'Receita', secoes:[{t:'Receita', campos:[['tipoReceita','Tipo','linha'],['itens','Prescrição','longo'],['orientacoes','Orientações','texto']]}]},
   documento: { titulo:'Documento', secoes:[{t:'Documento', campos:[['tipoDoc','Modelo','linha'],['titulo','Título','linha'],['cid','CID','cid'],['texto','Conteúdo','longo']]}]},
+  escala: { titulo:'Escala', secoes:[{t:'Escala', campos:[['nome','Escala','linha'],['resultado','Resultado','linha'],['detalhe','Subescalas e alertas','texto'],['respostas','Respostas','longo'],['obs','Observações','texto']]}]},
+  litemia: { titulo:'Litemia', secoes:[{t:'Litemia', campos:[['valor','Litemia (mEq/L)','linha'],['interp','Interpretação','texto'],['horas','Horas após a última dose','linha'],['dose','Dose diária de lítio (mg)','linha'],['creatinina','Creatinina / TFG','linha'],['tsh','TSH','linha'],['calcio','Cálcio','linha'],['obs','Observações','texto']]}]},
   doctoralia: { titulo:'Atendimento importado da Doctoralia', secoes:[{t:'Importado da Doctoralia', campos:[['texto','Registro','longo']]}]},
   cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
@@ -423,6 +445,8 @@ const ATALHOS_TXT = {
 const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
 function resumoRegistro(r) {
   const c = r.campos || {};
+  if (r.tipo === 'escala') return c.resultado || '';
+  if (r.tipo === 'litemia') return `${c.valor} mEq/L · ${(c.interp || '').split('\n')[0]}`;
   const t = (c.titulo ? c.titulo + ': ' : '') + (c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.itens || c.detalhes || '');
   return t.length > 160 ? t.slice(0,160) + '…' : t;
 }
@@ -565,6 +589,8 @@ function render() {
   if (v === 'registro') ligarFormRegistro();
   if (v === 'receita') ligarReceita();
   if (v === 'documento') ligarDocumento();
+  if (v === 'escala') ligarEscala();
+  if (v === 'litemia') ligarLitemia();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -591,6 +617,8 @@ function telaPrincipal() {
     case 'config': return telaConfig();
     case 'receita': return telaReceita();
     case 'documento': return telaDocumento();
+    case 'escala': return telaEscala();
+    case 'litemia': return telaLitemia();
     default: return telaInicio();
   }
 }
@@ -646,6 +674,7 @@ function telaPaciente() {
     <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
     <button class="btn" data-act="nova-receita" data-pid="${p.id}">+ Receita</button>
     <button class="btn" data-act="novo-doc" data-pid="${p.id}">+ Documento</button>
+    <button class="btn" data-act="nova-escala" data-pid="${p.id}">+ Escala</button>
   </div>
   <div class="cols">
     <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}</div>
@@ -654,6 +683,8 @@ function telaPaciente() {
         ${ativas.length ? ativas.map(m => `<div class="med"><div><b>${esc(m.nome)}</b> ${esc(m.dose || '')}<small>${esc(m.posologia || '')}${m.inicio ? ' · desde ' + fmtData(m.inicio) : ''}</small></div><button class="btn sm link" data-act="suspender-med" data-pid="${p.id}" data-id="${m.id}">Suspender</button></div>`).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma medicação em uso.</div>'}
         ${suspensas.length ? `<details style="margin-top:.6rem"><summary style="cursor:pointer;color:var(--suave)">Histórico (${suspensas.length})</summary>${suspensas.map(m => `<div class="med"><div>${esc(m.nome)} ${esc(m.dose || '')}<small>${m.inicio ? fmtData(m.inicio) : '?'} a ${fmtData(m.fim)}${m.motivo ? ' · ' + esc(m.motivo) : ''}</small></div></div>`).join('')}</details>` : ''}
       </div>
+      ${cartaoLitio(p)}
+      ${cartaoEscalas(p)}
       ${p.obs ? `<div class="card"><h3>Observações</h3><div style="white-space:pre-wrap">${esc(p.obs)}</div></div>` : ''}
       ${p.responsavel ? `<div class="card"><h3>Contato de emergência / responsável</h3><div style="white-space:pre-wrap">${esc(p.responsavel)}</div></div>` : ''}
     </div>
@@ -681,7 +712,7 @@ function cartaoRegistro(r, todos) {
   const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
-      <div><div class="rtit">${esc(nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
+      <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
       <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}finalizado ${fmtDataHora(r.criadoEm)}</div></div>
       <div class="row">${tagInteg}${assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
     </div>
@@ -1124,8 +1155,11 @@ const EXAMES = [
   'Vitamina B12','Ácido fólico','Vitamina D (25-OH)','Ferritina','Prolactina',
   'Litemia (coletar 12 h após a última dose)','Ácido valproico sérico','Carbamazepina sérica',
   'PCR (proteína C reativa)','Troponina','CPK','Beta-hCG','Sumário de urina (EAS)',
-  'VDRL','Anti-HIV','HBsAg','Anti-HCV','Eletrocardiograma (ECG)','Eletroencefalograma (EEG)'
+  'VDRL','Anti-HIV','HBsAg','Anti-HCV','Eletrocardiograma (ECG)','Eletroencefalograma (EEG)',
+  'Ácido úrico','PSA total e livre','Pesquisa de sangue oculto nas fezes','Mamografia bilateral','Citopatológico do colo do útero (Papanicolau)','Densitometria óssea'
 ];
+const EXAMES_ANUAIS = ['Hemograma completo','Glicemia de jejum','Hemoglobina glicada (HbA1c)','Colesterol total e frações','Triglicerídeos','Ureia','Creatinina','Taxa de filtração glomerular estimada','Sódio','Potássio','TGO (AST)','TGP (ALT)','Gama-GT','TSH','T4 livre','Vitamina B12','Vitamina D (25-OH)','Ácido úrico','Sumário de urina (EAS)','VDRL','Anti-HIV','HBsAg','Anti-HCV'];
+const idadeNum = p => parseInt(idade(p.nascimento), 10) || 0;
 const PROTOCOLOS = {
   litio: {nome:'Lítio', exames:['Hemograma completo','Ureia','Creatinina','Taxa de filtração glomerular estimada','Sódio','Potássio','Cálcio','TSH','T4 livre','Glicemia de jejum','Sumário de urina (EAS)','Beta-hCG','Eletrocardiograma (ECG)','Litemia (coletar 12 h após a última dose)'],
     indicacao:'Avaliação basal e monitorização do uso de carbonato de lítio.',
@@ -1142,6 +1176,12 @@ const PROTOCOLOS = {
   escetamina: {nome:'Escetamina (spray nasal)', exames:['Eletrocardiograma (ECG)','Beta-hCG'],
     indicacao:'Avaliação pré-tratamento com escetamina intranasal.',
     nota:'Pressão arterial antes da aplicação e cerca de 40 minutos depois, com observação no serviço até a liberação (em geral 2 horas). Avaliar contraindicações: aneurisma, malformação arteriovenosa, AVC hemorrágico prévio. ECG se doença cardiovascular.'},
+  anual_masc: {nome:'Check-up anual masculino', exames: p => EXAMES_ANUAIS.concat(idadeNum(p) >= 50 ? ['PSA total e livre','Pesquisa de sangue oculto nas fezes'] : []),
+    indicacao:'Avaliação laboratorial anual de rotina (check-up).',
+    nota:'Já vem marcado conforme a idade do cadastro: a partir dos 50 anos entram PSA total e livre e pesquisa de sangue oculto nas fezes (PSA a partir dos 45 se negro ou com história familiar de câncer de próstata). Sorologias (VDRL, HIV, hepatites B e C) ao menos uma vez na vida e conforme o risco. Em uso de antipsicóticos, acrescentar o perfil metabólico do protocolo correspondente.'},
+  anual_fem: {nome:'Check-up anual feminino', exames: p => EXAMES_ANUAIS.concat(['Ferritina','Ácido fólico'], idadeNum(p) >= 25 && idadeNum(p) <= 64 ? ['Citopatológico do colo do útero (Papanicolau)'] : [], idadeNum(p) >= 40 ? ['Mamografia bilateral'] : [], idadeNum(p) >= 50 ? ['Pesquisa de sangue oculto nas fezes'] : [], idadeNum(p) >= 65 ? ['Densitometria óssea'] : []),
+    indicacao:'Avaliação laboratorial anual de rotina (check-up).',
+    nota:'Já vem marcado conforme a idade do cadastro: citopatológico dos 25 aos 64 anos (a cada 3 anos após 2 exames normais), mamografia a partir dos 40, sangue oculto nas fezes a partir dos 50 e densitometria a partir dos 65. Beta-hCG antes de iniciar lítio, valproato ou outras medicações com risco na gestação. Sorologias ao menos uma vez na vida e conforme o risco.'},
   rotina: {nome:'Rotina psiquiátrica', exames:['Hemograma completo','Glicemia de jejum','Colesterol total e frações','Triglicerídeos','Ureia','Creatinina','Sódio','Potássio','TGO (AST)','TGP (ALT)','Gama-GT','TSH','T4 livre','Vitamina B12','Ácido fólico','Vitamina D (25-OH)','Ferritina','Sumário de urina (EAS)','VDRL','Anti-HIV'],
     indicacao:'Avaliação laboratorial inicial em psiquiatria.', nota:''}
 };
@@ -1280,7 +1320,7 @@ function escolherModeloDoc(chave) {
   Object.assign(r, {etapa: 'editar', chave, cat: m.cat, titulo: m.titulo, data: hojeStr(), texto: preencherModelo(m.texto || '', p), cid1: m.cid1 || '', cid2: '', exames: [], outros: '', indicacao: '', nota: ''});
   if (m.cat === 'exames') {
     r.cid1 = CID_Z004;
-    if (m.protocolo) { const pr = PROTOCOLOS[m.protocolo]; r.exames = pr.exames.slice(); r.indicacao = pr.indicacao; r.nota = pr.nota; r.protocolo = pr.nome; }
+    if (m.protocolo) { const pr = PROTOCOLOS[m.protocolo]; r.exames = (typeof pr.exames === 'function' ? pr.exames(p) : pr.exames).slice(); r.indicacao = pr.indicacao; r.nota = pr.nota; r.protocolo = pr.nome; }
   }
   render();
 }
@@ -1738,6 +1778,305 @@ async function carregarDemo() {
    NAVEGAÇÃO E AÇÕES
    ============================================================ */
 function abrirPaciente(id) { S.view = {nome:'paciente', pid:id}; S.rascunho = null; render(); }
+/* ---------- escalas de acompanhamento ---------- */
+const OP_FREQ4 = [['Nenhuma vez', 0], ['Vários dias', 1], ['Mais da metade dos dias', 2], ['Quase todos os dias', 3]];
+const OP_ASRS = [['Nunca', 0], ['Raramente', 1], ['Algumas vezes', 2], ['Frequentemente', 3], ['Muito frequentemente', 4]];
+const OP_GRAV5 = [['Ausente', 0], ['Leve', 1], ['Moderado', 2], ['Grave', 3], ['Muito grave / incapacitante', 4]];
+const OP_BPRS = [['Ausente', 1], ['Muito leve', 2], ['Leve', 3], ['Moderado', 4], ['Moderadamente grave', 5], ['Grave', 6], ['Extremamente grave', 7]];
+const OP_PGSI = [['Nunca', 0], ['Às vezes', 1], ['Na maioria das vezes', 2], ['Quase sempre', 3]];
+const OP_AUDIT_FREQ = [['Nunca', 0], ['Menos que mensalmente', 1], ['Mensalmente', 2], ['Semanalmente', 3], ['Diariamente ou quase', 4]];
+const OP_AUDIT_SIM = [['Não', 0], ['Sim, mas não no último ano', 2], ['Sim, no último ano', 4]];
+// opções com âncoras: [texto0, texto1, ...] -> valores 0..n (ou passo)
+const ancoras = (lista, passo = 1) => lista.map((t, i) => [t, i * passo]);
+// MADRS: âncoras nos pares (0, 2, 4, 6) e valores intermediários
+const madrs = (a0, a2, a4, a6) => [[a0, 0], ['Entre 0 e 2', 1], [a2, 2], ['Entre 2 e 4', 3], [a4, 4], ['Entre 4 e 6', 5], [a6, 6]];
+const faixa = (total, faixas) => (faixas.find(([a, b]) => total >= a && total <= b) || [0, 0, ''])[2];
+const soma = (r, idx) => idx.reduce((a, i) => a + (r[i] || 0), 0);
+
+const YBOCS_TEMPO = t => ancoras([`Nenhum`, `Menos de 1 h/dia ou ${t} ocasionais`, `1 a 3 h/dia ou ${t} frequentes`, `Mais de 3 e até 8 h/dia ou ${t} muito frequentes`, `Mais de 8 h/dia ou ${t} quase constantes`]);
+const YBOCS_INTERF = ancoras(['Nenhuma', 'Leve: interfere um pouco nas atividades sociais ou de trabalho, sem prejuízo global', 'Definida: interfere, mas ainda é manejável', 'Prejuízo substancial no desempenho social ou ocupacional', 'Extrema: incapacitante']);
+const YBOCS_RESIST = ancoras(['Sempre se esforça para resistir (ou os sintomas são mínimos)', 'Tenta resistir na maior parte das vezes', 'Faz algum esforço para resistir', 'Cede a todos, sem tentar controlar, mas com alguma relutância', 'Cede completamente e de boa vontade']);
+const YBOCS_CONTROLE = ancoras(['Controle total', 'Muito controle: em geral consegue interromper ou desviar', 'Controle moderado: às vezes consegue interromper ou desviar', 'Pouco controle: raramente consegue; só adia com dificuldade', 'Nenhum controle: vivido como totalmente involuntário']);
+
+const ESCALAS = {
+  phq9: {sigla: 'PHQ-9', nome: 'PHQ-9 – Questionário sobre a Saúde do Paciente', grupo: 'Depressão', aplicacao: 'Autoaplicável',
+    instrucao: 'Nas últimas 2 semanas, com que frequência você foi incomodado(a) por algum dos problemas abaixo?', opcoes: OP_FREQ4,
+    itens: ['Pouco interesse ou pouco prazer em fazer as coisas', 'Sentir-se para baixo, deprimido(a) ou sem perspectiva', 'Dificuldade para pegar no sono ou permanecer dormindo, ou dormir mais do que de costume', 'Sentir-se cansado(a) ou com pouca energia', 'Falta de apetite ou comer demais', 'Sentir-se mal consigo mesmo(a), achar que é um fracasso ou que decepcionou a si ou à família', 'Dificuldade para se concentrar nas coisas, como ler ou ver televisão', 'Lentidão para se movimentar ou falar, a ponto de os outros perceberem; ou o contrário, agitação muito maior que o habitual', 'Pensar em se ferir de alguma forma ou que seria melhor estar morto(a)'],
+    faixas: [[0, 4, 'Sintomas mínimos'], [5, 9, 'Depressão leve'], [10, 14, 'Depressão moderada'], [15, 19, 'Depressão moderadamente grave'], [20, 27, 'Depressão grave']],
+    alerta: r => (r[8] || 0) > 0 ? 'Item 9 positivo: avaliar ideação suicida e risco.' : ''},
+  madrs: {sigla: 'MADRS', nome: 'MADRS – Escala de Depressão de Montgomery-Åsberg', grupo: 'Depressão', aplicacao: 'Aplicada pelo médico',
+    instrucao: 'Avalie com base na entrevista, considerando a última semana.',
+    itens: [
+      {t: 'Tristeza aparente', op: madrs('Sem tristeza', 'Parece desanimado, mas se anima sem dificuldade', 'Parece triste e infeliz a maior parte do tempo', 'Parece infeliz o tempo todo, extremamente abatido')},
+      {t: 'Tristeza relatada', op: madrs('Tristeza ocasional, conforme as circunstâncias', 'Triste ou desanimado, mas se anima sem dificuldade', 'Tristeza persistente, ainda influenciada pelas circunstâncias', 'Tristeza ou desespero contínuos, invariáveis')},
+      {t: 'Tensão interior', op: madrs('Plácido; só tensão passageira', 'Nervosismo e desconforto ocasionais', 'Tensão contínua ou pânico intermitente, dominados com dificuldade', 'Medo ou angústia implacáveis; pânico avassalador')},
+      {t: 'Sono reduzido', op: madrs('Dorme como de costume', 'Leve dificuldade para dormir; sono levemente reduzido ou superficial', 'Sono reduzido ou interrompido por pelo menos 2 horas', 'Menos de 2 a 3 horas de sono')},
+      {t: 'Apetite reduzido', op: madrs('Apetite normal ou aumentado', 'Apetite levemente reduzido', 'Sem apetite; a comida não tem gosto', 'Precisa ser persuadido a comer')},
+      {t: 'Dificuldade de concentração', op: madrs('Sem dificuldade', 'Dificuldade ocasional para organizar os pensamentos', 'Dificuldade que reduz a capacidade de ler ou conversar', 'Incapaz de ler ou conversar sem grande dificuldade')},
+      {t: 'Lassidão (dificuldade para iniciar atividades)', op: madrs('Quase sem dificuldade para começar; sem lentidão', 'Dificuldade para iniciar atividades', 'Dificuldade para atividades rotineiras simples, feitas com esforço', 'Lassidão completa; não faz nada sem ajuda')},
+      {t: 'Incapacidade de sentir', op: madrs('Interesse normal pelo ambiente e pelas pessoas', 'Capacidade reduzida de aproveitar os interesses habituais', 'Perda de interesse pelo ambiente e de sentimentos por amigos', 'Sente-se emocionalmente paralisado; incapaz de sentir raiva, pesar ou prazer')},
+      {t: 'Pensamentos pessimistas', op: madrs('Sem pensamentos pessimistas', 'Ideias flutuantes de fracasso, autocrítica ou autodepreciação', 'Autoacusações persistentes, ideias de culpa; pessimismo sobre o futuro', 'Delírios de ruína, remorso ou pecado irremediável')},
+      {t: 'Pensamentos suicidas', op: madrs('Aprecia a vida ou a aceita como é', 'Cansado da vida; pensamentos suicidas passageiros', 'Pensamentos suicidas frequentes, suicídio visto como solução possível, sem plano', 'Planos explícitos de suicídio; preparativos ativos')}],
+    faixas: [[0, 6, 'Sem depressão / remissão'], [7, 19, 'Depressão leve'], [20, 34, 'Depressão moderada'], [35, 60, 'Depressão grave']],
+    alerta: r => (r[9] || 0) >= 2 ? 'Item 10 (pensamentos suicidas) pontuado: avaliar risco.' : ''},
+  gad7: {sigla: 'GAD-7', nome: 'GAD-7 – Escala de Transtorno de Ansiedade Generalizada', grupo: 'Ansiedade', aplicacao: 'Autoaplicável',
+    instrucao: 'Nas últimas 2 semanas, com que frequência você foi incomodado(a) pelos problemas abaixo?', opcoes: OP_FREQ4,
+    itens: ['Sentir-se nervoso(a), ansioso(a) ou muito tenso(a)', 'Não conseguir impedir ou controlar as preocupações', 'Preocupar-se muito com diversas coisas', 'Dificuldade para relaxar', 'Ficar tão agitado(a) que se torna difícil ficar sentado(a)', 'Ficar facilmente aborrecido(a) ou irritado(a)', 'Sentir medo, como se algo horrível fosse acontecer'],
+    faixas: [[0, 4, 'Ansiedade mínima'], [5, 9, 'Ansiedade leve'], [10, 14, 'Ansiedade moderada'], [15, 21, 'Ansiedade grave']]},
+  hama: {sigla: 'HAM-A', nome: 'HAM-A – Escala de Ansiedade de Hamilton', grupo: 'Ansiedade', aplicacao: 'Aplicada pelo médico', opcoes: OP_GRAV5,
+    instrucao: 'Avalie a intensidade de cada grupo de sintomas na entrevista.',
+    itens: ['Humor ansioso (preocupações, apreensão, irritabilidade)', 'Tensão (sensação de tensão, fadiga, choro fácil, tremores, inquietação)', 'Medos (do escuro, de estranhos, de ficar só, de animais, de multidões)', 'Insônia (dificuldade para adormecer, sono interrompido, pesadelos)', 'Intelectual (dificuldade de concentração, memória ruim)', 'Humor deprimido (perda de interesse, falta de prazer, despertar precoce)', 'Somáticos musculares (dores, rigidez, abalos, ranger de dentes)', 'Somáticos sensoriais (zumbido, visão turva, ondas de calor e frio, formigamentos)', 'Cardiovasculares (taquicardia, palpitações, dor no peito, sensação de desmaio)', 'Respiratórios (aperto no peito, sensação de sufocamento, falta de ar)', 'Gastrointestinais (dificuldade para engolir, dor abdominal, náuseas, alteração intestinal)', 'Geniturinários (urgência urinária, alterações menstruais, perda de libido)', 'Autonômicos (boca seca, rubor, palidez, sudorese, tontura, cefaleia tensional)', 'Comportamento na entrevista (inquietação, tremor, respiração acelerada, palidez)'],
+    faixas: [[0, 7, 'Sem ansiedade significativa'], [8, 17, 'Ansiedade leve'], [18, 24, 'Ansiedade leve a moderada'], [25, 30, 'Ansiedade moderada a grave'], [31, 56, 'Ansiedade grave']],
+    sub: r => `Ansiedade psíquica (1–6 e 14): ${soma(r, [0, 1, 2, 3, 4, 5, 13])} · Ansiedade somática (7–13): ${soma(r, [6, 7, 8, 9, 10, 11, 12])}`},
+  ybocs: {sigla: 'Y-BOCS', nome: 'Y-BOCS – Escala Obsessivo-Compulsiva de Yale-Brown', grupo: 'TOC', aplicacao: 'Aplicada pelo médico',
+    instrucao: 'Avalie a última semana. Itens 1 a 5: obsessões; itens 6 a 10: compulsões.',
+    itens: [
+      {t: '1. Tempo ocupado pelas obsessões', op: YBOCS_TEMPO('obsessões')},
+      {t: '2. Interferência das obsessões', op: YBOCS_INTERF},
+      {t: '3. Sofrimento causado pelas obsessões', op: ancoras(['Nenhum', 'Leve, pouco perturbador', 'Moderado, perturbador, mas manejável', 'Grave, muito perturbador', 'Extremo, quase constante e incapacitante'])},
+      {t: '4. Resistência às obsessões', op: YBOCS_RESIST},
+      {t: '5. Controle sobre as obsessões', op: YBOCS_CONTROLE},
+      {t: '6. Tempo gasto com compulsões', op: YBOCS_TEMPO('compulsões')},
+      {t: '7. Interferência das compulsões', op: YBOCS_INTERF},
+      {t: '8. Ansiedade se impedido de realizar as compulsões', op: ancoras(['Nenhuma', 'Leve', 'Moderada: aumenta, mas é manejável', 'Grave: aumento proeminente e muito perturbador', 'Extrema: incapacitante'])},
+      {t: '9. Resistência às compulsões', op: YBOCS_RESIST},
+      {t: '10. Controle sobre as compulsões', op: YBOCS_CONTROLE}],
+    faixas: [[0, 7, 'Subclínico'], [8, 15, 'TOC leve'], [16, 23, 'TOC moderado'], [24, 31, 'TOC grave'], [32, 40, 'TOC extremo']],
+    sub: r => `Obsessões (1–5): ${soma(r, [0, 1, 2, 3, 4])}/20 · Compulsões (6–10): ${soma(r, [5, 6, 7, 8, 9])}/20`},
+  asrs: {sigla: 'ASRS-18', nome: 'ASRS-18 – Escala de Autorrelato de TDAH em Adultos (OMS)', grupo: 'TDAH', aplicacao: 'Autoaplicável', opcoes: OP_ASRS,
+    instrucao: 'Considere como você se sentiu e se comportou nos últimos 6 meses.',
+    itens: ['Com que frequência você tem dificuldade para finalizar os detalhes de um projeto depois que as partes difíceis já foram feitas?', 'Com que frequência tem dificuldade para pôr as coisas em ordem numa tarefa que exige organização?', 'Com que frequência tem dificuldade para lembrar de compromissos ou obrigações?', 'Quando tem uma tarefa que exige muito raciocínio, com que frequência evita ou adia o início?', 'Com que frequência fica mexendo ou torcendo as mãos ou os pés quando precisa ficar sentado por muito tempo?', 'Com que frequência se sente ativo demais e compelido a fazer coisas, como se estivesse “com um motor ligado”?', 'Com que frequência comete erros por descuido em trabalhos chatos ou difíceis?', 'Com que frequência tem dificuldade para manter a atenção em trabalhos chatos ou repetitivos?', 'Com que frequência tem dificuldade para se concentrar no que as pessoas dizem, mesmo quando falam diretamente com você?', 'Com que frequência perde ou tem dificuldade para encontrar coisas em casa ou no trabalho?', 'Com que frequência se distrai com atividades ou barulhos ao redor?', 'Com que frequência se levanta em reuniões ou outras situações em que deveria ficar sentado?', 'Com que frequência se sente inquieto ou agitado?', 'Com que frequência tem dificuldade para sossegar e relaxar quando tem tempo livre?', 'Com que frequência se pega falando demais em situações sociais?', 'Numa conversa, com que frequência termina as frases das pessoas antes que elas terminem?', 'Com que frequência tem dificuldade para esperar a sua vez?', 'Com que frequência interrompe os outros quando estão ocupados?'],
+    total: r => soma(r, [...Array(18).keys()]),
+    interpretar: r => { const pos = [0, 1, 2].filter(i => (r[i] || 0) >= 2).length + [3, 4, 5].filter(i => (r[i] || 0) >= 3).length; return pos >= 4 ? `Triagem positiva (Parte A: ${pos} de 6 itens): sintomas compatíveis com TDAH no adulto; confirmar em avaliação clínica` : `Triagem negativa (Parte A: ${pos} de 6 itens)`; },
+    sub: r => `Parte A (1–6): ${soma(r, [0, 1, 2, 3, 4, 5])}/24 · Parte B (7–18): ${soma(r, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])}/48 · Desatenção (1–4, 7–11): ${soma(r, [0, 1, 2, 3, 6, 7, 8, 9, 10])}/36 · Hiperatividade/impulsividade (5, 6, 12–18): ${soma(r, [4, 5, 11, 12, 13, 14, 15, 16, 17])}/36`},
+  ymrs: {sigla: 'YMRS', nome: 'YMRS – Escala de Avaliação de Mania de Young', grupo: 'Transtorno bipolar', aplicacao: 'Aplicada pelo médico',
+    instrucao: 'Avalie com base na entrevista e no relato das últimas 48 horas. Itens 5, 6, 8 e 9 valem o dobro.',
+    itens: [
+      {t: '1. Humor elevado', op: ancoras(['Ausente', 'Levemente ou possivelmente elevado quando questionado', 'Elevação subjetiva definida: otimista, autoconfiante, alegre', 'Elevado, inapropriado ao conteúdo, jocoso', 'Eufórico, risos inadequados, cantando'])},
+      {t: '2. Atividade motora e energia aumentadas', op: ancoras(['Ausente', 'Subjetivamente aumentada', 'Animado, gestos aumentados', 'Energia excessiva, hiperativo às vezes, inquieto (pode ser acalmado)', 'Excitação motora, hiperatividade contínua (não pode ser acalmado)'])},
+      {t: '3. Interesse sexual', op: ancoras(['Normal, sem aumento', 'Levemente ou possivelmente aumentado', 'Aumento subjetivo definido quando questionado', 'Conteúdo sexual espontâneo; hipersexualidade relatada', 'Atos sexuais evidentes'])},
+      {t: '4. Sono', op: ancoras(['Sem redução', 'Dorme até 1 hora a menos que o habitual', 'Dorme mais de 1 hora a menos que o habitual', 'Relata diminuição da necessidade de sono', 'Nega necessidade de sono'])},
+      {t: '5. Irritabilidade', op: ancoras(['Ausente', 'Subjetivamente aumentada', 'Irritável em parte da entrevista; episódios recentes de raiva', 'Frequentemente irritável; ríspido na entrevista', 'Hostil, não coopera; entrevista impossível'], 2)},
+      {t: '6. Fala (velocidade e quantidade)', op: ancoras(['Sem aumento', 'Sente-se falante', 'Aumento de velocidade ou quantidade às vezes; prolixo', 'Pressão de fala; difícil interromper', 'Fala ininterrupta, impossível interromper'], 2)},
+      {t: '7. Linguagem / distúrbio do pensamento', op: ancoras(['Ausente', 'Circunstancial, leve distraibilidade, pensamentos rápidos', 'Perde o objetivo, muda de assunto com frequência; pensamentos acelerados', 'Fuga de ideias, tangencialidade, difícil acompanhar', 'Incoerência; comunicação impossível'])},
+      {t: '8. Conteúdo do pensamento', op: ancoras(['Normal', 'Planos questionáveis, novos interesses', 'Projetos especiais; hiper-religiosidade', 'Ideias de grandeza ou persecutórias; ideias de referência', 'Delírios; alucinações'], 2)},
+      {t: '9. Comportamento disruptivo ou agressivo', op: ancoras(['Ausente, cooperativo', 'Sarcástico, voz alta às vezes, defensivo', 'Exigente; faz ameaças', 'Ameaça o entrevistador, grita; entrevista difícil', 'Agressivo, destrutivo; entrevista impossível'], 2)},
+      {t: '10. Aparência', op: ancoras(['Vestimenta e higiene apropriadas', 'Levemente descuidado', 'Pouco cuidadoso, moderadamente desarrumado; vestimenta exagerada', 'Desarrumado, parcialmente vestido; maquiagem berrante', 'Completamente descuidado; vestimenta bizarra'])},
+      {t: '11. Insight', op: ancoras(['Presente: admite a doença e concorda com o tratamento', 'Possivelmente doente', 'Admite mudança de comportamento, mas nega a doença', 'Admite possível mudança de comportamento, mas nega a doença', 'Nega qualquer mudança de comportamento'])}],
+    faixas: [[0, 12, 'Eutimia / remissão'], [13, 19, 'Sintomas maniformes leves'], [20, 25, 'Mania leve'], [26, 37, 'Mania moderada'], [38, 60, 'Mania grave']]},
+  bprs: {sigla: 'BPRS', nome: 'BPRS – Escala Breve de Avaliação Psiquiátrica (18 itens)', grupo: 'Esquizofrenia e psicoses', aplicacao: 'Aplicada pelo médico', opcoes: OP_BPRS,
+    instrucao: 'Avalie a intensidade de cada sintoma (1 = ausente a 7 = extremamente grave).',
+    itens: ['Preocupações somáticas', 'Ansiedade', 'Retraimento emocional', 'Desorganização conceitual', 'Sentimentos de culpa', 'Tensão', 'Maneirismos e postura', 'Grandiosidade', 'Humor depressivo', 'Hostilidade', 'Desconfiança', 'Comportamento alucinatório', 'Retardo motor', 'Falta de cooperação', 'Conteúdo incomum do pensamento', 'Afeto embotado', 'Excitação', 'Desorientação'],
+    faixas: [[18, 30, 'Sintomas mínimos'], [31, 40, 'Levemente doente'], [41, 52, 'Moderadamente doente'], [53, 126, 'Acentuadamente doente ou mais']],
+    sub: r => `Sintomas positivos (desorganização, grandiosidade, desconfiança, alucinações, conteúdo incomum): ${soma(r, [3, 7, 10, 11, 14])}/35`},
+  audit: {sigla: 'AUDIT', nome: 'AUDIT – Teste de Identificação de Problemas Relacionados ao Uso de Álcool (OMS)', grupo: 'Álcool', aplicacao: 'Autoaplicável',
+    instrucao: 'Uma dose equivale a uma lata de cerveja, uma taça de vinho ou uma dose de destilado. Considere os últimos 12 meses.',
+    itens: [
+      {t: 'Com que frequência você consome bebidas alcoólicas?', op: [['Nunca', 0], ['Mensalmente ou menos', 1], ['2 a 4 vezes por mês', 2], ['2 a 3 vezes por semana', 3], ['4 ou mais vezes por semana', 4]]},
+      {t: 'Quantas doses você toma num dia típico em que bebe?', op: [['1 ou 2', 0], ['3 ou 4', 1], ['5 ou 6', 2], ['7 a 9', 3], ['10 ou mais', 4]]},
+      {t: 'Com que frequência toma 6 ou mais doses numa mesma ocasião?', op: OP_AUDIT_FREQ},
+      {t: 'Com que frequência percebeu que não conseguia parar de beber depois de começar?', op: OP_AUDIT_FREQ},
+      {t: 'Com que frequência deixou de fazer o que se esperava de você por causa da bebida?', op: OP_AUDIT_FREQ},
+      {t: 'Com que frequência precisou beber pela manhã para se sentir bem depois de ter bebido muito?', op: OP_AUDIT_FREQ},
+      {t: 'Com que frequência sentiu culpa ou remorso depois de beber?', op: OP_AUDIT_FREQ},
+      {t: 'Com que frequência não conseguiu lembrar o que aconteceu na noite anterior por causa da bebida?', op: OP_AUDIT_FREQ},
+      {t: 'Você ou outra pessoa já se machucou por causa da sua bebida?', op: OP_AUDIT_SIM},
+      {t: 'Algum parente, amigo, médico ou profissional de saúde já se preocupou com sua bebida ou sugeriu que parasse?', op: OP_AUDIT_SIM}],
+    faixas: [[0, 7, 'Zona I: baixo risco'], [8, 15, 'Zona II: uso de risco'], [16, 19, 'Zona III: uso nocivo'], [20, 40, 'Zona IV: provável dependência']]},
+  pgsi: {sigla: 'PGSI', nome: 'PGSI – Índice de Gravidade do Jogo Problemático (apostas e bets)', grupo: 'Apostas', aplicacao: 'Autoaplicável', opcoes: OP_PGSI,
+    instrucao: 'Nos últimos 12 meses, com que frequência…',
+    itens: ['Apostou mais do que podia perder?', 'Precisou apostar valores maiores para ter a mesma emoção?', 'Voltou outro dia para tentar recuperar o dinheiro perdido?', 'Pegou dinheiro emprestado ou vendeu algo para conseguir dinheiro para apostar?', 'Sentiu que pode ter um problema com apostas?', 'As apostas causaram problemas de saúde, incluindo estresse ou ansiedade?', 'Outras pessoas criticaram suas apostas ou disseram que você tem um problema, mesmo que você ache que não?', 'As apostas causaram problemas financeiros para você ou sua família?', 'Sentiu culpa pela forma como aposta ou pelo que acontece quando aposta?'],
+    faixas: [[0, 0, 'Sem problema com apostas'], [1, 2, 'Baixo risco'], [3, 7, 'Risco moderado'], [8, 27, 'Jogo problemático']]}
+};
+const ordemEscalas = Object.keys(ESCALAS);
+const itemEsc = (e, i) => { const it = e.itens[i]; return typeof it === 'string' ? {t: it, op: e.opcoes} : it; };
+function calcularEscala(chave, resp) {
+  const e = ESCALAS[chave];
+  const total = e.total ? e.total(resp) : resp.reduce((a, v) => a + (v || 0), 0);
+  const maximo = e.itens.reduce((a, _, i) => a + Math.max(...itemEsc(e, i).op.map(o => o[1])), 0);
+  const interp = e.interpretar ? e.interpretar(resp) : faixa(total, e.faixas);
+  return {total, maximo, interp, sub: e.sub ? e.sub(resp) : '', alerta: e.alerta ? e.alerta(resp) : ''};
+}
+function abrirEscala(pid, chave) { S.escRasc = {patientId: pid, chave: chave || null, data: hojeStr(), resp: [], obs: ''}; S.view = {nome: 'escala', pid}; render(); }
+function telaEscala() {
+  const r = S.escRasc, p = paciente(r.patientId);
+  const voltar = `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>`;
+  if (!r.chave) {
+    const grupos = [...new Set(ordemEscalas.map(k => ESCALAS[k].grupo))];
+    return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 1rem">Aplicar escala · ${esc(p.nome)}</h1>
+    ${grupos.map(g => `<div class="form-sec"><h3>${esc(g)}</h3><div class="row" style="padding-bottom:.9rem">${ordemEscalas.filter(k => ESCALAS[k].grupo === g).map(k => `<button class="btn" data-act="esc-escolher" data-k="${k}" title="${esc(ESCALAS[k].nome)}"><b>${esc(ESCALAS[k].sigla)}</b>&nbsp;<small style="color:var(--suave)">${esc(ESCALAS[k].aplicacao)}</small></button>`).join('')}</div></div>`).join('')}
+    <p style="color:var(--suave);font-size:.88rem">As escalas autoaplicáveis podem ser impressas em branco para o paciente preencher na sala de espera.</p>`;
+  }
+  const e = ESCALAS[r.chave];
+  const res = calcularEscala(r.chave, r.resp);
+  const faltam = e.itens.length - r.resp.filter(v => v !== undefined && v !== null).length;
+  return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(e.nome)}</h1>
+  <div class="meta" style="margin-bottom:.6rem"><span><b>${esc(p.nome)}</b></span><span>${esc(e.aplicacao)}</span></div>
+  <div class="banner info" style="font-size:.92rem">${esc(e.instrucao)}</div>
+  <div class="form-sec"><label class="f" style="max-width:220px"><span>Data</span><input type="date" id="esc-data" value="${esc(r.data)}"></label></div>
+  ${e.itens.map((_, i) => { const it = itemEsc(e, i); return `<div class="form-sec esc-item"><div class="esc-q">${typeof e.itens[i] === 'string' ? (i + 1) + '. ' : ''}${esc(it.t)}</div>
+    <div class="esc-ops">${it.op.map(([rot, v]) => `<label class="esc-op ${r.resp[i] === v ? 'on' : ''}"><input type="radio" name="q${i}" data-q="${i}" value="${v}" ${r.resp[i] === v ? 'checked' : ''}><span class="v">${v}</span><span>${esc(rot)}</span></label>`).join('')}</div></div>`; }).join('')}
+  <div class="form-sec"><label class="f"><span>Observações (opcional)</span><textarea id="esc-obs" rows="2">${esc(r.obs)}</textarea></label></div>
+  <div class="barra-acoes esc-barra"><span class="salvo" id="esc-res"><b>${res.total}</b>/${res.maximo} · ${esc(res.interp)}${faltam ? ` · faltam ${faltam} item(ns)` : ''}</span>
+    ${e.aplicacao === 'Autoaplicável' ? '<button type="button" class="btn" data-act="esc-branco">Imprimir em branco</button>' : ''}
+    <button type="button" class="btn" data-act="esc-trocar">Outra escala</button>
+    <button type="button" class="btn pri" data-act="esc-salvar">Salvar resultado</button></div>`;
+}
+function ligarEscala() {
+  const m = $('#main'), r = S.escRasc; if (!r || !r.chave) return;
+  m.addEventListener('change', ev => {
+    const el = ev.target;
+    if (el.dataset.q !== undefined) {
+      r.resp[Number(el.dataset.q)] = Number(el.value);
+      el.closest('.esc-ops').querySelectorAll('.esc-op').forEach(x => x.classList.toggle('on', x.contains(el)));
+      const e = ESCALAS[r.chave], res = calcularEscala(r.chave, r.resp), faltam = e.itens.length - r.resp.filter(v => v !== undefined && v !== null).length;
+      $('#esc-res').innerHTML = `<b>${res.total}</b>/${res.maximo} · ${esc(res.interp)}${faltam ? ` · faltam ${faltam} item(ns)` : ''}`;
+    }
+  });
+  m.addEventListener('input', ev => { if (ev.target.id === 'esc-obs') r.obs = ev.target.value; if (ev.target.id === 'esc-data') r.data = ev.target.value; });
+}
+async function salvarEscala() {
+  const r = S.escRasc, p = paciente(r.patientId), e = ESCALAS[r.chave], s = S.dados.settings;
+  const faltam = e.itens.map((_, i) => i).filter(i => r.resp[i] === undefined || r.resp[i] === null);
+  if (faltam.length) return aviso(`Faltam ${faltam.length} item(ns): ${faltam.slice(0, 8).map(i => i + 1).join(', ')}${faltam.length > 8 ? '…' : ''}.`);
+  const res = calcularEscala(r.chave, r.resp);
+  const ok = await confirmar({titulo: 'Salvar resultado?', texto: `<b>${esc(e.sigla)}: ${res.total}/${res.maximo}</b> – ${esc(res.interp)}${res.alerta ? `<br><br><b>⚠ ${esc(res.alerta)}</b>` : ''}<br><br>O resultado fica registrado no prontuário e não pode ser alterado depois.`, ok: 'Salvar'});
+  if (!ok) return;
+  const respostas = e.itens.map((_, i) => { const it = itemEsc(e, i); const op = it.op.find(o => o[1] === r.resp[i]); return `${typeof e.itens[i] === 'string' ? (i + 1) + '. ' : ''}${it.t}: ${op ? op[0] : ''} (${r.resp[i]})`; }).join('\n');
+  const reg = {id: uid(), patientId: p.id, tipo: 'escala', data: r.data || hojeStr(), criadoEm: agoraISO(),
+    campos: {nome: e.nome, resultado: `${res.total}/${res.maximo} – ${res.interp}`, detalhe: [res.sub, res.alerta && '⚠ ' + res.alerta].filter(Boolean).join('\n'), respostas, obs: (r.obs || '').trim(), dadosEscala: JSON.stringify({chave: r.chave, resp: r.resp, total: res.total})},
+    cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'pendente'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar('Escala registrada', `${e.sigla} ${res.total} – ${p.nome}`, p.id);
+  await salvar();
+  S.escRasc = null; S.abertos.add(reg.id);
+  abrirPaciente(p.id);
+  aviso(`${e.sigla}: ${res.total} – ${res.interp}`, 5000);
+}
+function htmlEscalaBranco(chave, p) {
+  const e = ESCALAS[chave], s = S.dados.settings;
+  return `<div class="rx rx-simples esc-folha">
+    <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
+    <div class="rx-tit">${esc(e.sigla)}</div>
+    <div class="rx-pac">Paciente: <b>${esc(p.nome)}</b> &nbsp;·&nbsp; Data: ____/____/______</div>
+    <div class="esc-instr">${esc(e.instrucao)} Marque um X em uma opção por pergunta.</div>
+    ${e.itens.map((_, i) => { const it = itemEsc(e, i); return `<div class="esc-pq"><div class="q">${typeof e.itens[i] === 'string' ? (i + 1) + '. ' : ''}${esc(it.t)}</div><div class="o">${it.op.map(([rot]) => `<span>☐ ${esc(rot)}</span>`).join('')}</div></div>`; }).join('')}
+    <div class="rx-end"><span>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</span>${s.instagram ? `<span class="ig">${esc(s.instagram)}</span>` : ''}</div>
+  </div>`;
+}
+function dadosEscalaReg(r) { try { return JSON.parse(r.campos.dadosEscala); } catch (e) { return null; } }
+function minigrafico(pontos, opts = {}) {
+  // pontos: [{x: 'AAAA-MM-DD', y: número}], ordem cronológica
+  if (pontos.length < 2) return '';
+  const W = 240, H = 64, pad = 6;
+  const ys = pontos.map(p => p.y);
+  const min = opts.min !== undefined ? Math.min(opts.min, ...ys) : Math.min(...ys), max = opts.max !== undefined ? Math.max(opts.max, ...ys) : Math.max(...ys);
+  const sx = i => pad + i * (W - 2 * pad) / (pontos.length - 1), sy = v => H - pad - (max === min ? 0.5 : (v - min) / (max - min)) * (H - 2 * pad);
+  const faixaSvg = opts.faixa ? `<rect x="0" width="${W}" y="${sy(opts.faixa[1])}" height="${Math.max(0, sy(opts.faixa[0]) - sy(opts.faixa[1]))}" fill="rgba(74,90,60,.13)"/>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:64px;display:block;margin:.3rem 0">${faixaSvg}<polyline fill="none" stroke="#2f4a63" stroke-width="2" points="${pontos.map((p, i) => sx(i) + ',' + sy(p.y)).join(' ')}"/>${pontos.map((p, i) => `<circle cx="${sx(i)}" cy="${sy(p.y)}" r="3" fill="${opts.cor ? opts.cor(p.y) : '#2f4a63'}"><title>${fmtData(p.x)}: ${p.y}</title></circle>`).join('')}</svg>`;
+}
+function cartaoEscalas(p) {
+  const regs = registrosDe(p.id).filter(r => r.tipo === 'escala').sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
+  const porEscala = {};
+  for (const r of regs) { const d = dadosEscalaReg(r); if (d) (porEscala[d.chave] = porEscala[d.chave] || []).push({x: r.data, y: d.total, r}); }
+  const chaves = Object.keys(porEscala);
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Escalas</h2><button class="btn sm" data-act="nova-escala" data-pid="${p.id}">+ Aplicar</button></div>
+    ${chaves.length ? chaves.map(k => { const lst = porEscala[k], ult = lst[lst.length - 1], e = ESCALAS[k]; const prim = lst[0]; const dif = lst.length > 1 && prim.y ? Math.round((ult.y - prim.y) / prim.y * 100) : null;
+      return `<div class="esc-res"><div class="row" style="justify-content:space-between"><b>${esc(e.sigla)}</b><span><b>${ult.y}</b> <small style="color:var(--suave)">${fmtData(ult.x)}</small></span></div>
+      <small>${esc(calcularEscala(k, dadosEscalaReg(ult.r).resp).interp)}${dif !== null ? ` · ${dif <= 0 ? '' : '+'}${dif}% desde ${fmtData(prim.x)}` : ''}</small>
+      ${minigrafico(lst, {min: 0})}</div>`; }).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma escala aplicada ainda.</div>'}
+  </div>`;
+}
+
+/* ---------- monitoramento do lítio ---------- */
+const usaLitio = p => (p.medicacoes || []).some(m => !m.fim && /l[ií]tio|carbolit|lithium/i.test(m.nome || ''));
+function interpretarLitemia(v) {
+  if (!(v >= 0)) return {txt: '', cls: ''};
+  if (v < 0.4) return {txt: 'Abaixo da faixa terapêutica', cls: 'pend'};
+  if (v < 0.6) return {txt: 'Faixa baixa (0,4–0,6): pode servir se boa resposta e efeitos adversos, ou em idosos', cls: 'pend'};
+  if (v <= 0.8) return {txt: 'Faixa padrão de manutenção (0,6–0,8)', cls: 'ok'};
+  if (v <= 1.0) return {txt: 'Faixa de manutenção alta (0,8–1,0): se resposta insuficiente', cls: 'ok'};
+  if (v <= 1.2) return {txt: 'Faixa de tratamento agudo (até 1,2): atenção a efeitos adversos', cls: 'pend'};
+  if (v < 1.5) return {txt: 'Acima da faixa: avaliar sinais de intoxicação e ajustar a dose', cls: 'ruim'};
+  return {txt: 'Nível tóxico (≥ 1,5): reavaliar com urgência', cls: 'ruim'};
+}
+const numBR = x => { const n = parseFloat(String(x || '').replace(',', '.')); return isNaN(n) ? null : n; };
+const somarMeses = (iso, m) => { const d = new Date(iso + 'T12:00'); d.setMonth(d.getMonth() + m); return d.toISOString().slice(0, 10); };
+function cartaoLitio(p) {
+  const regs = registrosDe(p.id).filter(r => r.tipo === 'litemia').sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
+  if (!regs.length && !usaLitio(p)) return '';
+  const pts = regs.map(r => ({x: r.data, y: numBR(r.campos.valor)})).filter(x => x.y !== null);
+  const ult = regs[regs.length - 1];
+  const ultV = ult ? numBR(ult.campos.valor) : null, it = interpretarLitemia(ultV);
+  const ultCom = k => [...regs].reverse().find(r => (r.campos[k] || '').trim());
+  const foraFaixa = ultV !== null && (ultV > 1.2 || ultV < 0.4);
+  const prox = ult ? (foraFaixa ? (() => { const d = new Date(ult.data + 'T12:00'); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })() : somarMeses(ult.data, ult.data < somarMeses(regs[0].data, 12) ? 3 : 6)) : null;
+  const ren = ultCom('creatinina'), tsh = ultCom('tsh'), ca = ultCom('calcio');
+  const atrasado = d => d && d < hojeStr();
+  const linhaExame = (rot, r, k, meses) => { const venc = r ? somarMeses(r.data, meses) : null; return `<div class="lit-ex"><span>${rot}</span><span>${r ? `${esc(r.campos[k])} <small>(${fmtData(r.data)})</small>` : '<small>sem registro</small>'}${!r || atrasado(venc) ? ' <span class="tag pend">pedir</span>' : ''}</span></div>`; };
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Lítio: litemia</h2><button class="btn sm" data-act="nova-litemia" data-pid="${p.id}">+ Registrar</button></div>
+    ${ult ? `<div class="row" style="justify-content:space-between;align-items:baseline"><span style="font-size:1.6rem;font-weight:600">${esc(ult.campos.valor)} <small style="font-size:.85rem;font-weight:400">mEq/L</small></span><small style="color:var(--suave)">${fmtData(ult.data)}${ult.campos.dose ? ' · ' + esc(ult.campos.dose) + ' mg/dia' : ''}</small></div>
+      <div style="margin:.2rem 0 .3rem"><span class="tag ${it.cls}">${esc(it.txt)}</span></div>
+      ${minigrafico(pts, {min: 0.2, max: 1.4, faixa: [0.6, 1.0], cor: v => v > 1.2 ? '#a3442f' : v >= 0.6 && v <= 1.0 ? '#4a5a3c' : '#b08d3c'})}
+      <div class="lit-ex"><span>Próxima litemia${foraFaixa ? ' <small>(após ajuste)</small>' : ''}</span><span>${fmtData(prox)}${atrasado(prox) ? ' <span class="tag ruim">atrasada</span>' : ''}</span></div>
+      ${linhaExame('Creatinina / TFG', ren, 'creatinina', 6)}${linhaExame('TSH', tsh, 'tsh', 6)}${linhaExame('Cálcio', ca, 'calcio', 12)}
+      ${regs.length > 1 ? `<details style="margin-top:.4rem"><summary style="cursor:pointer;color:var(--suave)">Histórico (${regs.length})</summary>${[...regs].reverse().map(r => `<div class="lit-ex"><span>${fmtData(r.data)}</span><span><b>${esc(r.campos.valor)}</b>${r.campos.dose ? ' · ' + esc(r.campos.dose) + ' mg' : ''}</span></div>`).join('')}</details>` : ''}`
+    : '<div class="vazio" style="padding:.8rem 0">Nenhuma litemia registrada.</div>'}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Coleta 12 h após a última dose. Litemia 5 a 7 dias após iniciar ou mudar a dose; depois a cada 3 meses no 1º ano e a cada 6 meses. Função renal e TSH a cada 6 meses; cálcio anual.</p>
+    <button class="btn sm" style="margin-top:.5rem" data-act="lit-exames" data-pid="${p.id}">Pedir exames do lítio</button>
+  </div>`;
+}
+function abrirLitemia(pid) {
+  const p = paciente(pid);
+  const med = (p.medicacoes || []).find(m => !m.fim && /l[ií]tio|carbolit|lithium/i.test(m.nome || ''));
+  S.litRasc = {patientId: pid, data: hojeStr(), dose: med ? String(parseInt(String(med.dose || '').replace(/\D+/g, ' '), 10) || '') : ''};
+  S.view = {nome: 'litemia', pid}; render();
+}
+function telaLitemia() {
+  const r = S.litRasc, p = paciente(r.patientId);
+  const campo = (id, rot, val = '', ph = '', tipo = 'text') => `<label class="f"><span>${rot}</span><input type="${tipo}" id="${id}" value="${esc(val)}" placeholder="${esc(ph)}" ${tipo === 'text' ? 'inputmode="decimal"' : ''}></label>`;
+  return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Registrar litemia</h1>
+  <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span></div>
+  <div class="form-sec"><div class="grid2">${campo('lit-data', 'Data da coleta', r.data, '', 'date')}${campo('lit-valor', 'Litemia (mEq/L)', '', 'ex.: 0,72')}</div>
+    <div class="grid2">${campo('lit-horas', 'Horas após a última dose', '12', 'ideal: 12 h')}${campo('lit-dose', 'Dose diária de lítio (mg)', r.dose, 'ex.: 900')}</div>
+    <div id="lit-interp" style="margin:-.2rem 0 .6rem"></div></div>
+  <div class="form-sec"><h3>Exames do mesmo dia (opcional)</h3>
+    <div class="grid2">${campo('lit-creat', 'Creatinina (mg/dL)', '', 'ex.: 0,9')}${campo('lit-tfg', 'TFG estimada (mL/min/1,73 m²)', '', 'ex.: 95')}</div>
+    <div class="grid2">${campo('lit-tsh', 'TSH (µUI/mL)', '', 'ex.: 2,1')}${campo('lit-ca', 'Cálcio (mg/dL)', '', 'ex.: 9,6')}</div>
+    <label class="f"><span>Observações (efeitos adversos, interações, intercorrências)</span><textarea id="lit-obs" rows="2"></textarea></label></div>
+  <div class="barra-acoes"><span class="salvo">Fica registrado no prontuário e entra no gráfico.</span>
+    <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn pri" data-act="lit-salvar">Salvar litemia</button></div>`;
+}
+function ligarLitemia() {
+  const v = $('#lit-valor'); if (!v) return;
+  v.addEventListener('input', () => { const n = numBR(v.value), it = interpretarLitemia(n); $('#lit-interp').innerHTML = n !== null ? `<span class="tag ${it.cls}">${esc(it.txt)}</span>` : ''; });
+}
+async function salvarLitemia() {
+  const r = S.litRasc, p = paciente(r.patientId), s = S.dados.settings, g = id => ($('#' + id).value || '').trim();
+  const valor = numBR(g('lit-valor'));
+  if (valor === null || valor <= 0 || valor > 5) return aviso('Informe a litemia em mEq/L (ex.: 0,72).');
+  const it = interpretarLitemia(valor), horas = numBR(g('lit-horas'));
+  const avisoHoras = horas !== null && (horas < 10 || horas > 14) ? 'Coleta fora do intervalo de 12 h (± 2 h): interpretar com cautela.' : '';
+  const ok = await confirmar({titulo: 'Salvar litemia?', texto: `<b>${String(valor).replace('.', ',')} mEq/L</b> – ${esc(it.txt)}${avisoHoras ? '<br><br>' + esc(avisoHoras) : ''}<br><br>O registro não pode ser alterado depois.`, ok: 'Salvar'});
+  if (!ok) return;
+  const tfg = numBR(g('lit-tfg'));
+  const campos = {valor: String(valor).replace('.', ','), horas: g('lit-horas'), dose: g('lit-dose'), creatinina: g('lit-creat') + (g('lit-tfg') ? ` (TFG ${g('lit-tfg')})` : ''), tsh: g('lit-tsh'), calcio: g('lit-ca'),
+    interp: [it.txt, avisoHoras, tfg !== null && tfg < 60 ? 'TFG abaixo de 60: reavaliar dose e intervalo de monitorização.' : ''].filter(Boolean).join('\n'), obs: g('lit-obs')};
+  if (!g('lit-creat')) campos.creatinina = g('lit-tfg') ? `TFG ${g('lit-tfg')}` : '';
+  for (const k of Object.keys(campos)) if (!campos[k]) delete campos[k];
+  const reg = {id: uid(), patientId: p.id, tipo: 'litemia', data: g('lit-data') || hojeStr(), criadoEm: agoraISO(), campos, cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'pendente'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar('Litemia registrada', `${campos.valor} mEq/L – ${p.nome}`, p.id);
+  await salvar();
+  S.litRasc = null;
+  abrirPaciente(p.id);
+  aviso(`Litemia ${campos.valor} mEq/L – ${it.txt}`, 6000);
+}
+
 const ACOES = {
   'ir': d => { S.view = {nome: d.v}; render(); },
   'bloquear': () => bloquear(),
@@ -1752,6 +2091,14 @@ const ACOES = {
   'rx-gerar': d => gerarReceita(d.carimbo === '1'),
   'rx-cfm': () => levarAoCFM(),
   'novo-doc': d => abrirDocumento(d.pid),
+  'nova-escala': d => abrirEscala(d.pid),
+  'esc-escolher': d => { S.escRasc.chave = d.k; S.escRasc.resp = []; render(); },
+  'esc-trocar': () => { S.escRasc.chave = null; S.escRasc.resp = []; render(); },
+  'esc-salvar': () => salvarEscala(),
+  'esc-branco': () => { const r = S.escRasc, p = paciente(r.patientId); imprimirFolha(htmlEscalaBranco(r.chave, p), 'portrait', 'Escala em branco – ' + ESCALAS[r.chave].sigla + ' – ' + p.nome, p.id); },
+  'nova-litemia': d => abrirLitemia(d.pid),
+  'lit-salvar': () => salvarLitemia(),
+  'lit-exames': d => { abrirDocumento(d.pid); escolherModeloDoc('prot_litio'); },
   'doc-modelo': d => escolherModeloDoc(d.k),
   'doc-gerar': d => gerarDocumento(d.carimbo === '1'),
   'doc-cfm': () => levarDocAoCFM(),
