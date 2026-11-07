@@ -12,6 +12,8 @@
 <meta name="theme-color" content="#4a5a3c">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400;1,500;1,600&family=Poppins:wght@400;500;600&display=swap">
 <style>
 :root{
   --musgo:#4a5a3c; --musgo-esc:#3a4730; --musgo-claro:#e7ecdf;
@@ -22,10 +24,12 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--bege);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+body{font-family:Poppins,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--bege);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
-h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0}
-.serif{font-family:Georgia,"Times New Roman",serif}
+h1,h2,h3{font-family:Lora,Georgia,"Times New Roman",serif;font-weight:600;margin:0}
+h1{font-style:italic;font-weight:500;color:var(--musgo)}
+:root{--creme:#f3ead7}
+.serif{font-family:Lora,Georgia,"Times New Roman",serif}
 
 /* Botões */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;min-height:44px;padding:.55em 1.05em;border-radius:10px;border:1px solid var(--linha);background:var(--branco);cursor:pointer;font-weight:500;text-decoration:none;white-space:nowrap}
@@ -44,7 +48,8 @@ h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0}
 /* Bloqueio */
 .lock{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--musgo) 0%,var(--musgo-esc) 100%)}
 .lock .card{width:100%;max-width:420px;background:var(--branco);border-radius:18px;padding:30px 28px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-.lock h1{font-size:1.7rem;color:var(--musgo)}
+.lock h1{font-size:1.9rem;color:var(--musgo)}
+.lock .slogan{font-family:Lora,Georgia,serif;font-style:italic;color:var(--marrom);margin-top:.2rem}
 .lock .sub{color:var(--suave);margin:.3rem 0 1.4rem}
 .lock .aviso{background:var(--bege);border-radius:10px;padding:.8rem .9rem;font-size:.9rem;color:#5a4a3a;margin:.9rem 0}
 
@@ -59,7 +64,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 /* Estrutura */
 .shell{display:flex;flex-direction:column;height:100vh;height:100dvh}
 .topbar{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;padding-top:max(.55rem,env(safe-area-inset-top));background:var(--musgo);color:#fff}
-.topbar .marca{font-family:Georgia,serif;font-size:1.15rem;font-weight:600;margin-right:auto;cursor:pointer;display:flex;align-items:center;gap:.5rem}
+.topbar .marca{font-family:Lora,Georgia,serif;font-style:italic;color:var(--creme);font-size:1.15rem;font-weight:600;margin-right:auto;cursor:pointer;display:flex;align-items:center;gap:.5rem}
 .topbar .marca small{font-family:-apple-system,system-ui,sans-serif;font-weight:400;opacity:.75;font-size:.78rem}
 .topbar .nav{background:transparent;border:0;color:#e9eee2;padding:.45rem .7rem;border-radius:8px;cursor:pointer;min-height:40px;position:relative}
 .topbar .nav.on,.topbar .nav:hover{background:rgba(255,255,255,.14);color:#fff}
@@ -110,6 +115,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg.cfm{border-left-color:var(--marrom)}
 .reg.receita{border-left-color:var(--terracota)}
 .reg.doctoralia{border-left-color:#6b5aa8}
+.reg.documento{border-left-color:var(--azul)}
+.sugs{display:flex;flex-wrap:wrap;gap:.35rem;margin:-.4rem 0 .9rem}
+.sug{border:1px solid var(--linha);background:#fff;border-radius:99px;padding:.25em .7em;font-size:.82rem;cursor:pointer;color:#465046;min-height:30px}
+.sug:hover{background:var(--musgo-claro)}
 .item-rx{border:1px solid var(--linha);border-radius:10px;padding:.7rem .8rem .1rem;margin-bottom:.7rem;background:#fff}
 .alerta-rx{background:#fbecd9;border:1px solid #f0d3ac;color:#6b4a1f;border-radius:10px;padding:.6rem .8rem;margin:.2rem 0 .8rem;font-size:.92rem}
 .reg .rtop{display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap;align-items:center;cursor:pointer}
@@ -172,38 +181,63 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .p-campo b{display:block;font-size:9pt;text-transform:uppercase;color:#444}
   .p-campo div{white-space:pre-wrap}
   .p-rod{margin-top:18px;border-top:1px solid #999;padding-top:6px;font-size:8.5pt;color:#333}
-  /* Receitas */
-  .rx{font-family:Georgia,"Times New Roman",serif;color:#000;page-break-after:always;box-sizing:border-box}
+  /* Receitas — identidade: verde musgo, marrom, azul, bege, dourado; Poppins + Lora itálico */
+  .rx{font-family:Poppins,Arial,sans-serif;color:#1f2620;page-break-after:always;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rx:last-child{page-break-after:auto}
-  .rx-simples{min-height:265mm;display:flex;flex-direction:column;padding:4mm 6mm}
-  .rx-cab{text-align:center;border-bottom:1.5pt solid #4a5a3c;padding-bottom:3mm;margin-bottom:6mm}
-  .rx-cab .n{font-size:17pt;font-weight:bold;letter-spacing:.2pt}
-  .rx-cab .s{font-size:10.5pt;margin-top:1mm}
-  .rx-tit{text-align:center;font-size:12pt;font-weight:bold;letter-spacing:1.5pt;margin:2mm 0 5mm}
-  .rx-pac{font-size:11.5pt;margin-bottom:6mm}
-  .rx-itens{margin:0;padding-left:7mm;font-size:12pt;line-height:1.45}
-  .rx-itens li{margin-bottom:5mm;page-break-inside:avoid}
+  .rx-simples{min-height:266mm;display:flex;flex-direction:column}
+  .rx-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;padding-bottom:3mm;border-bottom:2pt solid #4a5a3c;position:relative;margin-bottom:7mm}
+  .rx-cab:after{content:"";position:absolute;left:0;right:0;bottom:-3.2pt;border-bottom:.7pt solid #b48a3c}
+  .rx-cab .n{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;font-size:18pt;color:#4a5a3c;line-height:1.1;white-space:nowrap}
+  .rx-cab .s{font-size:9.5pt;color:#7a5a43;margin-top:1.2mm;letter-spacing:.3pt}
+  .rx-cab .sl{font-family:Lora,Georgia,serif;font-style:italic;font-size:10pt;color:#2f4a63;text-align:right;white-space:nowrap}
+  .rx-tit{display:inline-block;align-self:flex-start;font-size:10pt;font-weight:600;letter-spacing:3pt;color:#f3ead7;background:#7a5a43;padding:1.3mm 4mm;border-radius:1.2mm;margin:0 0 6mm}
+  .rx-pac{font-size:11pt;margin-bottom:7mm;padding-bottom:2mm;border-bottom:.5pt solid #ddd5c6}
+  .rx-pac b{font-weight:600}
+  .rx-itens{margin:0;padding-left:0;list-style:none;counter-reset:rx;font-size:11.2pt;line-height:1.45}
+  .rx-itens li{counter-increment:rx;position:relative;padding-left:8mm;margin-bottom:5.5mm;page-break-inside:avoid}
+  .rx-itens li:before{content:counter(rx);position:absolute;left:0;top:.4mm;width:5.2mm;height:5.2mm;border-radius:50%;background:#4a5a3c;color:#f3ead7;font-size:8pt;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1}
   .rx-med{display:flex;gap:2mm;align-items:baseline}
-  .rx-med .nm{font-weight:bold}
-  .rx-med .pt{flex:1;border-bottom:1px dotted #555;transform:translateY(-1mm)}
-  .rx-pos{margin-top:1mm;white-space:pre-wrap}
-  .rx-or{margin-top:4mm;font-size:11pt;white-space:pre-wrap}
-  .rx-ass{margin-top:auto;padding-top:14mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:11pt}
-  .rx-linha{width:78mm;border-top:1px solid #000;text-align:center;padding-top:1.5mm;font-size:10pt}
-  .rx-end{border-top:1pt solid #4a5a3c;margin-top:6mm;padding-top:2mm;text-align:center;font-size:9pt;color:#222}
+  .rx-med .nm{font-weight:600;color:#1f2620}
+  .rx-med .pt{flex:1;border-bottom:1px dotted #9a8f7c;transform:translateY(-1mm)}
+  .rx-med .qt{font-weight:500;color:#4a5a3c;white-space:nowrap}
+  .rx-pos{margin-top:.8mm;white-space:pre-wrap;color:#3a3f39}
+  .rx-or{margin-top:3mm;font-size:10pt;white-space:pre-wrap;background:#f5f0e7;border-left:2pt solid #2f4a63;padding:2.5mm 3.5mm;border-radius:1mm}
+  .rx-ass{margin-top:auto;padding-top:12mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:10pt;color:#3a3f39}
+  .rx-linha{width:76mm;border-top:.8pt solid #1f2620;text-align:center;padding-top:1.5mm;font-size:9.5pt}
+  .rx-linha b{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
+  .rx-end{margin-top:7mm;background:#f5f0e7;border-top:1.5pt solid #4a5a3c;padding:2.5mm 4mm;display:flex;justify-content:space-between;gap:4mm;font-size:8.3pt;color:#7a5a43}
+  .rx-end .ig{color:#4a5a3c;font-weight:600;white-space:nowrap}
   .rx-ce{display:grid;grid-template-columns:1fr 1fr;gap:8mm;height:186mm}
-  .rx-via{border:1pt solid #000;padding:4mm;display:flex;flex-direction:column;font-size:9.5pt;overflow:hidden}
-  .rx-via .vt{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1pt solid #000;padding-bottom:1.5mm;margin-bottom:2.5mm}
-  .rx-via .vt b{font-size:11pt;letter-spacing:.6pt}
-  .rx-box{border:.8pt solid #000;padding:2mm;margin-bottom:2.5mm}
-  .rx-box .bt{font-size:7.5pt;font-weight:bold;letter-spacing:.5pt;margin-bottom:1mm}
-  .rx-via .rx-itens{font-size:10.5pt;padding-left:5mm;line-height:1.35}
-  .rx-via .rx-itens li{margin-bottom:2.5mm}
-  .rx-via .rx-ass{padding-top:6mm;font-size:9.5pt}
-  .rx-via .rx-linha{width:55mm;font-size:8.5pt}
+  .rx-via{border:1pt solid #4a5a3c;border-radius:1.5mm;padding:4mm;display:flex;flex-direction:column;font-size:9pt;overflow:hidden}
+  .rx-via .vt{display:flex;justify-content:space-between;align-items:center;background:#4a5a3c;color:#f3ead7;margin:-4mm -4mm 3mm;padding:2.2mm 4mm}
+  .rx-via .vt b{font-size:9.5pt;font-weight:600;letter-spacing:1pt}
+  .rx-via .vt span{font-family:Lora,Georgia,serif;font-style:italic;font-size:9pt}
+  .rx-box{border:.7pt solid #b9ae98;border-radius:1mm;padding:2mm 2.5mm;margin-bottom:2.5mm}
+  .rx-box .bt,.rx-bt{font-size:6.8pt;font-weight:600;letter-spacing:.8pt;color:#7a5a43;margin-bottom:1mm}
+  .rx-box .em{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
+  .rx-via .rx-itens{font-size:9.2pt;line-height:1.35}
+  .rx-via .rx-itens li{margin-bottom:2.5mm;padding-left:6.5mm}
+  .rx-via .rx-itens li:before{width:4.4mm;height:4.4mm;font-size:7pt}
+  .rx-via .rx-ass{padding-top:5mm;font-size:9pt}
+  .rx-via .rx-linha{width:54mm;font-size:8pt}
+  .rx-via .rx-linha b{font-size:9pt}
   .rx-baixo{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm;margin-top:3mm}
-  .rx-baixo .rx-box{margin:0;min-height:34mm;font-size:7.6pt;line-height:2;overflow:hidden;white-space:nowrap}
-  .rx-l{border-bottom:.6pt solid #000;height:4.6mm}
+  .rx-baixo .rx-box{margin:0;min-height:34mm;font-size:7.2pt;line-height:1.5;overflow:hidden}
+  .rx-ln{display:flex;gap:1mm;align-items:flex-end;margin-top:1.6mm;white-space:nowrap}
+  .rx-ln i{flex:1;border-bottom:.5pt solid #1f2620;min-width:4mm;height:3mm}
+  .rx-l{border-bottom:.6pt solid #1f2620;height:4.6mm}
+  .rx-carimbo{display:flex;flex-direction:column;align-items:center;gap:2mm}
+  .rx-cx{width:62mm;height:30mm;border:.7pt dashed #b48a3c;border-radius:1.5mm;color:#c9b27f;font-size:7pt;letter-spacing:1pt;display:flex;align-items:flex-start;justify-content:center;padding-top:1mm;box-sizing:border-box}
+  .rx-via .rx-cx{width:50mm;height:22mm}
+  .doc-txt{font-size:11pt;line-height:1.6;white-space:pre-wrap;text-align:justify}
+  .doc-or{font-size:9.4pt;line-height:1.36}
+  .doc-or ~ .rx-ass{padding-top:6mm}
+  .doc-or ~ .rx-end{margin-top:4mm}
+  .doc-or .st{font-family:Lora,Georgia,serif;font-style:italic;font-weight:600;color:#4a5a3c;font-size:11pt;margin:1.5mm 0 1mm}
+  .doc-or .it{padding-left:5mm;text-indent:-4mm;margin-bottom:.6mm}
+  .doc-or .esp{height:2mm}
+  .doc-ex{columns:2;column-gap:10mm;font-size:11pt;line-height:1.9}
+  .doc-ex div{break-inside:avoid}
 }
 </style>
 </head>
@@ -220,7 +254,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.2.0';
+const APP_VERSAO = '1.4.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -296,7 +330,7 @@ const Store = {
 /* ---------- estado ---------- */
 const DADOS_VAZIOS = () => ({
   versao: 1, patients: [], records: [], audit: [], drafts: {},
-  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', cidade:'Salvador', uf:'BA', bloqueioMin:10, googleClientId:GOOGLE_CLIENT_ID_PADRAO, ultimoBackup:null }
+  settings: { medico:'Dr. Pedro Henrique Neves Fernandes', crm:'CRM-BA 38705', rqe:'', endereco:'Centro Médico Christian Barnard – Sala 700, Rua Leonor Calmon, Cidade Jardim, Salvador – BA', telefone:'(71) 98156-9522', cidade:'Salvador', uf:'BA', instagram:'@drpedrohnfernandes', slogan:'Saúde mental, seu cuidado principal!', bloqueioMin:10, googleClientId:GOOGLE_CLIENT_ID_PADRAO, ultimoBackup:null }
 });
 const S = { chave:null, senha:null, saltB64:null, dados:null, view:{nome:'inicio'}, busca:'', rascunho:null, ultimaAtividade:Date.now(), abertos:new Set(), temCofre:false };
 
@@ -344,21 +378,40 @@ const FICHAS = {
     {t:'Antecedentes', campos:[['ant_psiq','Antecedentes psiquiátricos (diagnósticos, tratamentos, internações)','longo'],['tentativas','Tentativas de suicídio ou autolesão (histórico)','texto'],['med_previas','Medicações psiquiátricas prévias (resposta e efeitos)','texto'],['ant_clinicos','Antecedentes clínicos e cirúrgicos','texto'],['alergias','Alergias','linha']]},
     {t:'Hábitos e comportamentos', campos:[['substancias','Uso de substâncias (álcool, tabaco, cannabis, cocaína, outras: padrão, início, último uso)','longo'],['apostas','Apostas / bets','texto'],['eletronicos','Uso de eletrônicos e telas','texto'],['sono','Sono','linha'],['apetite','Alimentação e apetite','linha'],['atividade','Atividade física','linha']]},
     {t:'História familiar e pessoal', campos:[['familiar','História familiar psiquiátrica','texto'],['pessoal','História pessoal e social (desenvolvimento, estudo, trabalho, relacionamentos, moradia)','longo']]},
-    {t:'Exame do estado mental', campos:[['em_aparencia','Aparência e atitude','linha'],['em_consciencia','Consciência e orientação','linha'],['em_atencao','Atenção e memória','linha'],['em_humor','Humor e afeto','linha'],['em_pensamento','Pensamento (curso, forma e conteúdo)','texto'],['em_senso','Sensopercepção','linha'],['em_psicomotor','Psicomotricidade','linha'],['em_juizo','Juízo crítico e insight','linha'],['em_risco','Avaliação de risco','texto']]},
+    {t:'Exame do estado mental', eem:true, campos:[
+      ['em_aparencia','Aparência e atitude','linha',['Vestes adequadas, higiene preservada','Higiene descuidada','Colaborativo','Pouco colaborativo','Hostil','Contato visual adequado','Evita contato visual']],
+      ['em_consciencia','Consciência e orientação','linha',['Vígil','Orientado auto e alopsiquicamente','Desorientado no tempo','Desorientado no espaço','Sonolento']],
+      ['em_atencao','Atenção e memória','linha',['Normovigil e normotenaz','Hipotenaz','Hipervigil','Memória preservada','Prejuízo de memória recente']],
+      ['em_humor','Humor e afeto','linha',['Eutímico','Deprimido','Ansioso','Irritável','Expansivo','Eufórico','Afeto congruente','Afeto hipomodulado','Afeto embotado','Afeto lábil']],
+      ['em_pensamento','Pensamento (curso, forma e conteúdo)','texto',['Curso normal','Lentificado','Acelerado','Forma lógica e coerente','Desagregado','Tangencial','Sem ideias delirantes','Ideias de ruína/culpa','Ideias persecutórias','Ideias de grandeza','Preocupações excessivas','Ideias obsessivas']],
+      ['em_senso','Sensopercepção','linha',['Sem alterações','Alucinações auditivas','Alucinações visuais','Nega alucinações']],
+      ['em_psicomotor','Psicomotricidade','linha',['Normal','Lentificada','Agitação psicomotora','Inquietação']],
+      ['em_juizo','Juízo crítico e insight','linha',['Juízo preservado','Juízo prejudicado','Insight presente','Insight parcial','Insight ausente']],
+      ['em_risco','Observações sobre risco','texto']]},
+    {t:'Avaliação de risco suicida', campos:[
+      ['ris_ideacao','Ideação suicida','sel',['','Ausente','Passiva (desejo de morrer, sem plano)','Ativa, sem plano','Ativa, com plano','Ativa, com plano e intenção']],
+      ['ris_detalhe','Detalhes da ideação (frequência, intensidade, plano, preparativos)','texto'],
+      ['ris_meios','Acesso a meios (medicações em casa, armas, outros)','linha',['Medicações sob guarda de familiar','Grande quantidade de medicações em casa','Arma de fogo no domicílio','Sem acesso relatado a meios']],
+      ['ris_fatores','Fatores de risco','texto',['Tentativa prévia','Transtorno do humor','Uso de álcool/drogas','Desesperança','Isolamento social','Perda recente','Dor ou doença crônica','Impulsividade','História familiar de suicídio','Sexo masculino','Desemprego/dívidas']],
+      ['ris_protecao','Fatores de proteção','texto',['Suporte familiar','Filhos/dependentes','Religiosidade','Vínculo terapêutico','Planos para o futuro','Adesão ao tratamento']],
+      ['ris_nivel','Risco estimado','sel',['','Baixo','Moderado','Alto']],
+      ['ris_conduta','Conduta','texto',['Plano de segurança elaborado com o paciente','Orientações à família sobre vigilância e guarda das medicações entregues','Medicações sob guarda de familiar','Retorno precoce','Contato do CVV (188) e SAMU (192) fornecido','Encaminhado para emergência']]]},
     {t:'Conclusão', campos:[['hipotese','Hipótese diagnóstica','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['plano','Plano e orientações','texto'],['retorno','Retorno','linha']]}
   ]},
   evolucao: { titulo:'Evolução', secoes:[
-    {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto'],['risco','Avaliação de risco','linha'],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
+    {t:'Atendimento', campos:[['subjetivo','Relato do paciente e intercorrências','longo'],['adesao','Adesão e efeitos colaterais','texto'],['exame','Exame do estado mental','texto',['Sem alterações significativas','Eutímico','Deprimido','Ansioso','Afeto congruente','Pensamento lógico, sem delírios','Sem alterações de sensopercepção','Insight presente']],['ris_ideacao','Ideação suicida','sel',['','Ausente','Passiva (desejo de morrer, sem plano)','Ativa, sem plano','Ativa, com plano','Ativa, com plano e intenção']],['risco','Avaliação de risco','linha',['Risco baixo','Risco moderado','Risco alto','Orientações à família entregues']],['avaliacao','Avaliação','texto'],['cid','CID','cid'],['conduta','Conduta e prescrição','longo'],['retorno','Retorno','linha']]}
   ]},
   adendo: { titulo:'Adendo', secoes:[{t:'Adendo', campos:[['texto','Texto do adendo (correção ou complemento)','longo']]}]},
   receita: { titulo:'Receita', secoes:[{t:'Receita', campos:[['tipoReceita','Tipo','linha'],['itens','Prescrição','longo'],['orientacoes','Orientações','texto']]}]},
+  documento: { titulo:'Documento', secoes:[{t:'Documento', campos:[['tipoDoc','Modelo','linha'],['titulo','Título','linha'],['cid','CID','cid'],['texto','Conteúdo','longo']]}]},
   doctoralia: { titulo:'Atendimento importado da Doctoralia', secoes:[{t:'Importado da Doctoralia', campos:[['texto','Registro','longo']]}]},
   cfm: { titulo:'Documento da Prescrição Eletrônica (CFM)', secoes:[{t:'Importado da Prescrição Eletrônica do CFM', campos:[['documento','Documento','linha'],['situacao','Situação','linha'],['medicamentos','Medicamentos','longo'],['cid','CID','cid'],['detalhes','Detalhes','texto']]}]}
 };
+const EEM_NORMAL = {em_aparencia:'Vestes adequadas, higiene preservada; colaborativo, contato visual adequado.', em_consciencia:'Vígil, orientado auto e alopsiquicamente.', em_atencao:'Normovigil e normotenaz; memória preservada.', em_humor:'Eutímico; afeto congruente e modulado.', em_pensamento:'Curso normal, forma lógica e coerente, sem ideias delirantes.', em_senso:'Sem alterações.', em_psicomotor:'Normal.', em_juizo:'Juízo preservado; insight presente.'};
 const nomeTipo = t => (FICHAS[t] || {titulo:t}).titulo;
 function resumoRegistro(r) {
   const c = r.campos || {};
-  const t = c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.itens || c.detalhes || '';
+  const t = (c.titulo ? c.titulo + ': ' : '') + (c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.itens || c.detalhes || '');
   return t.length > 160 ? t.slice(0,160) + '…' : t;
 }
 
@@ -402,7 +455,7 @@ async function telaBloqueio() {
   const app = $('#app');
   if (!cofre) {
     app.innerHTML = `<div class="lock"><form class="card" id="f-criar" autocomplete="off">
-      <h1>Prontuário</h1><div class="sub">Primeiro acesso neste aparelho</div>
+      <h1>Prontuário</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Primeiro acesso neste aparelho</div>
       <label class="f"><span>Crie uma senha (mínimo 8 caracteres)</span><input type="password" id="s1" autocomplete="new-password"></label>
       <label class="f"><span>Repita a senha</span><input type="password" id="s2" autocomplete="new-password"></label>
       <div class="aviso"><b>Guarde bem esta senha.</b> Ela protege os dados dos pacientes e não pode ser recuperada: sem ela, nem os backups abrem.<br><br>Já usa o prontuário em outro aparelho? Crie aqui a <b>mesma senha</b> e depois importe o backup.</div>
@@ -422,7 +475,7 @@ async function telaBloqueio() {
     });
   } else {
     app.innerHTML = `<div class="lock"><form class="card" id="f-entrar">
-      <h1>Prontuário</h1><div class="sub">Digite sua senha para abrir</div>
+      <h1>Prontuário</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Digite sua senha para abrir</div>
       <label class="f"><span>Senha</span><input type="password" id="s1" autocomplete="current-password"></label>
       <div class="erro" id="erro"></div>
       <button class="btn pri" style="width:100%">Entrar</button>
@@ -499,6 +552,7 @@ function render() {
   b.addEventListener('input', () => { S.busca = b.value; $('#plist').innerHTML = listaPacientes(); });
   if (v === 'registro') ligarFormRegistro();
   if (v === 'receita') ligarReceita();
+  if (v === 'documento') ligarDocumento();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -524,6 +578,7 @@ function telaPrincipal() {
     case 'auditoria': return telaAuditoria();
     case 'config': return telaConfig();
     case 'receita': return telaReceita();
+    case 'documento': return telaDocumento();
     default: return telaInicio();
   }
 }
@@ -533,7 +588,7 @@ const btnVoltar = (rot = '‹ Pacientes', act = 'ir', extra = 'data-v="inicio"')
 function telaInicio() {
   const d = S.dados, hoje = hojeStr();
   const hojeN = d.records.filter(r => r.data === hoje && r.tipo !== 'adendo').length;
-  const pend = d.records.filter(r => !['cfm','receita','doctoralia'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
+  const pend = d.records.filter(r => !['cfm','receita','doctoralia','documento'].includes(r.tipo) && !(r.assinatura && r.assinatura.status === 'assinado')).length;
   const u = d.settings.ultimoBackup;
   return `
     ${precisaBackup() ? `<div class="banner alerta"><span class="grow">Há registros novos desde o último backup${u ? ' (' + fmtDataHora(u.em) + ')' : ''}.</span><button class="btn sm" data-act="ir" data-v="backup">Fazer backup</button></div>` : ''}
@@ -578,6 +633,7 @@ function telaPaciente() {
     <button class="btn ${temPrimeira ? '' : 'pri'}" data-act="novo-registro" data-tipo="primeira" data-pid="${p.id}">+ Primeira consulta</button>
     <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
     <button class="btn" data-act="nova-receita" data-pid="${p.id}">+ Receita</button>
+    <button class="btn" data-act="novo-doc" data-pid="${p.id}">+ Documento</button>
   </div>
   <div class="cols">
     <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}</div>
@@ -610,7 +666,7 @@ function cartaoRegistro(r, todos) {
   const adendos = todos.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   const integ = S.integridade && S.integridade[r.id];
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
-  const assin = r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
+  const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
@@ -622,8 +678,9 @@ function cartaoRegistro(r, todos) {
       <div class="hash" style="margin-top:.7rem">SHA-256: ${esc(r.hash)}</div>
       <div class="row" style="margin-top:.8rem">
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
-        ${r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button>` : ''}
-        <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
+        ${r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
+        ${r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
+        <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' || r.tipo === 'documento' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
         <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
       </div>` : `<div class="resumo">${esc(resumoRegistro(r))}</div>`}
   </div></div>`;
@@ -689,21 +746,23 @@ function chaveRascunho(tipo, pid, ref) { return [tipo, pid, ref || ''].join('|')
 function telaFormRegistro() {
   const r = S.rascunho, p = paciente(r.patientId), ficha = FICHAS[r.tipo];
   const orig = r.refId ? S.dados.records.find(x => x.id === r.refId) : null;
-  const campo = ([k, rot, tipo]) => {
+  const campo = ([k, rot, tipo, extra]) => {
     if (tipo === 'cid') return `<label class="f"><span>${esc(rot)}</span>
       <div class="chips" id="cid-chips">${chipsCID()}</div>
       <input type="text" id="cid-input" list="cid-lista" placeholder="Digite o código ou o nome (ex.: F41.1, ansiedade) e escolha" autocomplete="off">
       <datalist id="cid-lista">${CIDS.map(([c, n]) => `<option value="${c} – ${esc(n)}">`).join('')}</datalist></label>`;
     const val = esc(r.campos[k] || '');
-    if (tipo === 'linha') return `<label class="f"><span>${esc(rot)}</span><input type="text" data-c="${k}" value="${val}"></label>`;
-    return `<label class="f"><span>${esc(rot)}</span><textarea data-c="${k}" rows="${tipo === 'longo' ? 6 : 3}">${val}</textarea></label>`;
+    if (tipo === 'sel') return `<label class="f"><span>${esc(rot)}</span><select data-c="${k}">${extra.map(o => `<option value="${esc(o)}" ${(r.campos[k] || '') === o ? 'selected' : ''}>${o ? esc(o) : 'Selecione…'}</option>`).join('')}</select></label>`;
+    const sugs = Array.isArray(extra) ? `<div class="sugs">${extra.map(t => `<button type="button" class="sug" data-act="sug" data-c="${k}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : '';
+    if (tipo === 'linha') return `<label class="f"><span>${esc(rot)}</span><input type="text" data-c="${k}" value="${val}"></label>${sugs}`;
+    return `<label class="f"><span>${esc(rot)}</span><textarea data-c="${k}" rows="${tipo === 'longo' ? 6 : 3}">${val}</textarea></label>${sugs}`;
   };
   return `<button class="btn link" data-act="sair-form">‹ Voltar ao paciente</button>
   <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(ficha.titulo)}</h1>
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}${orig ? `<span>referente a: ${esc(nomeTipo(orig.tipo))} de ${fmtData(orig.data)}</span>` : ''}</div>
   <form id="f-registro" autocomplete="off">
     ${r.tipo !== 'adendo' ? `<div class="form-sec"><label class="f" style="max-width:240px"><span>Data do atendimento</span><input type="date" id="r-data" value="${esc(r.data)}"></label></div>` : ''}
-    ${ficha.secoes.map(s => `<div class="form-sec"><h3>${esc(s.t)}</h3>${s.campos.map(campo).join('')}</div>`).join('')}
+    ${ficha.secoes.map(s => `<div class="form-sec"><div class="row" style="justify-content:space-between;margin-bottom:.6rem"><h3 style="margin:0">${esc(s.t)}</h3>${s.eem ? '<button type="button" class="btn sm" data-act="eem-normal">Preencher sem alterações</button>' : ''}</div>${s.campos.map(campo).join('')}</div>`).join('')}
     <div class="barra-acoes"><span class="salvo" id="salvo">Rascunho salvo automaticamente</span>
       <button type="button" class="btn perigo" data-act="descartar-rascunho">Descartar</button>
       <button type="submit" class="btn pri">Finalizar registro</button></div>
@@ -821,17 +880,36 @@ function exigeNotificacao(nome) {
   if (NOTIF_B.some(x => n.includes(x))) return 'B (azul)';
   return null;
 }
+const itemVazio = () => ({nome:'', dose:'', forma:'', qtd:'', pos:''});
+const FORMAS = ['comprimido','comprimido revestido','comprimido de liberação prolongada','comprimido orodispersível','cápsula','cápsula de liberação prolongada','solução oral (gotas)','solução oral','suspensão oral','xarope','adesivo transdérmico','solução injetável','spray nasal'];
+function porExtenso(n) {
+  const u = ['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  const d = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  const c = ['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+  if (n < 20) return u[n];
+  if (n < 100) return d[Math.floor(n / 10)] + (n % 10 ? ' e ' + u[n % 10] : '');
+  if (n === 100) return 'cem';
+  if (n < 1000) return c[Math.floor(n / 100)] + (n % 100 ? ' e ' + porExtenso(n % 100) : '');
+  return String(n);
+}
+function qtdComExtenso(q) {
+  const t = String(q || '').trim();
+  if (!t || /\(/.test(t)) return t;
+  const m = t.match(/^(\d{1,3})(\s+.*)?$/);
+  return m ? `${m[1]} (${porExtenso(Number(m[1]))})${m[2] || ''}` : t;
+}
+const nomeItem = i => i.nome !== undefined ? [i.nome, i.dose].filter(Boolean).join(' ') : (i.med || '');
 function abrirReceita(pid) {
   const p = paciente(pid);
   const ativas = (p.medicacoes || []).filter(m => !m.fim);
-  S.receitaRasc = {patientId: pid, tipo: 'simples', data: hojeStr(), itens: [{med:'', qtd:'', pos:''}], orientacoes: ''};
-  if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({med: [m.nome, m.dose].filter(Boolean).join(' '), qtd: '', pos: m.posologia || ''}));
+  S.receitaRasc = {patientId: pid, tipo: 'simples', data: hojeStr(), itens: [itemVazio()], orientacoes: ''};
+  if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: '', pos: m.posologia || ''}));
   S.view = {nome:'receita', pid};
   render();
 }
 function telaReceita() {
   const r = S.receitaRasc, p = paciente(r.patientId);
-  const alertas = r.itens.map(i => i.med && exigeNotificacao(i.med) ? `<b>${esc(i.med)}</b> exige Notificação de Receita ${exigeNotificacao(i.med)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
+  const alertas = r.itens.map(i => i.nome && exigeNotificacao(i.nome) ? `<b>${esc(i.nome)}</b> exige Notificação de Receita ${exigeNotificacao(i.nome)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
   return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
   <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Nova receita</h1>
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
@@ -846,17 +924,23 @@ function telaReceita() {
     ${alertas.map(a => `<div class="alerta-rx">⚠ ${a}</div>`).join('')}
     <div id="rx-itens">${r.itens.map((it, i) => `<div class="item-rx">
       <div class="row" style="justify-content:space-between;margin-bottom:.4rem"><b>${i + 1}.</b>${r.itens.length > 1 ? `<button type="button" class="btn sm link" data-act="rx-tirar" data-i="${i}">Remover</button>` : ''}</div>
-      <div class="grid2"><label class="f"><span>Medicamento e dose</span><input type="text" data-rx="med" data-i="${i}" value="${esc(it.med)}" placeholder="ex.: Sertralina 50 mg" list="rx-lista"></label>
-      <label class="f"><span>Quantidade</span><input type="text" data-rx="qtd" data-i="${i}" value="${esc(it.qtd)}" placeholder="ex.: 30 comprimidos (trinta)"></label></div>
+      <div class="grid2"><label class="f"><span>Medicamento</span><input type="text" data-rx="nome" data-i="${i}" value="${esc(it.nome)}" placeholder="ex.: Sertralina" list="rx-lista"></label>
+      <label class="f"><span>Dose / concentração</span><input type="text" data-rx="dose" data-i="${i}" value="${esc(it.dose)}" placeholder="ex.: 50 mg"></label></div>
+      <div class="grid2"><label class="f"><span>Forma farmacêutica</span><input type="text" data-rx="forma" data-i="${i}" value="${esc(it.forma)}" placeholder="ex.: comprimido" list="rx-formas"></label>
+      <label class="f"><span>Quantidade</span><input type="text" data-rx="qtd" data-i="${i}" value="${esc(it.qtd)}" placeholder="ex.: 30 comprimidos"></label></div>
       <label class="f"><span>Como usar</span><input type="text" data-rx="pos" data-i="${i}" value="${esc(it.pos)}" placeholder="ex.: Tomar 1 comprimido pela manhã, uso contínuo"></label>
     </div>`).join('')}</div>
-    <datalist id="rx-lista">${(p.medicacoes || []).filter(m => !m.fim).map(m => `<option value="${esc([m.nome, m.dose].filter(Boolean).join(' '))}">`).join('')}</datalist>
+    <datalist id="rx-lista">${[...new Set((p.medicacoes || []).map(m => m.nome).filter(Boolean))].map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <datalist id="rx-formas">${FORMAS.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
+    <p style="color:var(--suave);font-size:.88rem;margin:-.3rem 0 .8rem">A quantidade sai também por extenso na receita (ex.: 30 → “30 (trinta) comprimidos”).</p>
     <div class="row" style="margin-bottom:1rem"><button type="button" class="btn" data-act="rx-mais">+ Outro medicamento</button>
     ${r.sugestoes && r.sugestoes.length ? `<button type="button" class="btn" data-act="rx-copiar">Copiar medicações em uso (${r.sugestoes.length})</button>` : ''}</div>
   </div>
   <div class="form-sec"><label class="f"><span>Orientações (opcional)</span><textarea id="rx-or" rows="3">${esc(r.orientacoes)}</textarea></label></div>
   <div class="barra-acoes"><span class="salvo">Sai em PDF para imprimir e assinar à mão. A receita fica registrada no prontuário.</span>
     <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn azul" data-act="rx-cfm" title="Copia a prescrição e abre a Prescrição Eletrônica do CFM">Levar para o CFM</button>
+    <button type="button" class="btn" data-act="rx-gerar" data-carimbo="1">Gerar para carimbar</button>
     <button type="button" class="btn pri" data-act="rx-gerar">Gerar receita</button></div>`;
 }
 function ligarReceita() {
@@ -870,43 +954,45 @@ function ligarReceita() {
   m.addEventListener('change', e => {
     const el = e.target, r = S.receitaRasc; if (!r) return;
     if (el.id === 'rx-tipo') { r.tipo = el.value; rerenderReceita(); }
-    if (el.dataset.rx === 'med') rerenderReceita();
+    if (el.dataset.rx === 'nome') rerenderReceita();
   });
 }
 function rerenderReceita() { const y = $('#main').scrollTop; render(); $('#main').scrollTop = y; }
 const dataExtenso = iso => { const [a, m, d] = iso.split('-').map(Number); const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']; return `${d} de ${meses[m - 1]} de ${a}`; };
 function htmlItensRx(itens) {
-  return `<ol class="rx-itens">${itens.map(i => `<li><div class="rx-med"><span class="nm">${esc(i.med)}</span><span class="pt"></span><span>${esc(i.qtd)}</span></div>${i.pos ? `<div class="rx-pos">${esc(i.pos)}</div>` : ''}</li>`).join('')}</ol>`;
+  return `<ol class="rx-itens">${itens.map(i => `<li><div class="rx-med"><span><span class="nm">${esc(nomeItem(i))}</span>${i.forma ? ' – ' + esc(i.forma) : ''}</span><span class="pt"></span><span class="qt">${esc(qtdComExtenso(i.qtd))}</span></div>${i.pos ? `<div class="rx-pos">${esc(i.pos)}</div>` : ''}</li>`).join('')}</ol>`;
 }
 function htmlReceita(dados, p) {
   const s = S.dados.settings;
   const local = `${s.cidade || ''}${s.uf ? ' – ' + s.uf : ''}`;
-  const assinatura = `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-linha">${esc(s.medico)}<br>${esc(s.crm)}</div></div>`;
+  const assinatura = dados.carimbo
+    ? `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-carimbo"><div class="rx-cx">carimbo</div><div class="rx-linha">Assinatura</div></div></div>`
+    : `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(dados.data)}</div><div class="rx-linha"><b>${esc(s.medico)}</b><br>${esc(s.crm)}</div></div>`;
   if (dados.tipo !== 'especial') {
     return `<div class="rx rx-simples">
-      <div class="rx-cab"><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>
+      <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
       <div class="rx-tit">RECEITA</div>
       <div class="rx-pac">Paciente: <b>${esc(p.nome)}</b></div>
       ${htmlItensRx(dados.itens)}
       ${dados.orientacoes ? `<div class="rx-or">${esc(dados.orientacoes)}</div>` : ''}
       ${assinatura}
-      <div class="rx-end">${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</div>
+      <div class="rx-end"><span>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</span>${s.instagram ? `<span class="ig">${esc(s.instagram)}</span>` : ''}</div>
     </div>`;
   }
   const linhas = n => Array.from({length: n}, () => '<div class="rx-l"></div>').join('');
   const via = rot => `<div class="rx-via">
     <div class="vt"><b>RECEITUÁRIO DE CONTROLE ESPECIAL</b><span>${rot}</span></div>
     <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO EMITENTE</div>
-      <b>${esc(s.medico)}</b><br>Médico · ${esc(s.crm)}<br>${esc(s.endereco)}${s.cidade && !semAcento(s.endereco).includes(semAcento(s.cidade)) ? '<br>' + esc(local) : ''}${s.telefone ? '<br>Tel. ' + esc(s.telefone) : ''}</div>
+      <span class="em">${esc(s.medico)}</span><br>Médico · ${esc(s.crm)}<br>${esc(s.endereco)}${s.cidade && !semAcento(s.endereco).includes(semAcento(s.cidade)) ? '<br>' + esc(local) : ''}${s.telefone ? '<br>Tel. ' + esc(s.telefone) : ''}</div>
     <div style="margin-bottom:1.5mm">Paciente: <b>${esc(p.nome)}</b></div>
     <div style="margin-bottom:2.5mm">Endereço: ${p.endereco ? esc(p.endereco) : '<span style="display:inline-block;width:80%;border-bottom:.6pt solid #000">&nbsp;</span>'}</div>
-    <div class="bt" style="font-size:7.5pt;font-weight:bold;letter-spacing:.5pt">PRESCRIÇÃO</div>
+    <div class="rx-bt">PRESCRIÇÃO</div>
     ${htmlItensRx(dados.itens)}
     ${dados.orientacoes ? `<div class="rx-or" style="font-size:9pt;margin-top:1mm">${esc(dados.orientacoes)}</div>` : ''}
     ${assinatura}
     <div class="rx-baixo">
-      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO COMPRADOR</div>Nome: ________________________________<br>Identidade: ______________ Órg. emissor: _______<br>Endereço: _____________________________<br>__________________________________________<br>Cidade: __________________ UF: ____<br>Telefone: _________________</div>
-      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO FORNECEDOR</div><br><br><div class="rx-l"></div><div style="text-align:center;font-size:7.5pt">Assinatura do farmacêutico</div><br>Data: ____/____/______</div>
+      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO COMPRADOR</div><div class="rx-ln">Nome:<i></i></div><div class="rx-ln">Identidade:<i></i>Órg. emissor:<i style="flex:.5"></i></div><div class="rx-ln">Endereço:<i></i></div><div class="rx-ln"><i></i></div><div class="rx-ln">Cidade:<i></i>UF:<i style="flex:.25"></i></div><div class="rx-ln">Telefone:<i></i></div></div>
+      <div class="rx-box"><div class="bt">IDENTIFICAÇÃO DO FORNECEDOR</div><div style="height:12mm"></div><div class="rx-l"></div><div style="text-align:center;font-size:7pt;margin-top:.8mm">Assinatura do farmacêutico</div><div class="rx-ln" style="margin-top:4mm">Data:<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 8mm"></i>/<i style="flex:0 0 12mm"></i></div></div>
     </div>
   </div>`;
   return `<div class="rx"><div class="rx-ce">${via('1ª via – Farmácia')}${via('2ª via – Paciente')}</div></div>`;
@@ -918,18 +1004,55 @@ function imprimirReceita(dados, p, desc) {
   imprimir(htmlReceita(dados, p), desc, p.id);
   setTimeout(() => { estilo.textContent = ''; }, 4000);
 }
-async function gerarReceita() {
+const URL_CFM = 'https://prescricao.cfm.org.br/';
+function textoParaCFM(dados, p) {
+  const linhas = [`Paciente: ${p.nome}${p.cpf ? ' — CPF ' + p.cpf : ''}`, `Tipo: ${dados.tipo === 'especial' ? 'Controle especial' : 'Receita simples'}`, ''];
+  dados.itens.forEach((i, n) => { linhas.push(`${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}`); if (i.pos) linhas.push(`   ${i.pos}`); });
+  if (dados.orientacoes) linhas.push('', dados.orientacoes);
+  return linhas.join('\n');
+}
+function copiarEAbrirCFM(texto) {
+  let copiou = false;
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(texto).catch(() => {}); copiou = true; } } catch (e) {}
+  let aba = null; try { aba = window.open(URL_CFM, '_blank'); if (aba) aba.opener = null; } catch (e) {}
+  if (!aba) setTimeout(() => modal(`<h2>Abrir o CFM</h2><p>O navegador bloqueou a abertura automática. Toque no botão abaixo.</p><div class="acoes"><a class="btn pri" href="${URL_CFM}" target="_blank" rel="noopener">Abrir Prescrição Eletrônica</a></div>`), 300);
+  return copiou;
+}
+function levarAoCFM() {
   const r = S.receitaRasc, p = paciente(r.patientId);
-  const itens = r.itens.map(i => ({med: i.med.trim(), qtd: i.qtd.trim(), pos: i.pos.trim()})).filter(i => i.med);
+  const itens = r.itens.map(i => ({nome: (i.nome || '').trim(), dose: (i.dose || '').trim(), forma: (i.forma || '').trim(), qtd: (i.qtd || '').trim(), pos: (i.pos || '').trim()})).filter(i => i.nome);
+  if (!itens.length) return aviso('Inclua ao menos um medicamento.');
+  const semQtd = itens.filter(i => !i.qtd); if (semQtd.length) return aviso('Informe a quantidade de: ' + semQtd.map(i => i.nome).join(', '));
+  const dados = {tipo: r.tipo, data: r.data || hojeStr(), itens, orientacoes: (r.orientacoes || '').trim(), carimbo: false};
+  // copiar e abrir precisam acontecer já no toque (exigência do navegador), antes de salvar
+  const copiou = copiarEAbrirCFM(textoParaCFM(dados, p));
+  (async () => {
+    const s = S.dados.settings;
+    const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: dados.data, criadoEm: agoraISO(),
+      campos: {tipoReceita: (r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples') + ' (emitida na Prescrição Eletrônica do CFM)', itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
+      cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'cfm'}};
+    reg.hash = await hashRegistro(reg);
+    S.dados.records.push(reg);
+    auditar('Receita levada ao CFM', `${p.nome}`, p.id);
+    await salvar();
+    S.receitaRasc = null; S.abertos.add(reg.id);
+    abrirPaciente(p.id);
+    aviso(copiou ? 'Prescrição copiada. No CFM, escolha o paciente e cole a posologia de cada item.' : 'Abri o CFM. Não consegui copiar automaticamente: use a prescrição registrada aqui no prontuário.', 8000);
+  })();
+}
+async function gerarReceita(carimbo) {
+  const r = S.receitaRasc, p = paciente(r.patientId);
+  const itens = r.itens.map(i => ({nome: (i.nome || '').trim(), dose: (i.dose || '').trim(), forma: (i.forma || '').trim(), qtd: (i.qtd || '').trim(), pos: (i.pos || '').trim()})).filter(i => i.nome);
+  const semQtd = itens.filter(i => !i.qtd); if (semQtd.length) return aviso('Informe a quantidade de: ' + semQtd.map(i => i.nome).join(', '));
   if (!itens.length) return aviso('Inclua ao menos um medicamento.');
   if (!r.data) return aviso('Informe a data.');
-  const notif = itens.filter(i => exigeNotificacao(i.med));
-  const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.med)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}A receita fica registrada no prontuário e não pode ser alterada depois. Para corrigir, gere uma nova.`, ok:'Gerar e imprimir'});
+  const notif = itens.filter(i => exigeNotificacao(i.nome));
+  const ok = await confirmar({titulo:'Gerar receita?', texto:`${notif.length ? `<b>Atenção:</b> ${notif.map(i => esc(i.nome)).join(', ')} exige notificação de receita própria (talão da Vigilância). Esta folha não substitui a notificação.<br><br>` : ''}A receita fica registrada no prontuário e não pode ser alterada depois. Para corrigir, gere uma nova.`, ok:'Gerar e imprimir'});
   if (!ok) return;
-  const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim()};
+  const dados = {tipo: r.tipo, data: r.data, itens, orientacoes: r.orientacoes.trim(), carimbo: !!carimbo};
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: p.id, tipo: 'receita', data: r.data, criadoEm: agoraISO(),
-    campos: {tipoReceita: r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples', itens: itens.map((i, n) => `${n + 1}. ${i.med}${i.qtd ? ' — ' + i.qtd : ''}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
+    campos: {tipoReceita: r.tipo === 'especial' ? 'Receituário de controle especial' : 'Receita simples', itens: itens.map((i, n) => `${n + 1}. ${nomeItem(i)}${i.forma ? ' – ' + i.forma : ''} — ${qtdComExtenso(i.qtd)}${i.pos ? '\n   ' + i.pos : ''}`).join('\n'), ...(dados.orientacoes ? {orientacoes: dados.orientacoes} : {}), dadosReceita: JSON.stringify(dados)},
     cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'manual'}};
   reg.hash = await hashRegistro(reg);
   S.dados.records.push(reg);
@@ -938,6 +1061,296 @@ async function gerarReceita() {
   S.receitaRasc = null; S.abertos.add(reg.id);
   abrirPaciente(p.id);
   imprimirReceita(dados, p, `${reg.campos.tipoReceita} – ${p.nome}`);
+}
+
+/* ---------- documentos: relatórios, declarações, exames, encaminhamentos, orientações ---------- */
+const CID_Z004 = 'Z00.4 – Exame psiquiátrico geral, não classificado em outra parte';
+const EXAMES = [
+  'Hemograma completo','Glicemia de jejum','Hemoglobina glicada (HbA1c)','Colesterol total e frações','Triglicerídeos',
+  'Ureia','Creatinina','Taxa de filtração glomerular estimada','Sódio','Potássio','Cálcio','Magnésio',
+  'TGO (AST)','TGP (ALT)','Gama-GT','Fosfatase alcalina','Bilirrubinas','TSH','T4 livre',
+  'Vitamina B12','Ácido fólico','Vitamina D (25-OH)','Ferritina','Prolactina',
+  'Litemia (coletar 12 h após a última dose)','Ácido valproico sérico','Carbamazepina sérica',
+  'PCR (proteína C reativa)','Troponina','CPK','Beta-hCG','Sumário de urina (EAS)',
+  'VDRL','Anti-HIV','HBsAg','Anti-HCV','Eletrocardiograma (ECG)','Eletroencefalograma (EEG)'
+];
+const PROTOCOLOS = {
+  litio: {nome:'Lítio', exames:['Hemograma completo','Ureia','Creatinina','Taxa de filtração glomerular estimada','Sódio','Potássio','Cálcio','TSH','T4 livre','Glicemia de jejum','Sumário de urina (EAS)','Beta-hCG','Eletrocardiograma (ECG)','Litemia (coletar 12 h após a última dose)'],
+    indicacao:'Avaliação basal e monitorização do uso de carbonato de lítio.',
+    nota:'Litemia 5 a 7 dias após início ou mudança de dose (12 h após a última tomada) e depois a cada 3 a 6 meses; função renal, TSH e cálcio a cada 6 meses. Beta-hCG em mulheres em idade fértil; ECG se > 40 anos ou cardiopatia.'},
+  risperidona: {nome:'Risperidona', exames:['Glicemia de jejum','Hemoglobina glicada (HbA1c)','Colesterol total e frações','Triglicerídeos','Prolactina','Eletrocardiograma (ECG)','Beta-hCG'],
+    indicacao:'Avaliação basal e monitorização metabólica e de prolactina em uso de risperidona.',
+    nota:'Peso, IMC, circunferência abdominal e pressão arterial no consultório. Perfil metabólico com 3 meses e depois anual; prolactina se sintomas (galactorreia, alteração menstrual, disfunção sexual). ECG se fatores de risco.'},
+  olanzapina: {nome:'Olanzapina', exames:['Glicemia de jejum','Hemoglobina glicada (HbA1c)','Colesterol total e frações','Triglicerídeos','TGO (AST)','TGP (ALT)','Eletrocardiograma (ECG)'],
+    indicacao:'Avaliação basal e monitorização metabólica em uso de olanzapina.',
+    nota:'Alto risco metabólico: peso, IMC, circunferência abdominal e pressão arterial no consultório a cada consulta nos primeiros meses. Perfil metabólico com 3 meses e depois a cada 6 a 12 meses.'},
+  clozapina: {nome:'Clozapina', exames:['Hemograma completo','Troponina','PCR (proteína C reativa)','Glicemia de jejum','Hemoglobina glicada (HbA1c)','Colesterol total e frações','Triglicerídeos','TGO (AST)','TGP (ALT)','Eletrocardiograma (ECG)'],
+    indicacao:'Monitorização obrigatória em uso de clozapina (neutropenia/agranulocitose e miocardite).',
+    nota:'Hemograma com contagem de neutrófilos antes de iniciar, semanal nas primeiras 18 semanas e depois mensal enquanto durar o uso. Troponina e PCR semanais nas primeiras 4 semanas. EEG se convulsão ou dose alta.'},
+  escetamina: {nome:'Escetamina (spray nasal)', exames:['Eletrocardiograma (ECG)','Beta-hCG'],
+    indicacao:'Avaliação pré-tratamento com escetamina intranasal.',
+    nota:'Pressão arterial antes da aplicação e cerca de 40 minutos depois, com observação no serviço até a liberação (em geral 2 horas). Avaliar contraindicações: aneurisma, malformação arteriovenosa, AVC hemorrágico prévio. ECG se doença cardiovascular.'},
+  rotina: {nome:'Rotina psiquiátrica', exames:['Hemograma completo','Glicemia de jejum','Colesterol total e frações','Triglicerídeos','Ureia','Creatinina','Sódio','Potássio','TGO (AST)','TGP (ALT)','Gama-GT','TSH','T4 livre','Vitamina B12','Ácido fólico','Vitamina D (25-OH)','Ferritina','Sumário de urina (EAS)','VDRL','Anti-HIV'],
+    indicacao:'Avaliação laboratorial inicial em psiquiatria.', nota:''}
+};
+const TXT_ABERTURA = 'Declaro, para os devidos fins, que {nome}{idade_txt} encontra-se em acompanhamento psiquiátrico sob meus cuidados desde [data de início], com diagnóstico de {diag} (CID-10 {cid}).';
+const TXT_FECHO = '\n\nTratamento atual: {medicacoes}.\n\nEvolução: [descrever a resposta ao tratamento e a situação atual].\n\nConclusão: [necessidade de afastamento por __ dias / adaptação das atividades / manutenção do tratamento / outra recomendação].';
+const RELATORIOS = {
+  depressao: {diag:'episódio depressivo', cid:'F32.1', quadro:'Apresenta humor deprimido na maior parte do dia, perda de interesse e prazer, alteração do sono e do apetite, fadiga, dificuldade de concentração, sentimentos de culpa e desesperança, com prejuízo importante do funcionamento social e ocupacional.'},
+  ansiedade: {diag:'transtorno de ansiedade generalizada', cid:'F41.1', quadro:'Apresenta ansiedade e preocupação excessivas e de difícil controle, acompanhadas de inquietação, tensão muscular, irritabilidade, fadiga, dificuldade de concentração e alteração do sono, com prejuízo do funcionamento.'},
+  panico: {diag:'transtorno de pânico', cid:'F41.0', quadro:'Apresenta ataques de pânico recorrentes e inesperados, com taquicardia, falta de ar, tremores, sensação de morte iminente, medo persistente de novos ataques e comportamento de evitação.'},
+  bipolar: {diag:'transtorno afetivo bipolar', cid:'F31.[_]', quadro:'Apresenta história de episódios de alteração do humor, com fases de [elevação do humor, aceleração do pensamento, redução da necessidade de sono, impulsividade] e fases depressivas, com prejuízo do funcionamento. Episódio atual: [descrever].'},
+  esquizofrenia: {diag:'esquizofrenia', cid:'F20.[_]', quadro:'Apresenta quadro psicótico crônico, com [alucinações auditivas, ideias delirantes, desorganização do pensamento e do comportamento] e sintomas negativos (embotamento afetivo, isolamento, redução da iniciativa), com prejuízo importante da autonomia e do funcionamento social e ocupacional.'},
+  tdah: {diag:'transtorno de déficit de atenção e hiperatividade', cid:'F90.0', quadro:'Apresenta, desde a infância, desatenção persistente (distração, esquecimentos, dificuldade de organização e de concluir tarefas)[, hiperatividade e impulsividade], com prejuízo nos estudos, no trabalho e nas relações.'},
+  alcool: {diag:'síndrome de dependência ao álcool', cid:'F10.2', quadro:'Apresenta padrão de uso de álcool com perda de controle, tolerância, sintomas de abstinência, persistência do uso apesar dos prejuízos e abandono de atividades.'},
+  cocaina: {diag:'síndrome de dependência à cocaína', cid:'F14.2', quadro:'Apresenta uso compulsivo de cocaína, com fissura, perda de controle, tentativas frustradas de interromper o uso e prejuízos pessoais, familiares e ocupacionais.'},
+  apostas: {diag:'jogo patológico (apostas)', cid:'F63.0', quadro:'Apresenta comportamento persistente e recorrente de apostas, com perda de controle, aumento progressivo dos valores, tentativas de recuperar perdas, prejuízo financeiro e familiar.'},
+  burnout: {diag:'síndrome de esgotamento profissional (burnout)', cid:'Z73.0', quadro:'Apresenta exaustão física e emocional relacionada ao trabalho, distanciamento mental e sentimentos negativos em relação às atividades laborais, redução da eficácia profissional, além de [insônia, irritabilidade, dificuldade de concentração, sintomas ansiosos e depressivos], quadro relacionado ao contexto de trabalho [descrever: sobrecarga, jornada, ambiente].'},
+  tept: {diag:'transtorno de estresse pós-traumático', cid:'F43.1', quadro:'Após exposição a evento traumático [descrever], apresenta revivescências, pesadelos, evitação de situações relacionadas, hipervigilância, sobressaltos e alterações do humor e do sono.'},
+  toc: {diag:'transtorno obsessivo-compulsivo', cid:'F42.2', quadro:'Apresenta pensamentos obsessivos intrusivos e comportamentos compulsivos que consomem tempo significativo do dia e causam sofrimento e prejuízo do funcionamento.'}
+};
+const NOMES_REL = {depressao:'Depressão', ansiedade:'Ansiedade generalizada', panico:'Transtorno de pânico', bipolar:'Transtorno bipolar', esquizofrenia:'Esquizofrenia', tdah:'TDAH', alcool:'Dependência de álcool', cocaina:'Dependência de cocaína', apostas:'Apostas (jogo patológico)', burnout:'Burnout', tept:'Estresse pós-traumático', toc:'TOC'};
+const ORIENT_SONO = `Orientações para um sono melhor
+
+1. Deite e levante sempre no mesmo horário, inclusive nos fins de semana.
+2. Use a cama só para dormir (e para a vida sexual). Evite celular, TV, trabalho e refeições na cama.
+3. Se não dormir em cerca de 20 minutos, levante, vá para outro cômodo com pouca luz e faça algo calmo. Volte quando sentir sono.
+4. Desligue telas (celular, computador, TV) pelo menos 1 hora antes de deitar.
+5. Evite café, chá preto, chá-mate, refrigerante de cola, energéticos e chocolate a partir das 14 h.
+6. Evite bebida alcoólica e cigarro, principalmente à noite: o álcool piora a qualidade do sono.
+7. Faça atividade física regularmente, de preferência pela manhã ou à tarde, e não perto da hora de dormir.
+8. Jante de forma leve, pelo menos 2 horas antes de deitar.
+9. Deixe o quarto escuro, silencioso, ventilado e com temperatura agradável.
+10. Se for cochilar, faça cochilos curtos (até 30 minutos) e antes das 15 h.
+11. Pegue luz do sol pela manhã: isso ajuda a regular o relógio do corpo.
+12. Crie uma rotina de relaxamento antes de dormir: banho morno, leitura leve, respiração lenta.
+13. Não fique olhando o relógio durante a noite.
+
+Use as medicações exatamente como prescrito e não tome remédios para dormir por conta própria.`;
+const ORIENT_FAMILIA = `Orientações à família: segurança e cuidado com as medicações
+
+Guarda das medicações
+1. Um familiar responsável deve guardar TODAS as medicações do paciente, em local trancado ou fora do alcance dele.
+2. Entregue apenas a dose do dia (ou de cada horário). Se possível, use um organizador semanal preenchido pelo familiar.
+3. Confira se as doses foram tomadas e não deixe sobras acumuladas.
+4. Retire de casa as medicações antigas, vencidas ou que não estão mais em uso (leve a uma farmácia para descarte).
+5. Guarde também as medicações dos outros moradores, venenos, produtos de limpeza fortes e bebidas alcoólicas.
+6. Se houver arma de fogo em casa, ela deve ser retirada do domicílio.
+
+Sinais de alerta (procure ajuda imediatamente)
+- Falar em morrer, em "sumir", em ser um peso para os outros, ou despedir-se das pessoas.
+- Desesperança intensa, isolamento, deixar de comer ou de se cuidar.
+- Doar objetos pessoais, organizar documentos ou "deixar tudo resolvido" sem motivo.
+- Piora súbita, ou melhora repentina e sem explicação após um período muito difícil.
+- Aumento do uso de álcool ou de outras drogas, agitação ou comportamento impulsivo.
+
+Como ajudar
+- Ouça sem julgar e sem minimizar o que a pessoa sente.
+- Pergunte diretamente se ela está pensando em se machucar ou em tirar a própria vida: perguntar não induz a ideia e ajuda a proteger.
+- Em momentos de crise, não deixe a pessoa sozinha.
+- Mantenha as consultas e o tratamento em dia e avise o médico sobre qualquer mudança.
+
+Em caso de emergência
+- SAMU: 192
+- CVV (apoio emocional, 24 horas, gratuito): 188
+- Procure a UPA ou o pronto-socorro mais próximo.
+- Médico responsável: {medico} – {telefone}`;
+const ORIENT_LITIO = `Orientações sobre o uso do lítio
+
+1. Tome o lítio todos os dias, no horário combinado. Não aumente nem diminua a dose por conta própria.
+2. Beba bastante água (cerca de 2 litros por dia), principalmente no calor, durante exercícios ou se tiver febre.
+3. Não faça dietas com corte de sal sem conversar com o médico.
+4. Evite anti-inflamatórios (ibuprofeno, diclofenaco, nimesulida etc.) e diuréticos sem orientação médica: eles aumentam o nível de lítio no sangue.
+5. Faça os exames de sangue pedidos. A litemia deve ser colhida cerca de 12 horas após a última dose.
+6. Procure atendimento imediatamente se tiver vômitos ou diarreia intensos, tremores fortes, fala enrolada, desequilíbrio, sonolência excessiva ou confusão mental: podem ser sinais de intoxicação.
+7. Em caso de gravidez ou suspeita de gravidez, avise o médico.`;
+const ORIENT_CLOZAPINA = `Orientações sobre o uso da clozapina
+
+1. O hemograma é obrigatório: semanal nas primeiras 18 semanas e depois mensal. Não deixe de fazer.
+2. Procure atendimento no mesmo dia se tiver febre, dor de garganta, feridas na boca ou sinais de infecção, e informe que usa clozapina.
+3. Nas primeiras semanas, avise imediatamente se tiver falta de ar, dor no peito, palpitações ou cansaço fora do comum.
+4. Prisão de ventre é comum e pode ser grave: beba água, coma fibras e avise se ficar mais de 3 dias sem evacuar ou tiver dor abdominal.
+5. Salivação excessiva, sonolência e tontura ao levantar podem acontecer no início: levante devagar.
+6. Não interrompa por conta própria. Se ficar 2 dias ou mais sem tomar, fale com o médico antes de recomeçar.
+7. Evite álcool. Cigarro altera o nível da clozapina: avise se começar ou parar de fumar.`;
+const ORIENT_ESCETAMINA = `Orientações para o tratamento com escetamina (spray nasal)
+
+1. A aplicação é feita no serviço de saúde, sob supervisão. Você ficará em observação até ser liberado (em geral cerca de 2 horas).
+2. Não coma nas 2 horas anteriores e não beba líquidos nos 30 minutos anteriores à aplicação.
+3. Venha acompanhado. Não dirija nem opere máquinas no dia da aplicação; retome só no dia seguinte, após uma noite de sono.
+4. Podem ocorrer, logo após a aplicação, sensação de estranhamento ou dissociação, tontura, náusea, sonolência e aumento da pressão arterial: a equipe vai acompanhar.
+5. Evite bebida alcoólica no dia da aplicação.
+6. Informe se tiver pressão alta não controlada, doença do coração, aneurisma, AVC prévio, ou se estiver grávida ou amamentando.`;
+const MODELOS_DOC = {
+  relatorio: {cat:'relatorio', rotulo:'Relatório médico (livre)', titulo:'Relatório médico', cfm:true, texto:'Declaro, para os devidos fins, que {nome}{idade_txt} encontra-se em acompanhamento psiquiátrico sob meus cuidados desde [data de início].\n\n[Descrever quadro clínico, tratamento, evolução e conclusão.]\n\nTratamento atual: {medicacoes}.'},
+  comparecimento: {cat:'declaracao', rotulo:'Declaração de comparecimento', titulo:'Declaração de comparecimento', texto:'Declaro, para os devidos fins, que {nome} compareceu a consulta médica nesta data, {data_extenso}, no período das [__:__] às [__:__].\n\n[Esteve acompanhado(a) de ______________________.]'},
+  acompanhamento: {cat:'declaracao', rotulo:'Declaração de acompanhamento', titulo:'Declaração de acompanhamento', texto:'Declaro, para os devidos fins, que {nome}{idade_txt} encontra-se em acompanhamento psiquiátrico regular sob meus cuidados desde [data de início], com consultas [mensais/bimestrais], mantendo tratamento em curso.'},
+  exames: {cat:'exames', rotulo:'Solicitação de exames (livre)', titulo:'Solicitação de exames', cfm:true},
+  neuropsico: {cat:'encaminhamento', rotulo:'Avaliação neuropsicológica', titulo:'Solicitação de avaliação neuropsicológica', texto:'Encaminho {nome}{idade_txt}, em acompanhamento psiquiátrico, para avaliação neuropsicológica.\n\nHipótese diagnóstica: [ ] (CID-10 [ ]).\n\nMotivo da solicitação: [auxílio diagnóstico / avaliação do perfil cognitivo / acompanhamento de resposta ao tratamento].\n\nSolicito avaliação de: atenção (sustentada, seletiva e dividida), funções executivas, memória (operacional, episódica verbal e visual), velocidade de processamento, linguagem, habilidades visuoespaciais e nível intelectual, além de aspectos emocionais e comportamentais pertinentes.\n\nPeço que o laudo contenha conclusão e sugestões de intervenção.\n\nTratamento atual: {medicacoes}.'},
+  psicoterapia: {cat:'encaminhamento', rotulo:'Psicoterapia', titulo:'Encaminhamento para psicoterapia', texto:'Encaminho {nome}{idade_txt}, em acompanhamento psiquiátrico comigo, para psicoterapia.\n\nMotivo: [ ] (CID-10 [ ]).\n\nAbordagem sugerida: [terapia cognitivo-comportamental / outra], com frequência [semanal].\n\nObjetivos: [manejo de sintomas, prevenção de recaídas, desenvolvimento de estratégias de enfrentamento].\n\nColoco-me à disposição para contato e discussão do caso.'},
+  sono: {cat:'orientacao', rotulo:'Higiene do sono', titulo:'Prescrição de higiene do sono', texto:ORIENT_SONO},
+  familia: {cat:'orientacao', rotulo:'Orientações à família (vigilância e guarda das medicações)', titulo:'Orientações à família', texto:ORIENT_FAMILIA},
+  or_litio: {cat:'orientacao', rotulo:'Orientações: uso do lítio', titulo:'Orientações: uso do lítio', texto:ORIENT_LITIO},
+  or_clozapina: {cat:'orientacao', rotulo:'Orientações: uso da clozapina', titulo:'Orientações: uso da clozapina', texto:ORIENT_CLOZAPINA},
+  or_escetamina: {cat:'orientacao', rotulo:'Orientações: escetamina', titulo:'Orientações: escetamina', texto:ORIENT_ESCETAMINA}
+};
+for (const [k, r] of Object.entries(RELATORIOS)) MODELOS_DOC['rel_' + k] = {cat:'relatorio', rotulo:'Relatório: ' + NOMES_REL[k], titulo:'Relatório médico', cfm:true, cid1: r.cid, texto: TXT_ABERTURA.replace('{diag}', r.diag).replace('{cid}', r.cid) + '\n\nQuadro clínico: ' + r.quadro + TXT_FECHO};
+for (const [k, pr] of Object.entries(PROTOCOLOS)) MODELOS_DOC['prot_' + k] = {cat:'exames', rotulo:'Protocolo: ' + pr.nome, titulo:'Solicitação de exames', cfm:true, protocolo:k};
+const CATS_DOC = [['relatorio','Relatórios'],['declaracao','Declarações'],['exames','Solicitação de exames e protocolos'],['encaminhamento','Encaminhamentos'],['orientacao','Orientações']];
+const COR_CAT = {relatorio:'#2f4a63', declaracao:'#2f4a63', exames:'#2f4a63', encaminhamento:'#2f4a63', orientacao:'#7a5a43'};
+
+function preencherModelo(t, p) {
+  const s = S.dados.settings;
+  const meds = (p.medicacoes || []).filter(m => !m.fim).map(m => [m.nome, m.dose, m.posologia && '(' + m.posologia + ')'].filter(Boolean).join(' '));
+  return String(t || '')
+    .replace(/\{nome\}/g, p.nome)
+    .replace(/\{idade_txt\}/g, p.nascimento ? `, ${idade(p.nascimento)}` : '')
+    .replace(/\{data_extenso\}/g, dataExtenso(hojeStr()))
+    .replace(/\{medicacoes\}/g, meds.length ? meds.join('; ') : '[descrever]')
+    .replace(/\{medico\}/g, s.medico).replace(/\{crm\}/g, s.crm).replace(/\{telefone\}/g, s.telefone || '');
+}
+function abrirDocumento(pid) { S.docRasc = {patientId: pid, etapa: 'escolher'}; S.view = {nome: 'documento', pid}; render(); }
+function escolherModeloDoc(chave) {
+  const m = MODELOS_DOC[chave], p = paciente(S.docRasc.patientId), r = S.docRasc;
+  Object.assign(r, {etapa: 'editar', chave, cat: m.cat, titulo: m.titulo, data: hojeStr(), texto: preencherModelo(m.texto || '', p), cid1: m.cid1 || '', cid2: '', exames: [], outros: '', indicacao: '', nota: ''});
+  if (m.cat === 'exames') {
+    r.cid1 = CID_Z004;
+    if (m.protocolo) { const pr = PROTOCOLOS[m.protocolo]; r.exames = pr.exames.slice(); r.indicacao = pr.indicacao; r.nota = pr.nota; r.protocolo = pr.nome; }
+  }
+  render();
+}
+function telaDocumento() {
+  const r = S.docRasc, p = paciente(r.patientId);
+  const voltar = `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>`;
+  if (r.etapa === 'escolher') {
+    return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 1rem">Novo documento · ${esc(p.nome)}</h1>
+    ${CATS_DOC.map(([c, nome]) => `<div class="form-sec"><h3>${esc(nome)}</h3><div class="row" style="padding-bottom:.9rem">${Object.entries(MODELOS_DOC).filter(([, m]) => m.cat === c).map(([k, m]) => `<button class="btn" data-act="doc-modelo" data-k="${k}">${esc(m.rotulo.replace(/^(Relatório|Protocolo|Orientações): /, ''))}</button>`).join('')}</div></div>`).join('')}
+    <p style="color:var(--suave);font-size:.88rem">Os modelos são pontos de partida: revise e ajuste cada texto ao caso antes de imprimir.</p>`;
+  }
+  const m = MODELOS_DOC[r.chave];
+  const cidLista = `<datalist id="doc-cids"><option value="${esc(CID_Z004)}">${CIDS.map(([c, n]) => `<option value="${c} – ${esc(n)}">`).join('')}</datalist>`;
+  let corpo;
+  if (r.cat === 'exames') {
+    const extras = r.exames.filter(e => !EXAMES.includes(e));
+    corpo = `<div class="form-sec"><h3>Exames${r.protocolo ? ' · protocolo ' + esc(r.protocolo) : ''}</h3>
+      ${r.nota ? `<div class="banner info" style="font-size:.9rem">${esc(r.nota)}</div>` : ''}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.2rem .8rem;margin-bottom:.8rem">${EXAMES.concat(extras).map(e => `<label style="display:flex;gap:.5rem;align-items:center;padding:.35rem 0;cursor:pointer"><input type="checkbox" data-ex="${esc(e)}" ${r.exames.includes(e) ? 'checked' : ''} style="width:20px;height:20px;min-height:0">${esc(e)}</label>`).join('')}</div>
+      <label class="f"><span>Outros exames (um por linha)</span><textarea id="doc-outros" rows="2">${esc(r.outros)}</textarea></label>
+      <label class="f"><span>Indicação clínica</span><input type="text" id="doc-ind" value="${esc(r.indicacao)}"></label></div>`;
+  } else {
+    corpo = `<div class="form-sec"><label class="f"><span>Texto (os trechos entre [colchetes] são para completar)</span><textarea id="doc-texto" rows="16">${esc(r.texto)}</textarea></label></div>`;
+  }
+  const mostraCid = r.cat === 'exames' || r.cat === 'relatorio' || r.cat === 'encaminhamento';
+  return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(m.rotulo)}</h1>
+  <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
+  <div class="form-sec"><div class="grid2">
+    <label class="f"><span>Título no documento</span><input type="text" id="doc-titulo" value="${esc(r.titulo)}"></label>
+    <label class="f"><span>Data</span><input type="date" id="doc-data" value="${esc(r.data)}"></label></div>
+    ${mostraCid ? `<div class="grid2"><label class="f"><span>CID principal</span><input type="text" id="doc-cid1" list="doc-cids" value="${esc(r.cid1)}" placeholder="opcional"></label>
+    <label class="f"><span>CID secundário (opcional)</span><input type="text" id="doc-cid2" list="doc-cids" value="${esc(r.cid2)}" placeholder="ex.: F31.3"></label></div>${cidLista}` : ''}
+  </div>
+  ${corpo}
+  <div class="barra-acoes"><span class="salvo">O documento fica registrado no prontuário.</span>
+    ${m.cfm ? `<button type="button" class="btn azul" data-act="doc-cfm">Levar para o CFM</button>` : ''}
+    <button type="button" class="btn" data-act="doc-gerar" data-carimbo="1">Gerar para carimbar</button>
+    <button type="button" class="btn pri" data-act="doc-gerar">Gerar documento</button></div>`;
+}
+function ligarDocumento() {
+  const mm = $('#main'), r = S.docRasc; if (!r || r.etapa !== 'editar') return;
+  mm.addEventListener('input', e => {
+    const el = e.target;
+    const mapa = {'doc-texto':'texto','doc-titulo':'titulo','doc-data':'data','doc-cid1':'cid1','doc-cid2':'cid2','doc-outros':'outros','doc-ind':'indicacao'};
+    if (mapa[el.id]) r[mapa[el.id]] = el.value;
+  });
+  mm.addEventListener('change', e => {
+    const el = e.target; if (!el.dataset.ex) return;
+    const ex = el.dataset.ex; r.exames = r.exames.filter(x => x !== ex); if (el.checked) r.exames.push(ex);
+  });
+}
+function dadosDoDocumento(carimbo) {
+  const r = S.docRasc;
+  const exames = r.cat === 'exames' ? r.exames.concat((r.outros || '').split('\n').map(x => x.trim()).filter(Boolean)) : [];
+  return {cat: r.cat, chave: r.chave, titulo: (r.titulo || '').trim() || MODELOS_DOC[r.chave].titulo, data: r.data || hojeStr(), texto: (r.texto || '').trim(),
+    cid1: (r.cid1 || '').trim(), cid2: (r.cid2 || '').trim(), exames, indicacao: (r.indicacao || '').trim(), carimbo: !!carimbo};
+}
+function validarDocumento(d) {
+  if (d.cat === 'exames' && !d.exames.length) { aviso('Marque ao menos um exame.'); return false; }
+  if (d.cat !== 'exames' && !d.texto) { aviso('O texto está vazio.'); return false; }
+  if (/\[[^\]]*\]/.test(d.texto)) { return 'colchetes'; }
+  return true;
+}
+function formatarOrientacao(t) {
+  return String(t).split('\n').map(l => {
+    const x = l.trim();
+    if (!x) return '<div class="esp"></div>';
+    if (/^(\d+\.|-)\s/.test(x)) return `<div class="it">${esc(x.replace(/^-\s/, '• '))}</div>`;
+    if (x.length < 70 && !/[.:;,]$/.test(x)) return `<div class="st">${esc(x)}</div>`;
+    return `<div>${esc(x)}</div>`;
+  }).join('');
+}
+function htmlDocumento(d, p) {
+  const s = S.dados.settings;
+  const cor = COR_CAT[d.cat] || '#2f4a63';
+  const cids = [d.cid1, d.cid2].filter(Boolean);
+  const assinatura = d.carimbo
+    ? `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(d.data)}</div><div class="rx-carimbo"><div class="rx-cx">carimbo</div><div class="rx-linha">Assinatura</div></div></div>`
+    : `<div class="rx-ass"><div>${esc(s.cidade || '')}, ${dataExtenso(d.data)}</div><div class="rx-linha"><b>${esc(s.medico)}</b><br>${esc(s.crm)}</div></div>`;
+  let corpo;
+  if (d.cat === 'exames') {
+    corpo = `<div class="doc-ex">${d.exames.map(e => `<div>▪ ${esc(e)}</div>`).join('')}</div>${d.indicacao ? `<div class="rx-or" style="margin-top:6mm"><b>Indicação clínica:</b> ${esc(d.indicacao)}</div>` : ''}`;
+  } else {
+    corpo = d.cat === 'orientacao' ? `<div class="doc-or">${formatarOrientacao(d.texto)}</div>` : `<div class="doc-txt">${esc(d.texto)}</div>`;
+  }
+  return `<div class="rx rx-simples">
+    <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
+    <div class="rx-tit" style="background:${cor}">${esc(d.titulo.toUpperCase())}</div>
+    <div class="rx-pac">Paciente: <b>${esc(p.nome)}</b>${p.nascimento ? ` · ${esc(idade(p.nascimento))}` : ''}${cids.length ? `<br><span style="font-size:9.5pt;color:#7a5a43">CID-10: ${cids.map(esc).join(' · ')}</span>` : ''}</div>
+    ${corpo}
+    ${assinatura}
+    <div class="rx-end"><span>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</span>${s.instagram ? `<span class="ig">${esc(s.instagram)}</span>` : ''}</div>
+  </div>`;
+}
+function textoDocParaCFM(d, p) {
+  const l = [`Paciente: ${p.nome}${p.cpf ? ' — CPF ' + p.cpf : ''}`, `Documento: ${d.titulo}`];
+  if (d.cid1) l.push(`CID: ${d.cid1}${d.cid2 ? ' / ' + d.cid2 : ''}`);
+  l.push('');
+  if (d.cat === 'exames') { d.exames.forEach(e => l.push('- ' + e)); if (d.indicacao) l.push('', 'Indicação clínica: ' + d.indicacao); }
+  else l.push(d.texto);
+  return l.join('\n');
+}
+async function salvarDocumento(d, p, statusAss) {
+  const s = S.dados.settings;
+  const reg = {id: uid(), patientId: p.id, tipo: 'documento', data: d.data, criadoEm: agoraISO(),
+    campos: {tipoDoc: MODELOS_DOC[d.chave].rotulo, titulo: d.titulo, texto: d.cat === 'exames' ? d.exames.map(e => '- ' + e).join('\n') + (d.indicacao ? '\n\nIndicação clínica: ' + d.indicacao : '') : d.texto, dadosDoc: JSON.stringify(d)},
+    cid: [d.cid1, d.cid2].filter(Boolean), refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: statusAss}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar(statusAss === 'cfm' ? 'Documento levado ao CFM' : 'Documento gerado', `${d.titulo} – ${p.nome}`, p.id);
+  await salvar();
+  S.docRasc = null; S.abertos.add(reg.id);
+  abrirPaciente(p.id);
+  return reg;
+}
+async function gerarDocumento(carimbo) {
+  const p = paciente(S.docRasc.patientId), d = dadosDoDocumento(carimbo);
+  const v = validarDocumento(d); if (!v) return;
+  const ok = await confirmar({titulo:'Gerar documento?', texto:`${v === 'colchetes' ? '<b>Atenção:</b> ainda há trechos entre [colchetes] para completar.<br><br>' : ''}O documento fica registrado no prontuário e não pode ser alterado depois. Para corrigir, gere um novo.`, ok:'Gerar e imprimir'});
+  if (!ok) return;
+  await salvarDocumento(d, p, 'manual');
+  imprimirFolha(htmlDocumento(d, p), 'portrait', `${d.titulo} – ${p.nome}`, p.id);
+}
+function levarDocAoCFM() {
+  const p = paciente(S.docRasc.patientId), d = dadosDoDocumento(false);
+  const v = validarDocumento(d); if (!v) return;
+  const copiou = copiarEAbrirCFM(textoDocParaCFM(d, p));
+  salvarDocumento(d, p, 'cfm').then(() => aviso(copiou ? 'Documento copiado. No CFM, escolha o tipo de documento e o paciente e cole o texto.' : 'Abri o CFM.', 8000));
+}
+function imprimirFolha(html, orientacao, desc, pid) {
+  let estilo = $('#estilo-pagina');
+  if (!estilo) { estilo = document.createElement('style'); estilo.id = 'estilo-pagina'; document.head.appendChild(estilo); }
+  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : '@page{size:A4 portrait;margin:14mm}';
+  imprimir(html, desc, pid);
+  setTimeout(() => { estilo.textContent = ''; }, 4000);
 }
 
 /* ---------- impressão ---------- */
@@ -1187,6 +1600,8 @@ function telaConfig() {
     <label class="f"><span>Endereço do consultório</span><input type="text" name="endereco" value="${esc(s.endereco)}"></label>
     <div class="grid2"><label class="f"><span>Cidade (receitas)</span><input type="text" name="cidade" value="${esc(s.cidade)}"></label>
     <label class="f"><span>UF</span><input type="text" name="uf" value="${esc(s.uf)}" maxlength="2"></label></div>
+    <div class="grid2"><label class="f"><span>Instagram (rodapé das receitas)</span><input type="text" name="instagram" value="${esc(s.instagram || '')}"></label>
+    <label class="f"><span>Slogan (cabeçalho das receitas)</span><input type="text" name="slogan" value="${esc(s.slogan || '')}"></label></div>
     <div class="grid2"><label class="f"><span>Telefone</span><input type="text" name="telefone" value="${esc(s.telefone)}"></label>
     <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
     <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
@@ -1266,11 +1681,20 @@ const ACOES = {
   'abrir-paciente': d => abrirPaciente(d.id),
   'novo-registro': d => abrirRegistro(d.tipo, d.pid, d.ref),
   'nova-receita': d => abrirReceita(d.pid),
-  'rx-mais': () => { S.receitaRasc.itens.push({med:'', qtd:'', pos:''}); rerenderReceita(); },
+  'rx-mais': () => { S.receitaRasc.itens.push(itemVazio()); rerenderReceita(); },
   'rx-tirar': d => { S.receitaRasc.itens.splice(Number(d.i), 1); rerenderReceita(); },
-  'rx-copiar': () => { const r = S.receitaRasc; r.itens = r.itens.filter(i => i.med.trim()).concat(r.sugestoes.map(x => ({...x}))); r.sugestoes = null; rerenderReceita(); },
-  'rx-gerar': () => gerarReceita(),
-  'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
+  'rx-copiar': () => { const r = S.receitaRasc; r.itens = r.itens.filter(i => (i.nome || '').trim()).concat(r.sugestoes.map(x => ({...x}))); r.sugestoes = null; rerenderReceita(); },
+  'rx-gerar': d => gerarReceita(d.carimbo === '1'),
+  'rx-cfm': () => levarAoCFM(),
+  'novo-doc': d => abrirDocumento(d.pid),
+  'doc-modelo': d => escolherModeloDoc(d.k),
+  'doc-gerar': d => gerarDocumento(d.carimbo === '1'),
+  'doc-cfm': () => levarDocAoCFM(),
+  'doc-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosDoc); } catch (e) { return aviso('Não foi possível ler este documento.'); } dd.carimbo = d.carimbo === '1'; imprimirFolha(htmlDocumento(dd, paciente(r.patientId)), 'portrait', 'Reimpressão – ' + dd.titulo + ' – ' + paciente(r.patientId).nome, r.patientId); },
+  'sug': (d, el) => { const f = document.querySelector(`#f-registro [data-c="${d.c}"]`); if (!f) return; const atual = f.value.trim(); f.value = atual ? (atual.endsWith('.') || atual.endsWith(';') ? atual + ' ' : atual + '; ') + d.t : d.t; S.rascunho.campos[d.c] = f.value; guardarRascunho(); },
+  'eem-normal': () => { for (const [k, v] of Object.entries(EEM_NORMAL)) { const f = document.querySelector(`#f-registro [data-c="${k}"]`); if (f && !f.value.trim()) { f.value = v; S.rascunho.campos[k] = v; } } guardarRascunho(); aviso('Campos vazios do exame preenchidos com achados sem alterações. Ajuste o que for diferente.'); },
+  'cfm-copiar': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } const ok = copiarEAbrirCFM(textoParaCFM(dados, paciente(r.patientId))); auditar('Receita levada ao CFM (de novo)', paciente(r.patientId).nome, r.patientId); salvar(); aviso(ok ? 'Prescrição copiada. No CFM, escolha o paciente e cole a posologia de cada item.' : 'Abri o CFM.', 7000); },
+  'reimprimir-receita': d => { const r = S.dados.records.find(x => x.id === d.id); let dados; try { dados = JSON.parse(r.campos.dadosReceita); } catch (e) { return aviso('Não foi possível ler esta receita.'); } dados.carimbo = d.carimbo === '1'; imprimirReceita(dados, paciente(r.patientId), 'Reimpressão – ' + r.campos.tipoReceita + ' – ' + paciente(r.patientId).nome); },
   'sair-form': () => abrirPaciente(S.rascunho.patientId),
   'descartar-rascunho': async () => {
     if (!(await confirmar({titulo:'Descartar rascunho?', texto:'O que foi digitado neste formulário será perdido.', ok:'Descartar', perigo:true}))) return;
