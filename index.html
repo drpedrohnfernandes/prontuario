@@ -117,6 +117,13 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .reg{border-left:4px solid var(--musgo);padding-left:1rem}
 .reg.evolucao{border-left-color:var(--azul)}
 .reg.adendo{border-left-color:var(--dourado)}
+.hist-meds{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.4rem;margin:.2rem 0 1rem;max-height:320px;overflow:auto}
+.hist-med{text-align:left;border:1px solid var(--linha,#d9cfbd);background:#fff;border-radius:10px;padding:.5rem .65rem;cursor:pointer;font-size:.9rem;line-height:1.3}
+.hist-med:hover{border-color:var(--musgo,#4a5a3c);background:var(--musgo-claro,#e3e8d9)}
+.hist-med small{display:block;color:var(--suave);font-size:.76rem;margin-top:.15rem}
+.hist-det{margin-bottom:.7rem}
+.hist-det summary{cursor:pointer;color:var(--azul,#2f4a63);font-weight:600;padding:.3rem 0}
+.hist-det .hist-meds{max-height:220px;margin-top:.4rem}
 .card.anulado{opacity:.62}
 .card.anulado .rtit{text-decoration:line-through}
 .aviso-anul{background:#f8e6e1;border:1px solid #e3b9ad;color:#7a2e1e;border-radius:10px;padding:.6rem .8rem;margin:.6rem 0}
@@ -315,7 +322,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.9.0';
+const APP_VERSAO = '1.10.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -711,7 +718,9 @@ function telaPaciente() {
   const p = paciente(S.view.pid);
   if (!p) return telaInicio();
   const regs = registrosDe(p.id);
-  const principais = regs.filter(r => !TIPOS_AUX.includes(r.tipo)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+  const todosPrinc = regs.filter(r => !TIPOS_AUX.includes(r.tipo));
+  const nAnul = todosPrinc.filter(anulado).length;
+  const principais = todosPrinc.filter(r => S.mostrarAnulados === p.id || !anulado(r)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
   const meds = p.medicacoes || [];
   const ativas = meds.filter(m => !m.fim), suspensas = meds.filter(m => m.fim);
   const temPrimeira = regs.some(r => r.tipo === 'primeira');
@@ -734,7 +743,8 @@ function telaPaciente() {
     <button class="btn" data-act="nova-escala" data-pid="${p.id}">+ Escala</button>
   </div>
   <div class="cols">
-    <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}</div>
+    <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}
+      ${nAnul ? `<div style="text-align:center;margin:.4rem 0 1rem"><button class="btn sm link" style="color:var(--suave);font-size:.8rem" data-act="ver-anulados" data-pid="${p.id}">${S.mostrarAnulados === p.id ? 'Ocultar registros anulados' : `${nAnul} registro(s) anulado(s) guardado(s) · ver`}</button></div>` : ''}</div>
     <div>
       <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Medicações em uso</h2><button class="btn sm" data-act="nova-med" data-pid="${p.id}">+ Adicionar</button></div>
         ${ativas.length ? ativas.map(m => `<div class="med"><div><b>${esc(m.nome)}</b> ${esc(m.dose || '')}<small>${esc(m.posologia || '')}${m.inicio ? ' · desde ' + fmtData(m.inicio) : ''}</small></div><button class="btn sm link" data-act="suspender-med" data-pid="${p.id}" data-id="${m.id}">Suspender</button></div>`).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma medicação em uso.</div>'}
@@ -773,7 +783,7 @@ async function anularRegistro(id) {
   const r = S.dados.records.find(x => x.id === id); if (!r || anulado(r)) return;
   const p = paciente(r.patientId), s = S.dados.settings;
   const desc = `${r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo)}${r.campos.titulo ? ' – ' + r.campos.titulo : ''} de ${fmtData(r.data)}`;
-  const motivo = await pedirMotivo('Anular registro?', `<b>${esc(desc)}</b><br><br>Pelas normas do CFM o prontuário não pode ter registros apagados. O registro anulado continua guardado, marcado como <b>sem validade</b>, com a data, a hora e o motivo, e some das escalas, da litemia e dos pacientes recentes. A anulação não pode ser desfeita.`);
+  const motivo = await pedirMotivo('Anular registro?', `<b>${esc(desc)}</b><br><br>Pelas normas do CFM o prontuário não pode ter registros apagados. O registro anulado <b>sai da tela do prontuário</b>, mas fica guardado no sistema, sem validade, com a data, a hora e o motivo (pode ser consultado pelo link discreto no fim da lista). A anulação não pode ser desfeita.`);
   if (!motivo) return;
   const reg = {id: uid(), patientId: r.patientId, tipo: 'anulacao', data: hojeStr(), criadoEm: agoraISO(), campos: {registro: desc, motivo}, cid: [], refId: r.id, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'pendente'}};
   reg.hash = await hashRegistro(reg);
@@ -782,7 +792,7 @@ async function anularRegistro(id) {
   await salvar();
   S.abertos.delete(r.id);
   abrirPaciente(p.id);
-  aviso('Registro anulado. Ele continua no prontuário, marcado como sem validade.', 5000);
+  aviso('Registro anulado e retirado da tela. Fica guardado no sistema, como exigem as normas.', 5000);
 }
 function cartaoRegistro(r, todos) {
   const aberto = S.abertos.has(r.id);
@@ -965,13 +975,16 @@ async function verificarIntegridade(pid) {
 
 /* ---------- medicações ---------- */
 function novaMedicacao(pid) {
+  const hist = historicoMeds(paciente(pid)).filter(h => h.origem !== 'Em uso');
   modal(`<h2>Adicionar medicação</h2>
+    ${hist.length ? `<details class="hist-det"><summary>Já prescritas / já usou (${hist.length}) – toque para preencher</summary><div class="hist-meds">${hist.map((x, i) => `<button type="button" class="hist-med" data-h="${i}"><b>${esc(x.nome)}</b>${x.dose ? ' ' + esc(x.dose) : ''}<small>${esc(x.origem)}${x.data ? ' · ' + fmtData(x.data) : ''}${x.pos ? ' · ' + esc(String(x.pos).split('\n')[0]).slice(0, 70) : ''}</small></button>`).join('')}</div></details>` : ''}
     <label class="f"><span>Medicação *</span><input type="text" id="m-nome" placeholder="ex.: Sertralina"></label>
     <div class="grid2"><label class="f"><span>Dose</span><input type="text" id="m-dose" placeholder="ex.: 50 mg"></label>
     <label class="f"><span>Início</span><input type="date" id="m-ini" value="${hojeStr()}"></label></div>
     <label class="f"><span>Posologia</span><input type="text" id="m-pos" placeholder="ex.: 1 cp pela manhã"></label>
     <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Adicionar</button></div>`, (m, fechar) => {
     m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { const h = hist[Number(b.dataset.h)]; m.querySelector('#m-nome').value = h.nome; m.querySelector('#m-dose').value = h.dose || ''; m.querySelector('#m-pos').value = String(h.pos || '').split('\n')[0]; m.querySelector('.hist-det').open = false; });
     m.querySelector('[data-m=sim]').onclick = async () => {
       const nome = m.querySelector('#m-nome').value.trim(); if (!nome) return;
       const p = paciente(pid); p.medicacoes = p.medicacoes || [];
@@ -1025,11 +1038,39 @@ function qtdComExtenso(q) {
   return m ? `${m[1]} (${porExtenso(Number(m[1]))})${m[2] || ''}` : t;
 }
 const nomeItem = i => i.nome !== undefined ? [i.nome, i.dose].filter(Boolean).join(' ') : (i.med || '');
+const normMed = t => semAcento(String(t || '')).toLowerCase().replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9,./ ]/g, ' ').replace(/\s+/g, ' ').trim();
+function historicoMeds(p) {
+  const lista = [];
+  for (const m of p.medicacoes || []) lista.push({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: '', pos: m.posologia || '', data: m.fim || m.inicio || '', origem: m.fim ? 'Já usou (suspensa)' : 'Em uso'});
+  for (const r of registrosDe(p.id)) {
+    if (anulado(r)) continue;
+    if (r.tipo === 'receita') { let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { continue; } for (const i of d.itens || []) lista.push({...i, data: r.data, origem: 'Receita'}); }
+    if (r.tipo === 'cfm' && r.campos.medicamentos) for (const l of r.campos.medicamentos.split('\n')) { if (/^\s/.test(l) || !l.trim()) continue; const [n, ...rest] = l.split(' — '); lista.push({nome: n.trim(), dose: '', forma: '', qtd: '', pos: rest.join(' — ').replace(/\s*\[uso contínuo\]/, '').trim(), data: r.data, origem: 'CFM'}); }
+  }
+  const por = new Map();
+  for (const h of lista.sort((a, b) => (b.data || '').localeCompare(a.data || ''))) { const k = normMed(h.nome) + '|' + normMed(h.dose); if (!por.has(k)) por.set(k, {...h, vezes: 1}); else { const e = por.get(k); e.vezes++; for (const c of ['forma', 'qtd', 'pos', 'dose']) if (!e[c] && h[c]) e[c] = h[c]; } }
+  return [...por.values()];
+}
+function itensDesmame(i) { return /desmame|interromper|suspender/i.test(i.pos || ''); }
+function atualizarMedsDaReceita(p, itens, data) {
+  p.medicacoes = p.medicacoes || [];
+  let novos = 0, atual = 0;
+  for (const i of itens) {
+    if (itensDesmame(i)) continue;
+    const ex = p.medicacoes.find(m => !m.fim && normMed(m.nome) === normMed(i.nome));
+    const pos = String(i.pos || '').split('\n')[0];
+    if (!ex) { p.medicacoes.push({id: uid(), nome: i.nome, dose: i.dose || '', posologia: pos, inicio: data, fim: null, criadoEm: agoraISO(), origem: 'receita'}); novos++; }
+    else if ((i.dose && ex.dose !== i.dose) || (pos && ex.posologia !== pos)) { ex.dose = i.dose || ex.dose; ex.posologia = pos || ex.posologia; ex.atualizadoEm = agoraISO(); atual++; }
+  }
+  if (novos || atual) { p.atualizadoEm = agoraISO(); auditar('Medicações atualizadas pela receita', `${p.nome}: ${novos} nova(s), ${atual} atualizada(s)`, p.id); }
+  return {novos, atual};
+}
 function abrirReceita(pid) {
   const p = paciente(pid);
   const ativas = (p.medicacoes || []).filter(m => !m.fim);
   S.receitaRasc = {patientId: pid, tipo: 'simples', data: hojeStr(), itens: [itemVazio()], orientacoes: ''};
   if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: '', pos: m.posologia || ''}));
+  S.receitaRasc.hoje = registrosDe(pid).filter(x => x.tipo === 'receita' && x.data === hojeStr() && !anulado(x)).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
   S.view = {nome:'receita', pid};
   render();
 }
@@ -1055,12 +1096,17 @@ const MODELOS_RX = [
   {rot:'Rivotril gotas 2,5 mg/mL – se crise', nome:'Rivotril (clonazepam)', dose:'2,5 mg/mL', forma:'solução oral (gotas)', qtd:'1 frasco', pos:'Tomar de 3 a 6 gotas por via oral se crise intensa. Esperar 20 a 30 minutos; se não melhorar, repetir a dose (até 4 vezes).', or:ORIENT_CRISE},
   {rot:'Rivotril gotas – desmame (1 gota por semana)', nome:'Rivotril (clonazepam)', dose:'2,5 mg/mL', forma:'solução oral (gotas)', qtd:'1 frasco', pos:'Desmame: reduzir 1 gota por semana, à noite.\n1ª semana: 15 gotas; 2ª semana: 14 gotas; 3ª semana: 13 gotas; 4ª semana: 12 gotas; e assim por diante.\nSe não tolerar a redução, voltar à dose da semana anterior e tentar de novo após 3 dias.'}
 ];
+function painelHistorico(p, acao) {
+  const h = historicoMeds(p);
+  return `<div class="hist-meds">${h.map((x, i) => `<button type="button" class="hist-med" data-act="${acao}" data-i="${i}"><b>${esc(x.nome)}</b>${x.dose ? ' ' + esc(x.dose) : ''}${x.forma ? ' · ' + esc(x.forma) : ''}<small>${esc(x.origem)}${x.data ? ' · ' + fmtData(x.data) : ''}${x.vezes > 1 ? ' · ' + x.vezes + 'x' : ''}${x.pos ? ' · ' + esc(String(x.pos).split('\n')[0]).slice(0, 90) : ''}</small></button>`).join('')}</div>`;
+}
 function telaReceita() {
   const r = S.receitaRasc, p = paciente(r.patientId);
   const alertas = r.itens.map(i => i.nome && exigeNotificacao(i.nome) ? `<b>${esc(i.nome)}</b> exige Notificação de Receita ${exigeNotificacao(i.nome)}, que é um talão numerado da Vigilância Sanitária: não vale em receita impressa por aqui.` : '').filter(Boolean);
   return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
   <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Nova receita</h1>
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
+  ${r.hoje && r.hoje.length ? `<div class="banner info" style="font-size:.92rem"><b>Hoje você já fez ${r.hoje.length} receita(s) para este paciente.</b> ${r.hoje.map(x => `<button type="button" class="btn sm" style="margin:.3rem .3rem 0 0" data-act="rx-repetir" data-id="${x.id}">Repetir a de ${new Date(x.criadoEm).toTimeString().slice(0, 5)} (${esc(x.campos.tipoReceita.split(' (')[0])})</button>`).join('')}</div>` : ''}
   <div class="form-sec"><div class="grid2">
     <label class="f"><span>Tipo de receita</span><select id="rx-tipo">
       <option value="simples" ${r.tipo === 'simples' ? 'selected' : ''}>Receita simples</option>
@@ -1083,7 +1129,9 @@ function telaReceita() {
     <p style="color:var(--suave);font-size:.88rem;margin:-.3rem 0 .8rem">A quantidade sai também por extenso na receita (ex.: 30 → “30 (trinta) comprimidos”).</p>
     <label class="f"><span>Atalhos de prescrição</span><select id="rx-modelo"><option value="">Escolha um atalho para incluir…</option>${MODELOS_RX.map((m, i) => `<option value="${i}">${esc(m.rot)}</option>`).join('')}</select></label>
     <div class="row" style="margin-bottom:1rem"><button type="button" class="btn" data-act="rx-mais">+ Outro medicamento</button>
-    ${r.sugestoes && r.sugestoes.length ? `<button type="button" class="btn" data-act="rx-copiar">Copiar medicações em uso (${r.sugestoes.length})</button>` : ''}</div>
+    ${r.sugestoes && r.sugestoes.length ? `<button type="button" class="btn" data-act="rx-copiar">Copiar medicações em uso (${r.sugestoes.length})</button>` : ''}
+    ${(() => { const h = historicoMeds(p); return h.length ? `<button type="button" class="btn ${r.verHist ? 'pri' : ''}" data-act="rx-hist">Já prescritas / já usou (${h.length})</button>` : ''; })()}</div>
+    ${r.verHist ? painelHistorico(p, 'rx-hist-add') : ''}
   </div>
   <div class="form-sec"><label class="f"><span>Orientações (opcional)</span><textarea id="rx-or" rows="3">${esc(r.orientacoes)}</textarea></label></div>
   <div class="barra-acoes"><span class="salvo">Sai em PDF para imprimir e assinar à mão. A receita fica registrada no prontuário.</span>
@@ -1200,6 +1248,7 @@ function levarAoCFM() {
     reg.hash = await hashRegistro(reg);
     S.dados.records.push(reg);
     auditar('Receita levada ao CFM', `${p.nome}`, p.id);
+    atualizarMedsDaReceita(p, itens, dados.data);
     await salvar();
     S.receitaRasc = null; S.abertos.add(reg.id);
     abrirPaciente(p.id);
@@ -1223,7 +1272,9 @@ async function gerarReceita(carimbo) {
   reg.hash = await hashRegistro(reg);
   S.dados.records.push(reg);
   auditar('Receita gerada', `${reg.campos.tipoReceita} – ${p.nome}`, p.id);
+  const mu = atualizarMedsDaReceita(p, itens, r.data);
   await salvar();
+  if (mu.novos || mu.atual) setTimeout(() => aviso(`Medicações em uso: ${mu.novos ? mu.novos + ' adicionada(s)' : ''}${mu.novos && mu.atual ? ', ' : ''}${mu.atual ? mu.atual + ' atualizada(s)' : ''}.`, 5000), 1500);
   S.receitaRasc = null; S.abertos.add(reg.id);
   abrirPaciente(p.id);
   imprimirReceita(dados, p, `${reg.campos.tipoReceita} – ${p.nome}`);
@@ -2367,8 +2418,12 @@ const ACOES = {
   'nova-med': d => novaMedicacao(d.pid),
   'suspender-med': d => suspenderMedicacao(d.pid, d.id),
   'anular': d => anularRegistro(d.id),
+  'ver-anulados': d => { S.mostrarAnulados = S.mostrarAnulados === d.pid ? null : d.pid; render(); },
+  'rx-hist': () => { S.receitaRasc.verHist = !S.receitaRasc.verHist; rerenderReceita(); },
+  'rx-hist-add': d => { const r = S.receitaRasc, h = historicoMeds(paciente(r.patientId))[Number(d.i)]; if (!h) return; const item = {nome: h.nome, dose: h.dose, forma: h.forma, qtd: h.qtd, pos: h.pos}; const vazio = r.itens.findIndex(i => !(i.nome || '').trim() && !(i.pos || '').trim()); if (vazio >= 0) r.itens[vazio] = item; else r.itens.push(item); rerenderReceita(); aviso(h.nome + ' incluído na receita.'); },
+  'rx-repetir': d => { const r = S.receitaRasc, reg = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(reg.campos.dadosReceita); } catch (e) { return; } r.itens = dd.itens.map(i => ({...i})); r.tipo = dd.tipo; r.orientacoes = dd.orientacoes || ''; rerenderReceita(); aviso('Itens da receita anterior carregados. Ajuste o que precisar.'); },
   'imprimir-registro': d => { const r = S.dados.records.find(x => x.id === d.id); imprimir(docImpressao(r), nomeTipo(r.tipo) + ' – ' + paciente(r.patientId).nome, r.patientId); },
-  'imprimir-paciente': d => { const regs = registrosDe(d.id).filter(r => !TIPOS_AUX.includes(r.tipo)).sort((a, b) => a.data.localeCompare(b.data)); if (!regs.length) return aviso('Não há registros para imprimir.'); imprimir(regs.map(docImpressao).join(''), 'Prontuário completo – ' + paciente(d.id).nome, d.id); },
+  'imprimir-paciente': d => { const regs = registrosDe(d.id).filter(r => !TIPOS_AUX.includes(r.tipo) && !anulado(r)).sort((a, b) => a.data.localeCompare(b.data)); if (!regs.length) return aviso('Não há registros para imprimir.'); imprimir(regs.map(docImpressao).join(''), 'Prontuário completo – ' + paciente(d.id).nome, d.id); },
   'exportar': () => exportarArquivo().catch(e => aviso(e.message)),
   'importar': () => escolherArquivo(),
   'drive-config': () => configurarDrive(),
