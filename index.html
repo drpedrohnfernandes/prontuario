@@ -343,7 +343,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.14.0';
+const APP_VERSAO = '1.15.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -464,9 +464,9 @@ const CIDS = [
 const FICHAS = {
   primeira: { titulo:'Primeira consulta', cor:'', secoes:[
     {t:'Motivo da consulta', campos:[['encaminhamento','Encaminhado por / como chegou','linha'],['queixa','Queixa principal','texto'],['hda','História da doença atual','longo']]},
-    {t:'Antecedentes', campos:[['ant_psiq','Antecedentes psiquiátricos (diagnósticos, tratamentos, internações)','longo'],['tentativas','Tentativas de suicídio ou autolesão (histórico)','texto'],['med_previas','Medicações psiquiátricas prévias (resposta e efeitos)','texto'],['ant_clinicos','Antecedentes clínicos e cirúrgicos','texto'],['alergias','Alergias','linha']]},
+    {t:'Antecedentes', campos:[['ant_psiq','Antecedentes psiquiátricos (diagnósticos e tratamentos)','longo'],['tentativas','Tentativas de suicídio ou autolesão (histórico)','texto'],['internacoes','Internações (psiquiátricas e clínicas: quando, onde, motivo e duração)','texto'],['med_previas','Medicações psiquiátricas prévias (resposta e efeitos)','texto'],['ant_clinicos','Antecedentes clínicos e cirúrgicos','texto'],['alergias','Alergias','linha']]},
     {t:'Hábitos e comportamentos', campos:[['substancias','Uso de substâncias (álcool, tabaco, cannabis, cocaína, outras: padrão, início, último uso)','longo'],['apostas','Apostas / bets','texto'],['eletronicos','Uso de eletrônicos e telas','texto'],['sono','Sono','linha'],['apetite','Alimentação e apetite','linha'],['atividade','Atividade física','linha']]},
-    {t:'História familiar e pessoal', campos:[['familiar','História familiar psiquiátrica','texto'],['pessoal','História pessoal e social (desenvolvimento, estudo, trabalho, relacionamentos, moradia)','longo']]},
+    {t:'História familiar e pessoal', campos:[['familiar','História familiar psiquiátrica','texto'],['dnpm','História do desenvolvimento neuropsicomotor (DNPM): gestação, parto, marcos do desenvolvimento, fala, escolaridade','texto'],['pessoal','História pessoal e social (estudo, trabalho, relacionamentos, moradia)','longo']]},
     {t:'Exame do estado mental', eem:true, campos:[
       ['em_aparencia','Aparência e atitude','linha',['Vestes adequadas, higiene preservada','Higiene descuidada','Colaborativo','Pouco colaborativo','Hostil','Contato visual adequado','Evita contato visual']],
       ['em_consciencia','Consciência e orientação','linha',['Vígil','Orientado auto e alopsiquicamente','Desorientado no tempo','Desorientado no espaço','Sonolento']],
@@ -1133,13 +1133,20 @@ function painelApoio(r) {
       ${primeira.campos.hipotese || (primeira.cid || []).length ? `<div class="campo"><div class="k">Hipótese diagnóstica</div><div class="v">${esc([primeira.campos.hipotese, (primeira.cid || []).join('; ')].filter(Boolean).join(' · '))}</div></div>` : ''}
       <details style="border:0"><summary style="font-weight:400;color:var(--musgo)">Ver a primeira consulta completa</summary><div style="margin-top:.4rem">${camposHTML(primeira, FICHAS.primeira)}</div></details>`
     : '<div class="vazio">Nenhuma primeira consulta registrada para este paciente.</div>';
-  const tabs = [['conduta', 'Última conduta'], ['evol', `Evoluções anteriores (${evols.length})`], ['hma', 'HMA da 1ª consulta']];
+  const CAMPOS_ANT = ['ant_psiq', 'tentativas', 'internacoes', 'med_previas', 'ant_clinicos', 'alergias', 'familiar', 'dnpm'];
+  const rotAnt = k => { for (const sec of FICHAS.primeira.secoes) for (const c of sec.campos) if (c[0] === k) return c[1]; return k; };
+  const comAnt = primeira ? CAMPOS_ANT.filter(k => String(primeira.campos[k] || '').trim()) : [];
+  const pAnt = !primeira ? '<div class="vazio">Nenhuma primeira consulta registrada para este paciente.</div>'
+    : comAnt.length ? `<div class="ap-data">Da primeira consulta de ${fmtData(primeira.data)}</div>${comAnt.map(k => `<div class="campo"><div class="k">${esc(rotAnt(k))}</div><div class="v">${esc(primeira.campos[k])}</div></div>`).join('')}`
+    : `<div class="vazio">Os antecedentes não foram preenchidos na primeira consulta de ${fmtData(primeira.data)}.</div>`;
+  const tabs = [['conduta', 'Última conduta'], ['evol', `Evoluções anteriores (${evols.length})`], ['hma', 'HMA da 1ª consulta'], ['ant', 'Antecedentes médicos']];
   return `<div class="apoio${S.apoioFechado ? ' fechado' : ''}" id="apoio">
     <div class="apoio-topo">${tabs.map(([k, t]) => `<button type="button" class="aba${k === aba ? ' on' : ''}" data-act="apoio-aba" data-aba="${k}">${t}</button>`).join('')}
       <button type="button" class="btn sm link ocultar" data-act="apoio-ocultar">${S.apoioFechado ? 'Mostrar' : 'Ocultar'}</button></div>
     <div class="apoio-p${aba === 'conduta' ? ' on' : ''}" data-p="conduta">${pCond}${pMeds}</div>
     <div class="apoio-p${aba === 'evol' ? ' on' : ''}" data-p="evol">${pEvol}</div>
     <div class="apoio-p${aba === 'hma' ? ' on' : ''}" data-p="hma">${pHma}</div>
+    <div class="apoio-p${aba === 'ant' ? ' on' : ''}" data-p="ant">${pAnt}</div>
   </div>`;
 }
 function telaFormRegistro() {
