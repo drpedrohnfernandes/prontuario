@@ -329,7 +329,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.12.0';
+const APP_VERSAO = '1.12.1';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -572,7 +572,7 @@ async function telaBloqueio() {
       try {
         const chave = await derivarChave(senha, unb64(cofre.salt));
         const dados = await decifrar(chave, cofre);
-        S.chave = chave; S.senha = senha; S.saltB64 = cofre.salt; S.dados = Object.assign(DADOS_VAZIOS(), dados);
+        S.chave = chave; S.senha = senha; S.saltB64 = cofre.salt; S.dados = Object.assign(DADOS_VAZIOS(), dados); ajustarQtdMeds();
         S.dados.settings = Object.assign(DADOS_VAZIOS().settings, dados.settings || {});
         if (!S.dados.settings.googleClientId) S.dados.settings.googleClientId = GOOGLE_CLIENT_ID_PADRAO;
         auditar('Acesso ao prontuário'); await salvar(); aposEntrar();
@@ -754,7 +754,7 @@ function telaPaciente() {
       ${nAnul ? `<div style="text-align:center;margin:.4rem 0 1rem"><button class="btn sm link" style="color:var(--suave);font-size:.8rem" data-act="ver-anulados" data-pid="${p.id}">${S.mostrarAnulados === p.id ? 'Ocultar registros anulados' : `${nAnul} registro(s) anulado(s) guardado(s) · ver`}</button></div>` : ''}</div>
     <div>
       <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Medicações em uso</h2><button class="btn sm" data-act="nova-med" data-pid="${p.id}">+ Adicionar</button></div>
-        ${ativas.length ? ativas.map(m => `<div class="med"><div><b>${esc(m.nome)}</b> ${esc(m.dose || '')}<small>${esc(m.posologia || '')}${m.inicio ? ' · desde ' + fmtData(m.inicio) : ''}</small></div><button class="btn sm link" data-act="suspender-med" data-pid="${p.id}" data-id="${m.id}">Suspender</button></div>`).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma medicação em uso.</div>'}
+        ${ativas.length ? ativas.map(m => `<div class="med"><div><b>${esc(m.nome)}</b> ${esc(m.dose || '')}<small>${esc(m.posologia || '')}${m.qtd ? ' · ' + esc(m.qtd) : ''}${m.inicio ? ' · desde ' + fmtData(m.inicio) : ''}</small></div><button class="btn sm link" data-act="suspender-med" data-pid="${p.id}" data-id="${m.id}">Suspender</button></div>`).join('') : '<div class="vazio" style="padding:1rem 0">Nenhuma medicação em uso.</div>'}
         ${suspensas.length ? `<details style="margin-top:.6rem"><summary style="cursor:pointer;color:var(--suave)">Histórico (${suspensas.length})</summary>${suspensas.map(m => `<div class="med"><div>${esc(m.nome)} ${esc(m.dose || '')}<small>${m.inicio ? fmtData(m.inicio) : '?'} a ${fmtData(m.fim)}${m.motivo ? ' · ' + esc(m.motivo) : ''}</small></div></div>`).join('')}</details>` : ''}
       </div>
       ${cartaoLitio(p)}
@@ -1086,14 +1086,15 @@ function novaMedicacao(pid) {
     <label class="f"><span>Medicação *</span><input type="text" id="m-nome" placeholder="ex.: Sertralina"></label>
     <div class="grid2"><label class="f"><span>Dose</span><input type="text" id="m-dose" placeholder="ex.: 50 mg"></label>
     <label class="f"><span>Início</span><input type="date" id="m-ini" value="${hojeStr()}"></label></div>
-    <label class="f"><span>Posologia</span><input type="text" id="m-pos" placeholder="ex.: 1 cp pela manhã"></label>
+    <div class="grid2"><label class="f"><span>Posologia</span><input type="text" id="m-pos" placeholder="ex.: 1 cp pela manhã"></label>
+    <label class="f"><span>Quantidade</span><input type="text" id="m-qtd" placeholder="ex.: 2 caixas"></label></div>
     <div class="acoes"><button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Adicionar</button></div>`, (m, fechar) => {
     m.querySelector('[data-m=nao]').onclick = fechar;
-    m.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { const h = hist[Number(b.dataset.h)]; m.querySelector('#m-nome').value = h.nome; m.querySelector('#m-dose').value = h.dose || ''; m.querySelector('#m-pos').value = String(h.pos || '').split('\n')[0]; m.querySelector('.hist-det').open = false; });
+    m.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { const h = hist[Number(b.dataset.h)]; m.querySelector('#m-nome').value = h.nome; m.querySelector('#m-dose').value = h.dose || ''; m.querySelector('#m-pos').value = String(h.pos || '').split('\n')[0]; m.querySelector('#m-qtd').value = h.qtd || ''; m.querySelector('.hist-det').open = false; });
     m.querySelector('[data-m=sim]').onclick = async () => {
       const nome = m.querySelector('#m-nome').value.trim(); if (!nome) return;
       const p = paciente(pid); p.medicacoes = p.medicacoes || [];
-      const med = {id: uid(), nome, dose: m.querySelector('#m-dose').value.trim(), posologia: m.querySelector('#m-pos').value.trim(), inicio: m.querySelector('#m-ini').value, fim: null, criadoEm: agoraISO()};
+      const med = {id: uid(), nome, dose: m.querySelector('#m-dose').value.trim(), posologia: m.querySelector('#m-pos').value.trim(), qtd: m.querySelector('#m-qtd').value.trim(), inicio: m.querySelector('#m-ini').value, fim: null, criadoEm: agoraISO()};
       p.medicacoes.push(med); p.atualizadoEm = agoraISO();
       auditar('Medicação adicionada', `${p.nome}: ${nome} ${med.dose}`, pid);
       await salvar(); fechar(); render();
@@ -1146,15 +1147,36 @@ const nomeItem = i => i.nome !== undefined ? [i.nome, i.dose].filter(Boolean).jo
 const normMed = t => semAcento(String(t || '')).toLowerCase().replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9,./ ]/g, ' ').replace(/\s+/g, ' ').trim();
 function historicoMeds(p) {
   const lista = [];
-  for (const m of p.medicacoes || []) lista.push({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: '', pos: m.posologia || '', data: m.fim || m.inicio || '', origem: m.fim ? 'Já usou (suspensa)' : 'Em uso'});
+  for (const m of p.medicacoes || []) lista.push({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: m.qtd || '', pos: m.posologia || '', data: m.fim || m.inicio || '', origem: m.fim ? 'Já usou (suspensa)' : 'Em uso'});
   for (const r of registrosDe(p.id)) {
     if (anulado(r)) continue;
     if (r.tipo === 'receita') { let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { continue; } for (const i of d.itens || []) lista.push({...i, data: r.data, origem: 'Receita'}); }
-    if (r.tipo === 'cfm' && r.campos.medicamentos) for (const l of r.campos.medicamentos.split('\n')) { if (/^\s/.test(l) || !l.trim()) continue; const [n, ...rest] = l.split(' — '); lista.push({nome: n.trim(), dose: '', forma: '', qtd: '', pos: rest.join(' — ').replace(/\s*\[uso contínuo\]/, '').trim(), data: r.data, origem: 'CFM'}); }
+    if (r.tipo === 'cfm' && r.campos.medicamentos) lista.push(...medsDoCFM(r.campos.medicamentos).map(x => ({...x, data: r.data, origem: 'CFM'})));
   }
   const por = new Map();
   for (const h of lista.sort((a, b) => (b.data || '').localeCompare(a.data || ''))) { const k = normMed(h.nome) + '|' + normMed(h.dose); if (!por.has(k)) por.set(k, {...h, vezes: 1}); else { const e = por.get(k); e.vezes++; for (const c of ['forma', 'qtd', 'pos', 'dose']) if (!e[c] && h[c]) e[c] = h[c]; } }
   return [...por.values()];
+}
+const RE_QTD = /^(\(?\d+[\d.,]*\)?\s*(\([a-zà-ú\s]+\)\s*)?(caixas?|cx\.?|frascos?|fr\.?|comprimidos?|cps?\.?|cpr\.?|c[aá]psulas?|unidades?|un\.?|ampolas?|bisnagas?|tubos?|envelopes?|sach[eê]s?|blisters?|cartelas?|ml|gotas?)\b|\d+\s*\([a-zà-ú\s]+\)$)/i;
+const RE_POS = /(\b(tomar|usar|aplicar|dias?|di[aá]ri[oa]|manh[aã]|tarde|noite|deitar|jejum|almo[cç]o|jantar|caf[eé]|vezes|vez|horas?|semanas?|m[eê]s|necess[aá]rio|sos|crise|ao|à|pela|pelo|antes|ap[oó]s|depois)\b|\/|\d+\s*x\b)/i;
+function ehQtd(t) { t = String(t).trim(); return !RE_POS.test(t) && RE_QTD.test(t); }
+function medsDoCFM(txt) {
+  const out = [];
+  for (const l of String(txt).split('\n')) {
+    if (!l.trim()) continue;
+    if (/^\s/.test(l)) { const u = out[out.length - 1]; if (u) u.pos = u.pos ? u.pos + ' ' + l.trim() : l.trim(); continue; }
+    const [n, ...rest] = l.replace(/\s*\[uso contínuo\]/i, '').split(/\s+—\s+/);
+    const qtd = [], pos = [];
+    for (const part of rest.map(x => x.trim()).filter(Boolean)) (ehQtd(part) ? qtd : pos).push(part);
+    out.push({nome: n.trim(), dose: '', forma: '', qtd: qtd.join(' – '), pos: pos.join(' — ')});
+  }
+  return out;
+}
+function ajustarQtdMeds() {
+  for (const p of (S.dados && S.dados.patients) || []) for (const m of p.medicacoes || []) {
+    if (!m.qtd && m.posologia && ehQtd(m.posologia)) { m.qtd = m.posologia; m.posologia = ''; }
+    else if (!m.qtd && m.posologia && m.posologia.includes(' — ')) { const partes = m.posologia.split(/\s+—\s+/), q = partes.filter(ehQtd); if (q.length) { m.qtd = q.join(' – '); m.posologia = partes.filter(x => !ehQtd(x)).join(' — '); } }
+  }
 }
 function itensDesmame(i) { return /desmame|interromper|suspender/i.test(i.pos || ''); }
 function atualizarMedsDaReceita(p, itens, data) {
@@ -1164,8 +1186,8 @@ function atualizarMedsDaReceita(p, itens, data) {
     if (itensDesmame(i)) continue;
     const ex = p.medicacoes.find(m => !m.fim && normMed(m.nome) === normMed(i.nome));
     const pos = String(i.pos || '').split('\n')[0];
-    if (!ex) { p.medicacoes.push({id: uid(), nome: i.nome, dose: i.dose || '', posologia: pos, inicio: data, fim: null, criadoEm: agoraISO(), origem: 'receita'}); novos++; }
-    else if ((i.dose && ex.dose !== i.dose) || (pos && ex.posologia !== pos)) { ex.dose = i.dose || ex.dose; ex.posologia = pos || ex.posologia; ex.atualizadoEm = agoraISO(); atual++; }
+    if (!ex) { p.medicacoes.push({id: uid(), nome: i.nome, dose: i.dose || '', posologia: pos, qtd: i.qtd || '', inicio: data, fim: null, criadoEm: agoraISO(), origem: 'receita'}); novos++; }
+    else if ((i.dose && ex.dose !== i.dose) || (pos && ex.posologia !== pos) || (i.qtd && ex.qtd !== i.qtd)) { ex.dose = i.dose || ex.dose; ex.posologia = pos || ex.posologia; ex.qtd = i.qtd || ex.qtd; ex.atualizadoEm = agoraISO(); atual++; }
   }
   if (novos || atual) { p.atualizadoEm = agoraISO(); auditar('Medicações atualizadas pela receita', `${p.nome}: ${novos} nova(s), ${atual} atualizada(s)`, p.id); }
   return {novos, atual};
@@ -1174,7 +1196,7 @@ function abrirReceita(pid) {
   const p = paciente(pid);
   const ativas = (p.medicacoes || []).filter(m => !m.fim);
   S.receitaRasc = {patientId: pid, tipo: 'simples', data: hojeStr(), itens: [itemVazio()], orientacoes: ''};
-  if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: '', pos: m.posologia || ''}));
+  if (ativas.length) S.receitaRasc.sugestoes = ativas.map(m => ({nome: m.nome || '', dose: m.dose || '', forma: '', qtd: m.qtd || '', pos: m.posologia || ''}));
   S.receitaRasc.hoje = registrosDe(pid).filter(x => x.tipo === 'receita' && x.data === hojeStr() && !anulado(x)).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
   S.view = {nome:'receita', pid};
   render();
@@ -1942,6 +1964,7 @@ function mesclar(inc) {
   d.audit.sort((a, b) => a.em.localeCompare(b.em));
   const s = d.settings, si = inc.settings || {};
   for (const k of ['medico','crm','rqe','endereco','telefone','googleClientId']) if (!s[k] && si[k]) s[k] = si[k];
+  ajustarQtdMeds();
   return cont;
 }
 async function importarObjeto(obj, origem) {
