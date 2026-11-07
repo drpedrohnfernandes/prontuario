@@ -231,6 +231,28 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .rx-box{border:.7pt solid #b9ae98;border-radius:1mm;padding:2mm 2.5mm;margin-bottom:2.5mm}
   .rx-box .bt,.rx-bt{font-size:6.8pt;font-weight:600;letter-spacing:.8pt;color:#7a5a43;margin-bottom:1mm}
   .rx-box .em{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;color:#4a5a3c;font-size:10.5pt}
+  .ipi{font-size:8.7pt;line-height:1.28;min-height:0 !important}
+  .ipi .ipi-cr div{font-size:8.2pt}
+  .ipi .ipi-cab{text-align:center;border-bottom:1.2pt solid #2f4a63;padding-bottom:2.5mm;margin-bottom:3mm}
+  .ipi .t1{font-weight:700;font-size:12.5pt;letter-spacing:.6pt;color:#2f4a63}
+  .ipi .t2{font-weight:600;font-size:10.5pt;margin-top:.6mm}
+  .ipi .t3{font-size:7.8pt;color:#555;margin-top:1mm}
+  .ipi-sec{border:.8pt solid #9aa4ad;border-radius:1mm;padding:1.6mm 2.6mm;margin-bottom:1.8mm}
+  .ipi-sec .h{font-weight:700;color:#2f4a63;font-size:9.4pt;margin-bottom:1.2mm;text-transform:uppercase;letter-spacing:.4pt}
+  .ipi-sec .h2{font-weight:700;margin:2mm 0 1mm}
+  .ipi-sec p{margin:.5mm 0 1.2mm}
+  .ipi-g{display:grid;grid-template-columns:1fr 1fr;gap:1mm 5mm;margin-top:1.2mm}
+  .ipi-g2{display:grid;grid-template-columns:1.3fr 1fr;gap:5mm}
+  .ipi-c{display:flex;gap:2mm;border-bottom:.6pt solid #b9c0c6;padding:.6mm 0;min-height:4.6mm}
+  .ipi-c span{color:#555;white-space:nowrap}
+  .ipi-c b{font-weight:600}
+  .ipi-cr{margin:1mm 0 1.4mm}
+  .ipi-cr div{padding-left:3mm}
+  .ipi-desc{white-space:pre-wrap;border-top:.6pt dashed #b9c0c6;margin-top:1.5mm;padding-top:1.5mm}
+  .ipi-assg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4mm}
+  .ipi-ass .t{font-weight:700;margin-bottom:1mm;font-size:8.8pt}
+  .ipi-ass .ipi-c{font-size:8.2pt;min-height:5.2mm}
+  .ipi-ass{page-break-inside:avoid}
   .esc-folha .esc-instr{font-size:9.5pt;color:#3a3f39;margin:0 0 3mm}
   .esc-pq{page-break-inside:avoid;margin-bottom:2.6mm;font-size:9.6pt}
   .esc-pq .q{font-weight:600;margin-bottom:.8mm}
@@ -263,6 +285,9 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .doc-or .st{font-family:Lora,Georgia,serif;font-style:italic;font-weight:600;color:#4a5a3c;font-size:11pt;margin:1.5mm 0 1mm}
   .doc-or .it{padding-left:5mm;text-indent:-4mm;margin-bottom:.6mm}
   .doc-or .esp{height:2mm}
+  .doc-or.compacto{font-size:8.7pt;line-height:1.26}
+  .doc-or.compacto .st{font-size:10.2pt;margin:1.1mm 0 .6mm}
+  .doc-or.compacto .esp{height:1.2mm}
   .doc-ex{columns:2;column-gap:10mm;font-size:11pt;line-height:1.9}
   .doc-ex div{break-inside:avoid}
 }
@@ -281,7 +306,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.6.0';
+const APP_VERSAO = '1.7.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -1285,6 +1310,66 @@ const ORIENT_ESCETAMINA = `Orientações para o tratamento com escetamina (spray
 4. Podem ocorrer, logo após a aplicação, sensação de estranhamento ou dissociação, tontura, náusea, sonolência e aumento da pressão arterial: a equipe vai acompanhar.
 5. Evite bebida alcoólica no dia da aplicação.
 6. Informe se tiver pressão alta não controlada, doença do coração, aneurisma, AVC prévio, ou se estiver grávida ou amamentando.`;
+const TXT_TEMPO_PROVA = `À [instituição de ensino / banca organizadora do concurso ou exame].
+
+Declaro, para os devidos fins, que {nome}{idade_txt} encontra-se em acompanhamento psiquiátrico sob meus cuidados, com diagnóstico de Transtorno do Déficit de Atenção e Hiperatividade (TDAH), CID-10 [F90.0], apresentação [predominantemente desatenta / predominantemente hiperativa-impulsiva / combinada].
+
+O quadro compromete a atenção sustentada, a velocidade de processamento e a organização do tempo em tarefas longas, com impacto no desempenho em avaliações realizadas sob limite de tempo, apesar do tratamento em curso.
+
+Por isso, solicito, como adaptação razoável, as seguintes condições para a realização de provas e avaliações:
+- Tempo adicional de [1 (uma) hora / 25% do tempo total] em cada prova;
+- [Sala com número reduzido de candidatos ou sala individual, com poucos estímulos;]
+- [Possibilidade de pausas breves durante a prova.]
+
+A solicitação se fundamenta na Lei nº 14.254/2021, que dispõe sobre o acompanhamento integral de educandos com TDAH, e, no que couber, na Lei nº 13.146/2015 (Lei Brasileira de Inclusão), art. 30, inciso V, que prevê a dilação de tempo em exames e atividades acadêmicas mediante comprovação da necessidade.
+
+Coloco-me à disposição para esclarecimentos.`;
+const TXT_MULTIPROF = `Solicito, para {nome}{idade_txt}, em acompanhamento psiquiátrico sob meus cuidados com diagnóstico de [Transtorno do Espectro Autista, nível [1 / 2 / 3] de suporte] (CID-10 [F84.0]), acompanhamento por equipe multiprofissional, de forma contínua e integrada:
+
+- Psicologia ([intervenção comportamental baseada em ABA / terapia cognitivo-comportamental / outra]): [__] horas por semana;
+- Fonoaudiologia: [__] sessões por semana;
+- Terapia ocupacional[, com integração sensorial]: [__] sessões por semana;
+- Psicopedagogia: [__] sessões por semana;
+- [Psicomotricidade / fisioterapia: __ sessões por semana;]
+- [Acompanhante terapêutico / mediador escolar.]
+
+Justificativa: [descrever os prejuízos na comunicação social, no comportamento, na autonomia, na aprendizagem e na regulação sensorial que motivam cada terapia].
+
+Objetivos: [ampliar a comunicação funcional, as habilidades sociais e a autonomia nas atividades de vida diária; reduzir comportamentos disruptivos; apoiar a inclusão escolar].
+
+O tratamento tem caráter contínuo, por tempo indeterminado, com reavaliação a cada [6] meses e sem limitação do número de sessões, conforme a Lei nº 12.764/2012 (art. 3º, inciso III), a Lei nº 14.454/2022 e a Resolução Normativa ANS nº 539/2022, que asseguram atendimento multiprofissional e cobertura do método ou técnica indicados pelo médico assistente.`;
+const ORIENT_DIREITOS_TEA = `Direitos da pessoa com Transtorno do Espectro Autista (TEA)
+
+A pessoa com TEA é considerada pessoa com deficiência para todos os efeitos legais (Lei nº 12.764/2012, Lei Berenice Piana). Isso garante, entre outros, os direitos abaixo.
+
+Identificação e prioridade
+- Carteira de Identificação da Pessoa com TEA (CIPTEA), gratuita, emitida pelo estado ou município (Lei nº 13.977/2020, Lei Romeo Mion).
+- Atendimento prioritário em serviços públicos e privados, bancos, comércio e filas (Lei nº 10.048/2000 e Lei nº 13.977/2020).
+
+Saúde
+- Diagnóstico precoce, atendimento multiprofissional, medicamentos e nutrientes pelo SUS (Lei nº 12.764/2012, art. 3º).
+- Planos de saúde: cobertura de psicologia, fonoaudiologia, terapia ocupacional e fisioterapia sem limite de sessões, pelo método indicado pelo médico (Lei nº 14.454/2022 e normas da ANS).
+
+Educação
+- Matrícula garantida em escola regular, pública ou particular; a recusa por causa do TEA sujeita o gestor a multa (Lei nº 12.764/2012, art. 7º).
+- Acompanhante especializado em sala de aula, quando comprovada a necessidade (Lei nº 12.764/2012, art. 3º, parágrafo único).
+- Escolas particulares não podem cobrar valores adicionais pelas adaptações (Lei nº 13.146/2015, art. 28, § 1º).
+- Adaptações em provas e atividades, como tempo adicional, quando necessário.
+
+Assistência social e trabalho
+- Benefício de Prestação Continuada (BPC/LOAS): um salário mínimo mensal para famílias de baixa renda (em regra, até 1/4 do salário mínimo por pessoa), após avaliação do INSS (Lei nº 8.742/1993).
+- Reserva de vagas para pessoas com deficiência em concursos públicos e em empresas com 100 ou mais empregados (Lei nº 8.213/1991, art. 93).
+- Servidores públicos com filho com deficiência podem ter direito a horário especial ou redução de jornada, conforme o regime do servidor.
+
+Transporte e lazer
+- Isenção de IPI e, em alguns casos, de IOF na compra de veículo novo (Lei nº 8.989/1995, prorrogada até 31/12/2026); ICMS e IPVA conforme a lei de cada estado.
+- Passe livre no transporte coletivo interestadual para pessoas com deficiência de baixa renda (Lei nº 8.899/1994).
+- Meia-entrada em eventos culturais, esportivos e de lazer para a pessoa com deficiência e, quando necessário, para um acompanhante (Lei nº 12.933/2013).
+- Vaga de estacionamento reservada, com a credencial emitida pelo órgão de trânsito do município.
+
+Onde buscar ajuda
+- Defensoria Pública, Ministério Público, CRAS e Conselho Municipal dos Direitos da Pessoa com Deficiência.
+- Este resumo é informativo: regras, valores e prazos podem mudar. Confirme sempre nos órgãos responsáveis.`;
 const MODELOS_DOC = {
   relatorio: {cat:'relatorio', rotulo:'Relatório médico (livre)', titulo:'Relatório médico', cfm:true, texto:'Declaro, para os devidos fins, que {nome}{idade_txt} encontra-se em acompanhamento psiquiátrico sob meus cuidados desde [data de início].\n\n[Descrever quadro clínico, tratamento, evolução e conclusão.]\n\nTratamento atual: {medicacoes}.'},
   comparecimento: {cat:'declaracao', rotulo:'Declaração de comparecimento', titulo:'Declaração de comparecimento', texto:'Declaro, para os devidos fins, que {nome} compareceu a consulta médica nesta data, {data_extenso}, no período das [__:__] às [__:__].\n\n[Esteve acompanhado(a) de ______________________.]'},
@@ -1297,12 +1382,16 @@ const MODELOS_DOC = {
   familia: {cat:'orientacao', rotulo:'Orientações à família (vigilância e guarda das medicações)', titulo:'Orientações à família', texto:ORIENT_FAMILIA},
   or_litio: {cat:'orientacao', rotulo:'Orientações: uso do lítio', titulo:'Orientações: uso do lítio', texto:ORIENT_LITIO},
   or_clozapina: {cat:'orientacao', rotulo:'Orientações: uso da clozapina', titulo:'Orientações: uso da clozapina', texto:ORIENT_CLOZAPINA},
+  tempo_prova: {cat:'laudo', rotulo:'Solicitação de tempo adicional em provas (TDAH)', titulo:'Solicitação de tempo adicional em provas', cfm:true, cid1:'F90.0 – Distúrbios da atividade e da atenção', texto:TXT_TEMPO_PROVA},
+  multiprof: {cat:'laudo', rotulo:'Solicitação de equipe multiprofissional', titulo:'Solicitação de acompanhamento multiprofissional', cfm:true, cid1:'F84.0 – Autismo infantil', texto:TXT_MULTIPROF},
+  ipi_tea: {cat:'laudo', rotulo:'Laudo para isenção de IPI/IOF – TEA (Receita Federal)', titulo:'Laudo de avaliação para isenção de IPI/IOF', ipi:true},
+  direitos_tea: {cat:'orientacao', rotulo:'Direitos da pessoa com TEA', titulo:'Direitos da pessoa com TEA', texto:ORIENT_DIREITOS_TEA},
   or_escetamina: {cat:'orientacao', rotulo:'Orientações: escetamina', titulo:'Orientações: escetamina', texto:ORIENT_ESCETAMINA}
 };
 for (const [k, r] of Object.entries(RELATORIOS)) MODELOS_DOC['rel_' + k] = {cat:'relatorio', rotulo:'Relatório: ' + NOMES_REL[k], titulo:'Relatório médico', cfm:true, cid1: r.cid, texto: TXT_ABERTURA.replace('{diag}', r.diag).replace('{cid}', r.cid) + '\n\nQuadro clínico: ' + r.quadro + TXT_FECHO};
 for (const [k, pr] of Object.entries(PROTOCOLOS)) MODELOS_DOC['prot_' + k] = {cat:'exames', rotulo:'Protocolo: ' + pr.nome, titulo:'Solicitação de exames', cfm:true, protocolo:k};
-const CATS_DOC = [['relatorio','Relatórios'],['declaracao','Declarações'],['exames','Solicitação de exames e protocolos'],['encaminhamento','Encaminhamentos'],['orientacao','Orientações']];
-const COR_CAT = {relatorio:'#2f4a63', declaracao:'#2f4a63', exames:'#2f4a63', encaminhamento:'#2f4a63', orientacao:'#7a5a43'};
+const CATS_DOC = [['relatorio','Relatórios'],['laudo','Laudos e solicitações'],['declaracao','Declarações'],['exames','Solicitação de exames e protocolos'],['encaminhamento','Encaminhamentos'],['orientacao','Orientações']];
+const COR_CAT = {laudo:'#2f4a63', relatorio:'#2f4a63', declaracao:'#2f4a63', exames:'#2f4a63', encaminhamento:'#2f4a63', orientacao:'#7a5a43'};
 
 function preencherModelo(t, p) {
   const s = S.dados.settings;
@@ -1318,11 +1407,90 @@ function abrirDocumento(pid) { S.docRasc = {patientId: pid, etapa: 'escolher'}; 
 function escolherModeloDoc(chave) {
   const m = MODELOS_DOC[chave], p = paciente(S.docRasc.patientId), r = S.docRasc;
   Object.assign(r, {etapa: 'editar', chave, cat: m.cat, titulo: m.titulo, data: hojeStr(), texto: preencherModelo(m.texto || '', p), cid1: m.cid1 || '', cid2: '', exames: [], outros: '', indicacao: '', nota: ''});
+  if (m.ipi) { const s = S.dados.settings; r.ipi = {servico: '', unidade: '', cnpj: '', cnes: '', local: s.cidade || '', cpf: p.cpf || '', nasc: p.nascimento || '', rep: '', repCpf: '', tipo: 'F84.0', carater: 'Permanente', crit: [], inicio: '', descricao: '', medCpf: s.cpfMedico || '', especialidade: s.especialidadeLaudo || ''}; }
   if (m.cat === 'exames') {
     r.cid1 = CID_Z004;
     if (m.protocolo) { const pr = PROTOCOLOS[m.protocolo]; r.exames = (typeof pr.exames === 'function' ? pr.exames(p) : pr.exames).slice(); r.indicacao = pr.indicacao; r.nota = pr.nota; r.protocolo = pr.nome; }
   }
   render();
+}
+const CRIT_IPI = [
+  ['A1', 'Interação social (são necessários pelo menos 2)', [['a', 'Comprometimento acentuado no uso de comportamentos não verbais (contato visual, expressão facial, postura, gestos) para regular a interação social'], ['b', 'Fracasso em desenvolver relacionamentos com pares apropriados ao nível de desenvolvimento'], ['c', 'Ausência de busca espontânea por compartilhar prazer, interesses ou realizações com outras pessoas'], ['d', 'Ausência de reciprocidade social ou emocional']]],
+  ['A2', 'Comunicação (pelo menos 1)', [['a', 'Atraso ou ausência total de linguagem falada, sem tentativa de compensação por modos alternativos (gestos, mímica)'], ['b', 'Em quem fala adequadamente, comprometimento acentuado da capacidade de iniciar ou manter uma conversa'], ['c', 'Uso estereotipado e repetitivo da linguagem ou linguagem idiossincrática'], ['d', 'Ausência de brincadeiras de faz de conta ou de imitação social variadas e espontâneas, próprias do nível de desenvolvimento']]],
+  ['A3', 'Padrões restritos e repetitivos de comportamento, interesses e atividades (pelo menos 1)', [['a', 'Preocupação persistente com um ou mais padrões estereotipados e restritos de interesse, anormais em intensidade ou foco'], ['b', 'Adesão inflexível a rotinas ou rituais específicos e não funcionais'], ['c', 'Maneirismos motores estereotipados e repetitivos (agitar ou torcer mãos ou dedos, movimentos complexos de todo o corpo)'], ['d', 'Preocupação persistente com partes de objetos']]]
+];
+const SERVICOS_IPI = ['Serviço público de saúde (exceto Detran)', 'Serviço privado de saúde que integra o SUS (contratado ou conveniado)', 'Detran ou clínica credenciada pelo Detran', 'Serviço social autônomo, sem fins lucrativos, criado por lei'];
+function checarCriteriosIPI(i) {
+  const n = a => (i.crit || []).filter(c => c.startsWith(a)).length;
+  const total = n('A1') + n('A2') + n('A3');
+  if (i.tipo === 'F84.1') return n('A1') >= 1 ? '' : 'No autismo atípico é preciso marcar pelo menos um critério de interação social.';
+  const falta = [];
+  if (total < 6) falta.push(`${total} de 6 critérios do eixo A`);
+  if (n('A1') < 2) falta.push('menos de 2 em interação social');
+  if (n('A2') < 1) falta.push('nenhum em comunicação');
+  if (n('A3') < 1) falta.push('nenhum em comportamento');
+  if (i.inicio !== 'Sim') falta.push('início antes dos 3 anos não confirmado');
+  return falta.length ? 'Para transtorno autista (F84.0) os critérios ainda não fecham: ' + falta.join('; ') + '.' : '';
+}
+function textoIPI(i) {
+  const l = [`Tipo: ${i.tipo === 'F84.1' ? 'Autismo atípico (F84.1)' : 'Transtorno autista (F84.0)'} · caráter ${i.carater.toLowerCase()}`, `Serviço: ${i.servico} – ${i.unidade}${i.cnpj ? ' (CNPJ ' + i.cnpj + ')' : ''}`, 'Critérios presentes:'];
+  for (const [g, rot, itens] of CRIT_IPI) for (const [k, t] of itens) if ((i.crit || []).includes(g + k)) l.push(`- ${g}${k}) ${t}`);
+  l.push(`Início ${i.tipo === 'F84.1' ? 'até os 5 anos' : 'antes dos 3 anos'}: ${i.inicio || 'não informado'}`);
+  if (i.descricao) l.push('', i.descricao);
+  return l.join('\n');
+}
+function corpoIPI(r, p) {
+  const i = r.ipi, cx = (nome, val, rot, atual) => `<label style="display:flex;gap:.5rem;align-items:flex-start;padding:.3rem 0;cursor:pointer"><input type="radio" name="${nome}" data-ipi="${nome}" value="${esc(val)}" ${atual === val ? 'checked' : ''}><span>${esc(rot)}</span></label>`;
+  const campo = (k, rot, ph = '', tipo = 'text') => `<label class="f"><span>${rot}</span><input type="${tipo}" data-ipi="${k}" value="${esc(i[k] || '')}" placeholder="${esc(ph)}"></label>`;
+  const aviso = checarCriteriosIPI(i);
+  return `<div class="banner info" style="font-size:.9rem"><b>Exigências da Receita Federal</b> (Lei nº 8.989/1995, Decreto nº 11.063/2022 e IN RFB nº 1.769/2017): o laudo só vale se for emitido por serviço público de saúde, serviço privado que integre o SUS, Detran ou serviço social autônomo. Precisa da assinatura de dois profissionais (o médico e um segundo médico ou psicólogo) e do responsável pela unidade, com CPF de todos e o CNPJ da unidade. Laudo do consultório particular sem vínculo com o SUS não é aceito. O pedido é feito pelo paciente no Sisen; se a unidade usar o laudo eletrônico do Sisen, os mesmos dados servem de base.</div>
+  <div class="form-sec"><h3>Serviço de saúde que emite o laudo</h3>${SERVICOS_IPI.map(t => cx('servico', t, t, i.servico)).join('')}
+    <div class="grid2">${campo('unidade', 'Nome do serviço / unidade de saúde', 'ex.: CAPS III …')}${campo('cnpj', 'CNPJ da unidade', '00.000.000/0000-00')}</div>
+    <div class="grid2">${campo('cnes', 'CNES (opcional)')}${campo('local', 'Cidade', S.dados.settings.cidade || '')}</div></div>
+  <div class="form-sec"><h3>1. Requerente</h3>
+    <div class="grid2">${campo('cpf', 'CPF do requerente', '000.000.000-00')}${campo('nasc', 'Data de nascimento', '', 'date')}</div>
+    <div class="grid2">${campo('rep', 'Representante legal (se menor ou curatelado)')}${campo('repCpf', 'CPF do representante legal')}</div></div>
+  <div class="form-sec"><h3>2. Diagnóstico</h3>
+    <div class="grid2"><div>${cx('tipo', 'F84.0', 'Transtorno autista – F84.0 (CID-10)', i.tipo)}${cx('tipo', 'F84.1', 'Autismo atípico – F84.1 (CID-10)', i.tipo)}</div>
+    <div>${cx('carater', 'Permanente', 'Caráter permanente', i.carater)}${cx('carater', 'Provisória', 'Caráter provisório', i.carater)}</div></div>
+    ${CRIT_IPI.map(([g, rot, itens]) => `<div style="margin:.6rem 0 .2rem;font-weight:600">${g}. ${esc(rot)}</div>${itens.map(([k, t]) => `<label style="display:flex;gap:.55rem;align-items:flex-start;padding:.3rem 0;cursor:pointer"><input type="checkbox" data-crit="${g + k}" ${(i.crit || []).includes(g + k) ? 'checked' : ''}><span>${k}) ${esc(t)}</span></label>`).join('')}`).join('')}
+    <div style="margin:.7rem 0 .2rem;font-weight:600" id="ipi-ini-rot">${i.tipo === 'F84.1' ? 'Início dos sintomas até os 5 anos de idade?' : 'B. Atraso ou funcionamento anormal (interação social, linguagem para comunicação social ou jogo simbólico) com início antes dos 3 anos?'}</div>
+    <div class="row">${cx('inicio', 'Sim', 'Sim', i.inicio)}${cx('inicio', 'Não', 'Não', i.inicio)}</div>
+    <div id="ipi-aviso" class="${aviso ? 'tag pend' : ''}" style="display:${aviso ? 'inline-block' : 'none'};margin:.3rem 0 .6rem;white-space:normal">${esc(aviso)}</div>
+    <label class="f"><span>Descrição detalhada (histórico do desenvolvimento, nível de suporte, prejuízos funcionais, avaliações realizadas)</span><textarea data-ipi="descricao" rows="6">${esc(i.descricao || '')}</textarea></label></div>
+  <div class="form-sec"><h3>3. Médico que assina</h3>
+    <div class="grid2">${campo('medCpf', 'Seu CPF', '000.000.000-00')}${campo('especialidade', 'Especialidade', 'ex.: Psiquiatria (se tiver RQE)')}</div>
+    <p style="color:var(--suave);font-size:.85rem;margin:.2rem 0 0">O segundo profissional (médico ou psicólogo) e o responsável pela unidade assinam à mão nos campos do laudo impresso.</p></div>`;
+}
+function htmlLaudoIPI(d, p) {
+  const s = S.dados.settings, i = d.ipi;
+  const b = (on) => on ? '☒' : '☐';
+  const linha = (rot, val) => `<div class="ipi-c"><span>${rot}</span><b>${val ? esc(val) : '&nbsp;'}</b></div>`;
+  const ass = (tit, linhas) => `<div class="ipi-ass"><div class="t">${tit}</div>${linhas.map(([r, v]) => `<div class="ipi-c"><span>${r}</span><b>${v ? esc(v) : '&nbsp;'}</b></div>`).join('')}<div class="ipi-c"><span>Assinatura e carimbo</span><b>&nbsp;</b></div></div>`;
+  return `<div class="rx rx-simples ipi">
+    <div class="ipi-cab"><div class="t1">LAUDO DE AVALIAÇÃO PARA ISENÇÃO DE IPI/IOF</div><div class="t2">Transtorno Autista (F84.0) e Autismo Atípico (F84.1)</div>
+    <div class="t3">Conforme o modelo da Receita Federal (Anexo VIII da IN RFB nº 1.769/2017, com a redação da IN RFB nº 2.081/2022), o Decreto nº 11.063/2022 e a Lei nº 8.989/1995</div></div>
+    <div class="ipi-sec"><div class="h">Serviço médico / unidade de saúde</div>
+      ${SERVICOS_IPI.map(t => `<div>${b(i.servico === t)} ${esc(t)}</div>`).join('')}
+      <div class="ipi-g">${linha('Nome', i.unidade)}${linha('CNPJ', i.cnpj)}${i.cnes ? linha('CNES', i.cnes) : ''}</div></div>
+    <div class="ipi-sec"><div class="h">1. Identificação do requerente</div>
+      <div class="ipi-g">${linha('Nome', p.nome)}${linha('CPF', i.cpf)}${linha('Data de nascimento', i.nasc ? fmtData(i.nasc) : '')}${i.rep ? linha('Representante legal', i.rep) + linha('CPF do representante', i.repCpf) : ''}</div></div>
+    <div class="ipi-sec"><div class="h">2. Laudo de avaliação</div>
+      <p>Atestamos, para fins de concessão do benefício previsto na Lei nº 8.989/1995, que o requerente acima identificado apresenta:</p>
+      <div class="ipi-g2"><div>${b(i.tipo === 'F84.0')} Transtorno autista – F84.0 (CID-10)<br>${b(i.tipo === 'F84.1')} Autismo atípico – F84.1 (CID-10)</div><div>Caráter: ${b(i.carater === 'Permanente')} Permanente &nbsp; ${b(i.carater === 'Provisória')} Provisório</div></div>
+      <div class="h2">Descrição detalhada – critérios diagnósticos (DSM e CID-10)</div>
+      ${CRIT_IPI.map(([g, rot, itens]) => `<div class="ipi-cr"><b>${g}. ${esc(rot)}</b>${itens.map(([k, t]) => `<div>${b((i.crit || []).includes(g + k))} ${k}) ${esc(t)}</div>`).join('')}</div>`).join('')}
+      <div class="ipi-cr"><b>${i.tipo === 'F84.1' ? 'Início dos sintomas até os 5 anos de idade' : 'B. Atraso ou funcionamento anormal com início antes dos 3 anos'}:</b> ${b(i.inicio === 'Sim')} Sim &nbsp; ${b(i.inicio === 'Não')} Não</div>
+      ${i.descricao ? `<div class="ipi-desc">${esc(i.descricao)}</div>` : ''}</div>
+    <div class="ipi-sec"><div class="h">3. Declaração de responsabilidade</div>
+      <p>Os signatários declaram, sob as penas da Lei nº 8.137/1990 e do art. 299 do Código Penal, que as informações prestadas neste laudo são verdadeiras e se referem ao requerente acima identificado.</p>
+      <div>${esc(i.local || s.cidade || '')}, ${dataExtenso(d.data)}</div></div>
+    <div class="ipi-sec"><div class="h">4. Assinaturas</div><div class="ipi-assg">
+      ${ass('Médico', [['Nome', s.medico], ['CPF', i.medCpf], ['Especialidade', i.especialidade], ['CRM', s.crm]])}
+      ${ass('Segundo profissional (médico ou psicólogo)', [['Nome', ''], ['CPF', ''], ['Especialidade', ''], ['CRM / CRP', '']])}
+      ${ass('Responsável pela unidade emissora', [['Nome', ''], ['CPF', ''], ['Cargo', ''], ['CNPJ da unidade', i.cnpj]])}
+    </div></div>
+  </div>`;
 }
 function telaDocumento() {
   const r = S.docRasc, p = paciente(r.patientId);
@@ -1335,7 +1503,8 @@ function telaDocumento() {
   const m = MODELOS_DOC[r.chave];
   const cidLista = `<datalist id="doc-cids"><option value="${esc(CID_Z004)}">${CIDS.map(([c, n]) => `<option value="${c} – ${esc(n)}">`).join('')}</datalist>`;
   let corpo;
-  if (r.cat === 'exames') {
+  if (m.ipi) corpo = corpoIPI(r, p);
+  else if (r.cat === 'exames') {
     const extras = r.exames.filter(e => !EXAMES.includes(e));
     corpo = `<div class="form-sec"><h3>Exames${r.protocolo ? ' · protocolo ' + esc(r.protocolo) : ''}</h3>
       ${r.nota ? `<div class="banner info" style="font-size:.9rem">${esc(r.nota)}</div>` : ''}
@@ -1345,7 +1514,7 @@ function telaDocumento() {
   } else {
     corpo = `<div class="form-sec"><label class="f"><span>Texto (os trechos entre [colchetes] são para completar)</span><textarea id="doc-texto" rows="16">${esc(r.texto)}</textarea></label></div>`;
   }
-  const mostraCid = r.cat === 'exames' || r.cat === 'relatorio' || r.cat === 'encaminhamento';
+  const mostraCid = !m.ipi && (r.cat === 'exames' || r.cat === 'relatorio' || r.cat === 'encaminhamento' || r.cat === 'laudo');
   return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">${esc(m.rotulo)}</h1>
   <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.nascimento ? `<span>${esc(idade(p.nascimento))}</span>` : ''}</div>
   <div class="form-sec"><div class="grid2">
@@ -1357,8 +1526,8 @@ function telaDocumento() {
   ${corpo}
   <div class="barra-acoes"><span class="salvo">O documento fica registrado no prontuário.</span>
     ${m.cfm ? `<button type="button" class="btn azul" data-act="doc-cfm">Levar para o CFM</button>` : ''}
-    <button type="button" class="btn" data-act="doc-gerar" data-carimbo="1">Gerar para carimbar</button>
-    <button type="button" class="btn pri" data-act="doc-gerar">Gerar documento</button></div>`;
+    ${m.ipi ? '' : '<button type="button" class="btn" data-act="doc-gerar" data-carimbo="1">Gerar para carimbar</button>'}
+    <button type="button" class="btn pri" data-act="doc-gerar">${m.ipi ? 'Gerar laudo' : 'Gerar documento'}</button></div>`;
 }
 function ligarDocumento() {
   const mm = $('#main'), r = S.docRasc; if (!r || r.etapa !== 'editar') return;
@@ -1366,9 +1535,18 @@ function ligarDocumento() {
     const el = e.target;
     const mapa = {'doc-texto':'texto','doc-titulo':'titulo','doc-data':'data','doc-cid1':'cid1','doc-cid2':'cid2','doc-outros':'outros','doc-ind':'indicacao'};
     if (mapa[el.id]) r[mapa[el.id]] = el.value;
+    if (r.ipi && el.dataset.ipi && el.type !== 'radio') r.ipi[el.dataset.ipi] = el.value;
   });
   mm.addEventListener('change', e => {
-    const el = e.target; if (!el.dataset.ex) return;
+    const el = e.target;
+    if (r.ipi && (el.dataset.ipi || el.dataset.crit)) {
+      if (el.dataset.crit) { r.ipi.crit = r.ipi.crit.filter(c => c !== el.dataset.crit); if (el.checked) r.ipi.crit.push(el.dataset.crit); }
+      else r.ipi[el.dataset.ipi] = el.value;
+      if (el.dataset.ipi === 'tipo') $('#ipi-ini-rot').textContent = el.value === 'F84.1' ? 'Início dos sintomas até os 5 anos de idade?' : 'B. Atraso ou funcionamento anormal (interação social, linguagem para comunicação social ou jogo simbólico) com início antes dos 3 anos?';
+      const av = checarCriteriosIPI(r.ipi), box = $('#ipi-aviso'); box.textContent = av; box.className = av ? 'tag pend' : ''; box.style.display = av ? 'inline-block' : 'none';
+      return;
+    }
+    if (!el.dataset.ex) return;
     const ex = el.dataset.ex; r.exames = r.exames.filter(x => x !== ex); if (el.checked) r.exames.push(ex);
   });
 }
@@ -1376,9 +1554,17 @@ function dadosDoDocumento(carimbo) {
   const r = S.docRasc;
   const exames = r.cat === 'exames' ? r.exames.concat((r.outros || '').split('\n').map(x => x.trim()).filter(Boolean)) : [];
   return {cat: r.cat, chave: r.chave, titulo: (r.titulo || '').trim() || MODELOS_DOC[r.chave].titulo, data: r.data || hojeStr(), texto: (r.texto || '').trim(),
-    cid1: (r.cid1 || '').trim(), cid2: (r.cid2 || '').trim(), exames, indicacao: (r.indicacao || '').trim(), carimbo: !!carimbo};
+    cid1: (r.cid1 || '').trim(), cid2: (r.cid2 || '').trim(), exames, indicacao: (r.indicacao || '').trim(), carimbo: !!carimbo,
+    ...(r.ipi ? {ipi: JSON.parse(JSON.stringify(r.ipi)), texto: textoIPI(r.ipi), cid1: r.ipi.tipo === 'F84.1' ? 'F84.1 – Autismo atípico' : 'F84.0 – Autismo infantil'} : {})};
 }
 function validarDocumento(d) {
+  if (d.ipi) {
+    const i = d.ipi, falta = [];
+    if (!i.servico) falta.push('o tipo de serviço de saúde'); if (!i.unidade.trim()) falta.push('o nome da unidade'); if (!i.cnpj.trim()) falta.push('o CNPJ da unidade');
+    if (!i.cpf.trim()) falta.push('o CPF do requerente'); if (!i.medCpf.trim()) falta.push('o seu CPF'); if (!i.inicio) falta.push('a idade de início');
+    if (falta.length) { aviso('Falta preencher: ' + falta.join(', ') + '.', 6000); return false; }
+    return checarCriteriosIPI(i) ? 'criterios' : true;
+  }
   if (d.cat === 'exames' && !d.exames.length) { aviso('Marque ao menos um exame.'); return false; }
   if (d.cat !== 'exames' && !d.texto) { aviso('O texto está vazio.'); return false; }
   if (/\[[^\]]*\]/.test(d.texto)) { return 'colchetes'; }
@@ -1394,6 +1580,7 @@ function formatarOrientacao(t) {
   }).join('');
 }
 function htmlDocumento(d, p) {
+  if (d.ipi) return htmlLaudoIPI(d, p);
   const s = S.dados.settings;
   const cor = COR_CAT[d.cat] || '#2f4a63';
   const cids = [d.cid1, d.cid2].filter(Boolean);
@@ -1404,7 +1591,7 @@ function htmlDocumento(d, p) {
   if (d.cat === 'exames') {
     corpo = `<div class="doc-ex">${d.exames.map(e => `<div>▪ ${esc(e)}</div>`).join('')}</div>${d.indicacao ? `<div class="rx-or" style="margin-top:6mm"><b>Indicação clínica:</b> ${esc(d.indicacao)}</div>` : ''}`;
   } else {
-    corpo = d.cat === 'orientacao' ? `<div class="doc-or">${formatarOrientacao(d.texto)}</div>` : `<div class="doc-txt">${esc(d.texto)}</div>`;
+    corpo = d.cat === 'orientacao' ? `<div class="doc-or${d.texto.length > 2300 ? ' compacto' : ''}">${formatarOrientacao(d.texto)}</div>` : `<div class="doc-txt">${esc(d.texto)}</div>`;
   }
   return `<div class="rx rx-simples">
     <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
@@ -1439,7 +1626,8 @@ async function salvarDocumento(d, p, statusAss) {
 async function gerarDocumento(carimbo) {
   const p = paciente(S.docRasc.patientId), d = dadosDoDocumento(carimbo);
   const v = validarDocumento(d); if (!v) return;
-  const ok = await confirmar({titulo:'Gerar documento?', texto:`${v === 'colchetes' ? '<b>Atenção:</b> ainda há trechos entre [colchetes] para completar.<br><br>' : ''}O documento fica registrado no prontuário e não pode ser alterado depois. Para corrigir, gere um novo.`, ok:'Gerar e imprimir'});
+  if (d.ipi) { S.dados.settings.cpfMedico = d.ipi.medCpf; S.dados.settings.especialidadeLaudo = d.ipi.especialidade; }
+  const ok = await confirmar({titulo:'Gerar documento?', texto:`${v === 'colchetes' ? '<b>Atenção:</b> ainda há trechos entre [colchetes] para completar.<br><br>' : ''}${v === 'criterios' ? '<b>Atenção:</b> ' + esc(checarCriteriosIPI(d.ipi)) + '<br><br>' : ''}O documento fica registrado no prontuário e não pode ser alterado depois. Para corrigir, gere um novo.`, ok:'Gerar e imprimir'});
   if (!ok) return;
   await salvarDocumento(d, p, 'manual');
   imprimirFolha(htmlDocumento(d, p), 'portrait', `${d.titulo} – ${p.nome}`, p.id);
