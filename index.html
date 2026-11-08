@@ -218,23 +218,6 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
 .op-r{display:inline-flex;gap:.35rem;align-items:center;margin-right:1rem;cursor:pointer}
 .op-r input{width:20px;height:20px;min-height:0;margin:0}
 .rot-f{display:block;font-size:.88rem;font-weight:600;color:#465046;margin-bottom:.35rem}
-.lme{font-family:Arial,Helvetica,sans-serif;font-size:8.6pt;color:#000;line-height:1.25}
-.lme-cab{display:flex;gap:4mm;align-items:center;border:1px solid #000;padding:2mm 3mm}
-.lme-org{flex:0 0 32%;font-size:8pt}
-.lme-tit{flex:1;text-align:center;font-size:8.5pt}
-.lme-tit b{display:block;font-size:9.6pt;margin:.6mm 0}
-.lme-faixa{background:#ddd;border:1px solid #000;border-top:0;text-align:center;font-weight:700;font-size:7.6pt;padding:.8mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.lme-r{display:flex}
-.lme-r .lme-b{flex:1}
-.lme-r .lme-b + .lme-b{border-left:0}
-.lme-b{border:1px solid #000;border-top:0;padding:1mm 1.6mm;min-height:8.5mm;box-sizing:border-box}
-.lme-b i{display:block;font-style:normal;font-size:6.8pt;font-weight:700;margin-bottom:.4mm}
-.lme-txt{white-space:pre-wrap}
-.lme-t{width:100%;border-collapse:collapse;font-size:8.4pt}
-.lme-t th,.lme-t td{border:1px solid #000;border-top:0;padding:.8mm 1mm;text-align:center}
-.lme-t th{font-size:6.8pt}
-.lme-ck{display:inline-block;width:3mm;height:3mm;border:1px solid #000;text-align:center;line-height:3mm;font-size:7pt;font-weight:700;vertical-align:-.4mm}
-.lme-rod{font-size:7pt;margin-top:1mm}
 
 /* Tela estreita (iPad em pé, celular) */
 @media (max-width:900px){
@@ -370,7 +353,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.17.0';
+const APP_VERSAO = '1.18.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -877,7 +860,7 @@ function editarRegistro(id) {
   }
   if (r.tipo === 'lme') {
     let d; try { d = JSON.parse(r.campos.dadosLME); } catch (e) { return aviso('Não foi possível ler esta LME.'); }
-    const meds = d.meds.map(m => ({nome: m.nome, q: m.q.slice()})); while (meds.length < 5) meds.push({nome: '', q: ['', '', '', '', '', '']});
+    const meds = d.meds.map(m => ({nome: m.nome, q: m.q.slice()})); while (meds.length < 6) meds.push({nome: '', q: ['', '', '', '', '', '']});
     S.lmeRasc = Object.assign({}, d, {patientId: r.patientId, meds, editId: id, editData: r.data});
     S.view = {nome: 'lme', pid: r.patientId}; render(); return;
   }
@@ -2396,7 +2379,7 @@ async function apagarTudo() {
 }
 
 /* ---------- LME – Componente Especializado da Assistência Farmacêutica ---------- */
-const RACAS_LME = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Sem informação'];
+const RACAS_LME = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena'];
 const QUEM_LME = ['Paciente', 'Mãe do paciente', 'Responsável (descrito no item 13)', 'Médico solicitante', 'Outro'];
 function ultimoCid(pid) {
   const r = S.dados.records.filter(x => x.patientId === pid && (x.tipo === 'evolucao' || x.tipo === 'primeira') && !anulado(x) && (x.cid || []).length).sort(ordDesc)[0];
@@ -2407,7 +2390,7 @@ function ultimoCid(pid) {
 function abrirLME(pid) {
   const p = paciente(pid), s = S.dados.settings, u = s.lmeUltimo || {}, c = ultimoCid(pid);
   S.lmeRasc = {patientId: pid, cnes: u.cnes || '', estab: u.estab || '', mae: p.mae || '', peso: '', altura: '',
-    meds: Array.from({length: 5}, () => ({nome: '', q: ['', '', '', '', '', '']})), cid: c.cid, diag: c.diag, anamnese: '',
+    meds: Array.from({length: 6}, () => ({nome: '', q: ['', '', '', '', '', '']})), cid: c.cid, diag: c.diag, anamnese: '',
     trat: '', tratTxt: '', incapaz: 'nao', resp: '', data: hojeStr(), branco: false, quem: 'Médico solicitante', outroNome: '', outroCpf: '',
     raca: '', etnia: '', tel: p.telefone || '', docTipo: p.cns ? 'CNS' : 'CPF', docNum: p.cns || p.cpf || '', email: p.email || ''};
   S.view = {nome: 'lme', pid}; render();
@@ -2432,7 +2415,7 @@ function telaLME() {
       <div class="lme-qs">${m.q.map((q, j) => `<input type="text" data-lm="${i}" data-lq="${j}" value="${esc(q)}" placeholder="${j + 1}º" inputmode="numeric" aria-label="${j + 1}º mês">`).join('')}
       <button type="button" class="btn sm link" data-act="lme-copiar" data-i="${i}" title="Repetir a quantidade do 1º mês nos demais">repetir</button></div></div>`).join('')}</div>
     <datalist id="rx-lista-lme">${[...new Set((p.medicacoes || []).map(m => [m.nome, m.dose].filter(Boolean).join(' ')))].map(n => `<option value="${esc(n)}">`).join('')}</datalist>
-    <p style="font-size:.85rem;color:var(--suave);margin:.5rem 0 .9rem">Quantidade em unidades (comprimidos, cápsulas…). Até 5 medicamentos por LME para o mesmo CID.</p></div>
+    <p style="font-size:.85rem;color:var(--suave);margin:.5rem 0 .9rem">Quantidade em unidades (comprimidos, cápsulas…). Até 6 medicamentos por LME para o mesmo CID.</p></div>
   <div class="form-sec"><h3>Diagnóstico e história</h3>
     <div class="grid2" style="grid-template-columns:1fr 3fr">${f('cid', '9 · CID-10 *')}${f('diag', '10 · Diagnóstico')}</div>
     <label class="f"><span>11 · Anamnese * <button type="button" class="btn sm link" data-act="lme-hma">puxar da 1ª consulta e última evolução</button></span><textarea data-l="anamnese" rows="5">${esc(r.anamnese)}</textarea></label>
@@ -2476,7 +2459,7 @@ function lmeMed(i) {
   const r = S.lmeRasc, p = paciente(r.patientId), med = (p.medicacoes || []).filter(m => !m.fim)[Number(i)]; if (!med) return;
   const nome = [med.nome, med.dose].filter(Boolean).join(' ');
   if (r.meds.some(x => x.nome.trim().toLowerCase() === nome.toLowerCase())) return aviso('Esse medicamento já está na lista.');
-  const vazio = r.meds.find(x => !x.nome.trim()); if (!vazio) return aviso('A LME aceita até 5 medicamentos. Para mais, faça outra LME.');
+  const vazio = r.meds.find(x => !x.nome.trim()); if (!vazio) return aviso('A LME aceita até 6 medicamentos. Para mais, faça outra LME.');
   vazio.nome = nome; render();
 }
 function lmeHma() {
@@ -2500,36 +2483,85 @@ function lmeTrat() {
   if (!linhas.length) return aviso('Não há tratamentos registrados para puxar.');
   r.trat = 'sim'; r.tratTxt = (r.tratTxt.trim() ? r.tratTxt.trim() + '\n' : '') + linhas.join('\n'); render();
 }
-const cxLme = on => `<span class="lme-ck">${on ? 'X' : ''}</span>`;
-function htmlLME(d, p) {
-  const s = S.dados.settings, b = d.branco;
-  const v = x => esc(x || '');
-  const meds = d.meds.concat(Array.from({length: Math.max(0, 5 - d.meds.length)}, () => ({nome: '', q: ['', '', '', '', '', '']}))).slice(0, 5);
-  return `<div class="lme">
-  <div class="lme-cab"><div class="lme-org"><b>Sistema Único de Saúde</b><br>Ministério da Saúde<br>Secretaria de Estado da Saúde</div>
-    <div class="lme-tit"><div>COMPONENTE ESPECIALIZADO DA ASSISTÊNCIA FARMACÊUTICA</div><b>LAUDO DE SOLICITAÇÃO, AVALIAÇÃO E AUTORIZAÇÃO DE MEDICAMENTO(S)</b><div>SOLICITAÇÃO DE MEDICAMENTO(S)</div></div></div>
-  <div class="lme-faixa">CAMPOS DE PREENCHIMENTO EXCLUSIVO PELO MÉDICO SOLICITANTE</div>
-  <div class="lme-r"><div class="lme-b" style="flex:0 0 26%"><i>1- Número do CNES*</i>${v(d.cnes)}</div><div class="lme-b"><i>2- Nome do estabelecimento de saúde solicitante</i>${v(d.estab)}</div></div>
-  <div class="lme-r"><div class="lme-b"><i>3- Nome completo do Paciente*</i>${v(p.nome)}</div><div class="lme-b" style="flex:0 0 20%"><i>5- Peso do paciente*</i>${v(d.peso)} kg</div></div>
-  <div class="lme-r"><div class="lme-b"><i>4- Nome da Mãe do Paciente*</i>${v(d.mae)}</div><div class="lme-b" style="flex:0 0 20%"><i>6- Altura do paciente*</i>${v(d.altura)} cm</div></div>
-  <table class="lme-t"><thead><tr><th style="width:5%"></th><th style="text-align:left">7- Medicamento(s)*</th><th colspan="6">8- Quantidade solicitada*</th></tr>
-    <tr><th></th><th></th>${[1, 2, 3, 4, 5, 6].map(n => `<th style="width:8%">${n}º mês</th>`).join('')}</tr></thead>
-    <tbody>${meds.map((m, i) => `<tr><td>${i + 1}</td><td style="text-align:left">${v(m.nome)}</td>${m.q.map(q => `<td>${v(m.nome ? q : '')}</td>`).join('')}</tr>`).join('')}</tbody></table>
-  <div class="lme-r"><div class="lme-b" style="flex:0 0 20%"><i>9- CID-10*</i>${v(d.cid)}</div><div class="lme-b"><i>10- Diagnóstico</i>${v(d.diag)}</div></div>
-  <div class="lme-b lme-txt" style="min-height:30mm"><i>11- Anamnese*</i>${v(d.anamnese)}</div>
-  <div class="lme-b lme-txt"><i>12- Paciente realizou tratamento prévio ou está em tratamento da doença?*</i>${cxLme(d.trat === 'nao')} NÃO &nbsp; ${cxLme(d.trat === 'sim')} SIM. Relatar: ${v(d.tratTxt)}</div>
-  <div class="lme-b"><i>13- Atestado de capacidade*</i>A solicitação do medicamento deverá ser realizada pelo paciente. Entretanto, fica dispensada a obrigatoriedade da presença física do paciente considerado incapaz de acordo com os artigos 3º e 4º do Código Civil. O paciente é considerado incapaz?
-    <div style="margin-top:1mm">${cxLme(d.incapaz !== 'sim')} NÃO &nbsp; ${cxLme(d.incapaz === 'sim')} SIM. Indicar o nome do responsável pelo paciente, o qual poderá realizar a solicitação do medicamento: <b>${d.incapaz === 'sim' ? v(d.resp) : ''}</b></div></div>
-  <div class="lme-r"><div class="lme-b"><i>14- Nome do médico solicitante*</i>${v(s.medico)} – ${v(s.crm)}</div><div class="lme-b" style="flex:0 0 30%"><i>15- Número do Cartão Nacional de Saúde (CNS) do médico solicitante*</i>${v(d.cnsMedico)}</div><div class="lme-b" style="flex:0 0 18%"><i>16- Data da solicitação*</i>${d.data ? fmtData(d.data) : ''}</div></div>
-  <div class="lme-b" style="height:17mm"><i>17- Assinatura e carimbo do médico*</i></div>
-  <div class="lme-faixa">CAMPOS ABAIXO PREENCHIDOS POR*:</div>
-  <div class="lme-b"><i>18</i>${QUEM_LME.slice(0, 4).map(o => `${cxLme(!b && d.quem === o)} ${o}`).join(' &nbsp; ')} &nbsp; ${cxLme(!b && d.quem === 'Outro')} Outro, informar nome: ${!b && d.quem === 'Outro' ? v(d.outroNome) : '____________________'} e CPF ${!b && d.quem === 'Outro' ? v(d.outroCpf) : '______________'}</div>
-  <div class="lme-b"><i>19- Raça/Cor/Etnia informado pelo paciente ou responsável*</i>${RACAS_LME.map(o => `${cxLme(!b && d.raca === o)} ${o === 'Indígena' ? `Indígena. Informar etnia: ${!b && d.raca === 'Indígena' ? v(d.etnia) : '__________'}` : o}`).join(' &nbsp; ')}</div>
-  <div class="lme-r"><div class="lme-b"><i>20- Telefone(s) para contato do paciente</i>${b ? '' : v(d.tel)}</div><div class="lme-b"><i>21- Número do documento do paciente</i>${cxLme(!b && d.docTipo === 'CPF')} CPF ou ${cxLme(!b && d.docTipo === 'CNS')} CNS: ${b ? '' : v(d.docNum)}</div></div>
-  <div class="lme-b"><i>22- Correio eletrônico do paciente</i>${b ? '' : v(d.email)}</div>
-  <div class="lme-b" style="height:13mm"><i>23- Assinatura do responsável pelo preenchimento*</i></div>
-  <div class="lme-rod">* CAMPOS DE PREENCHIMENTO OBRIGATÓRIO</div>
-</div>`;
+/* LME no formulário oficial (fundo = imagem do modelo do Ministério da Saúde, campos escritos por cima) */
+const LME_PAL = 'FFFFFF0000002828284646466464648282829B9B9BB4B4B4C8C8C8D7D7D7E6E6E6F2F2F201458E3C6EAA8CAAD2C8D7EB';
+const LME_R = {cnes:[37,644,205,661], estab:[206,644,557,663], nome:[36,616,468,635], peso:[479,615,539,632], mae:[38,590,467,609], altura:[480,590,540,606],
+  linhas:[[544,561],[525,542],[506,524],[489,506],[471,488],[451,469]], medX:[58,368], qX:[[370,399],[400,434],[434,466],[467,497],[498,528],[529,561]],
+  cid:[36,419,103,438], diag:[103,419,561,438], anamnese:[36,350,562,407], trat:[144,320,559,341], tratNao:[46,324,53,334], tratSim:[88,324,95,334],
+  incNao:[46,266,54,276], incSim:[84,266,92,276], resp:[311,261,560,280], medico:[35,215,391,233], cns:[35,186,289,204], data:[293,186,373,204],
+  quem:{'Paciente':[229,163,236,173], 'Mãe do paciente':[277,163,285,173], 'Responsável (descrito no item 13)':[354,163,361,173], 'Médico solicitante':[484,164,492,173], 'Outro':[45,149,53,159]},
+  outroNome:[132,148,358,165], outroCpf:[377,145,566,162],
+  raca:{'Branca':[45,118,52,128], 'Amarela':[98,116,105,125], 'Preta':[45,106,52,115], 'Indígena':[98,103,105,113], 'Parda':[45,91,52,100]},
+  etnia:[196,105,370,122], tel1:[380,110,561,128], tel2:[380,90,561,108], docCpf:[45,65,52,74], docCns:[88,65,95,75], doc:[177,59,373,81], email:[39,36,374,53]};
+async function carregarFundoLME() {
+  if (window.LME_FUNDO) return window.LME_FUNDO;
+  await new Promise((ok, erro) => { const sc = document.createElement('script'); sc.src = 'lme-fundo.js'; sc.onload = ok; sc.onerror = () => erro(new Error('fundo')); document.head.appendChild(sc); });
+  if (!window.LME_FUNDO) throw new Error('fundo');
+  return window.LME_FUNDO;
+}
+function pdfLME(d, p) {
+  const s = S.dados.settings, W = 595.32, H = 841.92, ops = [], avisos = [];
+  const hex = t => codigos1252(t).map(v => v.toString(16).padStart(2, '0')).join('');
+  const escreve = (t, x, y, tam, f) => ops.push(`BT /${f === 'B' ? 'F2' : 'F1'} ${tam.toFixed(2)} Tf 0 0 0.35 rg ${x.toFixed(2)} ${y.toFixed(2)} Td <${hex(t)}> Tj ET`);
+  const linha = (r, t, tam = 9.5, centro) => {
+    t = String(t || '').replace(/\s+/g, ' ').trim(); if (!t) return;
+    const [x0, y0, x1, y1] = r, larg = x1 - x0 - 7; let z = tam;
+    while (z > 5.5 && largPdf(codigos1252(t), 'R', z) > larg) z -= .25;
+    if (largPdf(codigos1252(t), 'R', z) > larg) avisos.push('texto cortado: ' + t.slice(0, 30));
+    const w = largPdf(codigos1252(t), 'R', z), x = centro ? x0 + (x1 - x0 - w) / 2 : x0 + 4.5;
+    escreve(t, x, y0 + (y1 - y0 - z) / 2 + z * .2, z);
+  };
+  const bloco = (r, t, tam, rotulo) => {
+    t = String(t || '').trim(); if (!t) return;
+    const [x0, y0, x1, y1] = r, larg = x1 - x0 - 6, alt = y1 - y0 - 2; let z = tam, ls;
+    for (; z >= 5.5; z -= .25) { ls = quebrarPdf(t.replace(/\n{2,}/g, '\n'), 'R', z, larg); if (ls.length * z * 1.15 <= alt) break; }
+    if (z < 5.5) { z = 5.5; ls = quebrarPdf(t.replace(/\n{2,}/g, '\n'), 'R', z, larg); const cabe = Math.floor(alt / (z * 1.15)); if (ls.length > cabe) { ls = ls.slice(0, cabe); ls[cabe - 1] = ls[cabe - 1].replace(/\s*\S*$/, '') + ' (…)'; avisos.push(rotulo); } }
+    let y = y1 - 1 - z;
+    for (const l of ls) { if (l) escreve(l, x0 + 3, y, z); y -= z * 1.15; }
+  };
+  const marca = r => { if (!r) return; const [x0, y0, x1, y1] = r, z = 8.5; escreve('X', x0 + (x1 - x0 - largPdf([88], 'B', z)) / 2, y0 + (y1 - y0 - z) / 2 + z * .17, z, 'B'); };
+  const L = LME_R, b = d.branco;
+  linha(L.cnes, d.cnes); linha(L.estab, d.estab); linha(L.nome, p.nome); linha(L.peso, d.peso, 9.5, true); linha(L.mae, d.mae); linha(L.altura, d.altura, 9.5, true);
+  d.meds.slice(0, 6).forEach((m, i) => { const [y0, y1] = L.linhas[i]; linha([L.medX[0], y0, L.medX[1], y1], m.nome); m.q.forEach((q, j) => linha([L.qX[j][0], y0, L.qX[j][1], y1], q, 9, true)); });
+  linha(L.cid, d.cid, 9.5, true); linha(L.diag, d.diag); bloco(L.anamnese, d.anamnese, 9, 'anamnese (campo 11)');
+  if (d.trat === 'nao') marca(L.tratNao); if (d.trat === 'sim') { marca(L.tratSim); bloco(L.trat, d.tratTxt, 8.5, 'tratamento prévio (campo 12)'); }
+  if (d.incapaz === 'sim') { marca(L.incSim); linha(L.resp, d.resp); } else marca(L.incNao);
+  linha(L.medico, `${s.medico || ''} – ${s.crm || ''}`); linha(L.cns, d.cnsMedico); linha(L.data, d.data ? fmtData(d.data) : '', 9.5, true);
+  if (!b) {
+    marca(L.quem[d.quem]); if (d.quem === 'Outro') { linha(L.outroNome, d.outroNome); linha(L.outroCpf, d.outroCpf); }
+    if (L.raca[d.raca]) marca(L.raca[d.raca]); if (d.raca === 'Indígena') linha(L.etnia, d.etnia);
+    const tels = String(d.tel || '').split(/\s*[\/;,]\s*/).filter(Boolean); linha(L.tel1, tels[0]); linha(L.tel2, tels.slice(1).join(' / '));
+    if (d.docNum) { marca(d.docTipo === 'CNS' ? L.docCns : L.docCpf); linha(L.doc, d.docNum); }
+    linha(L.email, d.email);
+  }
+  const img = atob(window.LME_FUNDO || '');
+  const conteudo = `q ${W} 0 0 ${H} 0 0 cm /Im1 Do Q\n` + ops.join('\n');
+  const objs = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [3 0 R] /Count 1 >>`,
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> /XObject << /Im1 7 0 R >> >> /Contents 4 0 R >>`,
+    `<< /Length ${conteudo.length} >>\nstream\n${conteudo}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+    `<< /Type /XObject /Subtype /Image /Width 1654 /Height 2339 /ColorSpace [/Indexed /DeviceRGB 15 <${LME_PAL}>] /BitsPerComponent 4 /Filter /FlateDecode /DecodeParms << /Predictor 15 /Colors 1 /BitsPerComponent 4 /Columns 1654 >> /Length ${img.length} >>\nstream\n${img}\nendstream`,
+    `<< /Title (LME) /Author (${String(s.medico || '').replace(/[()\\]/g, '')}) /Producer (Prontuario ${APP_VERSAO}) >>`];
+  let pdf = '%PDF-1.4\n%âãÏÓ\n'; const offs = [];
+  objs.forEach((o, i) => { offs.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R /Info 8 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  const u8 = new Uint8Array(pdf.length); for (let i = 0; i < pdf.length; i++) u8[i] = pdf.charCodeAt(i) & 0xFF;
+  return {bytes: u8, avisos};
+}
+async function mostrarPdfLME(d, p) {
+  try { await carregarFundoLME(); } catch (e) { return aviso('Não consegui carregar o formulário da LME. Verifique a internet e tente de novo.', 7000); }
+  const {bytes} = pdfLME(d, p);
+  const nome = `LME_${semAcento(p.nome).replace(/[^A-Za-z0-9]+/g, '_')}_${d.data || hojeStr()}.pdf`;
+  const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}));
+  modal(`<h2>LME pronta</h2><p>No formulário oficial do Ministério da Saúde. Abra para imprimir, ou baixe o arquivo.</p>
+    <div class="row"><a class="btn pri" href="${url}" target="_blank" rel="noopener">Abrir para imprimir</a><a class="btn" href="${url}" download="${esc(nome)}">Baixar PDF</a></div>
+    <p style="font-size:.85rem;color:var(--suave);margin-top:.8rem">Assine e carimbe no campo 17. Os campos 18 a 23 que ficaram em branco podem ser preenchidos à mão pelo paciente.</p>
+    <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => { m.querySelector('[data-m=nao]').onclick = () => { fechar(); setTimeout(() => URL.revokeObjectURL(url), 60000); }; });
 }
 function dadosLmeDe(r) {
   return {cnes: r.cnes.trim(), estab: r.estab.trim(), mae: r.mae.trim(), peso: r.peso.trim(), altura: r.altura.trim(),
@@ -2546,7 +2578,9 @@ async function gerarLME() {
   if (!d.cid) falta.push('9 CID-10'); if (!d.anamnese) falta.push('11 anamnese'); if (!d.trat) falta.push('12 tratamento prévio');
   if (d.incapaz === 'sim' && !d.resp) falta.push('13 nome do responsável'); if (!d.cnsMedico) falta.push('15 seu CNS'); if (!d.data) falta.push('16 data');
   if (d.cnsMedico && d.cnsMedico.replace(/\D/g, '').length !== 15) falta.push('15 CNS com 15 dígitos');
-  const ok = await confirmar({titulo: r.editId ? 'Salvar alterações da LME?' : 'Gerar LME?', texto: `${falta.length ? `<b>Atenção — campos obrigatórios em branco:</b> ${esc(falta.join(', '))}. Eles sairão vazios para preencher à mão.<br><br>` : ''}A LME vale <b>90 dias</b> a partir da data de preenchimento (até ${fmtData(somaDias(d.data || hojeStr(), 90))}). Fica registrada no prontuário e pode ser editada enquanto não for assinada digitalmente.`, ok: r.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
+  try { await carregarFundoLME(); } catch (e) { return aviso('Não consegui carregar o formulário da LME. Verifique a internet e tente de novo.', 7000); }
+  const cortes = [...new Set(pdfLME(d, p).avisos)];
+  const ok = await confirmar({titulo: r.editId ? 'Salvar alterações da LME?' : 'Gerar LME?', texto: `${falta.length ? `<b>Atenção — campos obrigatórios em branco:</b> ${esc(falta.join(', '))}. Eles sairão vazios para preencher à mão.<br><br>` : ''}${cortes.length ? `<b>Texto longo demais para o espaço do formulário:</b> ${esc(cortes.join(', '))}. A letra foi reduzida e o final foi cortado — resuma antes de gerar.<br><br>` : ''}A LME vale <b>90 dias</b> a partir da data de preenchimento (até ${fmtData(somaDias(d.data || hojeStr(), 90))}). Fica registrada no prontuário e pode ser editada enquanto não for assinada digitalmente.`, ok: r.editId ? 'Salvar e imprimir' : 'Gerar e imprimir'});
   if (!ok) return;
   if (d.cnes) s.lmeUltimo = {cnes: d.cnes, estab: d.estab};
   if (d.mae && !p.mae) p.mae = d.mae;
@@ -2561,7 +2595,7 @@ async function gerarLME() {
   await salvar();
   S.lmeRasc = null; S.abertos.add(salvo.id);
   abrirPaciente(p.id);
-  imprimirFolha(htmlLME(d, p), 'lme', `LME – ${p.nome}`, p.id);
+  mostrarPdfLME(d, p);
 }
 const somaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
@@ -2916,7 +2950,7 @@ const ACOES = {
   'lme-trat': () => lmeTrat(),
   'lme-copiar': d => { const r = S.lmeRasc, m = r.meds[Number(d.i)]; if (!m.q[0]) return aviso('Preencha primeiro a quantidade do 1º mês.'); m.q = m.q.map(() => m.q[0]); render(); },
   'lme-gerar': () => gerarLME(),
-  'lme-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosLME); } catch (e) { return aviso('Não foi possível ler esta LME.'); } imprimirFolha(htmlLME(dd, paciente(r.patientId)), 'lme', 'LME – ' + paciente(r.patientId).nome, r.patientId); },
+  'lme-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id); let dd; try { dd = JSON.parse(r.campos.dadosLME); } catch (e) { return aviso('Não foi possível ler esta LME.'); } mostrarPdfLME(dd, paciente(r.patientId)); },
   'esc-escolher': d => { S.escRasc.chave = d.k; S.escRasc.resp = []; render(); },
   'esc-trocar': () => { S.escRasc.chave = null; S.escRasc.resp = []; render(); },
   'esc-salvar': () => salvarEscala(),
@@ -2990,6 +3024,7 @@ if (!window.crypto || !crypto.subtle) {
 } else {
   telaBloqueio();
 }
+
 </script>
 </body>
 </html>
