@@ -169,6 +169,29 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9fb08d;outline-offset
 .esc-res small{color:var(--suave)}
 .lit-ex{display:flex;justify-content:space-between;gap:.6rem;padding:.25rem 0;border-top:1px dashed var(--linha,#e6dccb);font-size:.9rem}
 .lit-ex small{color:var(--suave)}
+.ret-item{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.45rem 0;border-top:1px dashed var(--linha,#e6dccb)}
+.ret-item small{font-size:.82rem}
+.bg-trecho{font-size:.88rem;color:#454d45;margin-top:.15rem;white-space:pre-wrap;word-break:break-word}
+.bg-trecho mark,#bg-res mark{background:#f3e3b5;padding:0 .1em;border-radius:3px}
+.mon-int{display:block;min-height:1.2em;margin-top:.2rem}
+.mon-sec summary{cursor:pointer;padding:.9rem 0 .6rem;list-style:none}
+.mon-sec summary::-webkit-details-marker{display:none}
+.mon-sec summary h3::before{content:'▸ ';color:var(--suave)}
+.mon-sec[open] summary h3::before{content:'▾ '}
+.reg.monitor{border-left-color:#5b7f8f}
+.modal.largo{max-width:900px}
+.resumo-tela{max-height:66vh;overflow:auto;border:1px solid #e6dccb;border-radius:10px;padding:1rem 1.2rem;background:#fff;font-size:.9rem;margin-bottom:.8rem}
+.resumo .p-cab h1{font-size:1.05rem;margin:0}
+.resumo .p-cab{border-bottom:2px solid #4a5a3c;padding-bottom:6px;margin-bottom:10px;font-size:.85em}
+.resumo .res-sub{font-size:.8em;color:#777;margin-bottom:8px}
+.resumo .res-id{background:#f5f0e7;border-radius:6px;padding:6px 10px;margin-bottom:8px;line-height:1.45}
+.resumo .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+.resumo .res-sec h4{font-size:.78em;text-transform:uppercase;letter-spacing:.04em;color:#4a5a3c;margin:8px 0 3px;border-bottom:1px solid #e6dccb;padding-bottom:2px}
+.resumo .res-sec ul{margin:0;padding-left:16px}.resumo .res-sec li{margin:1px 0}
+.resumo .res-sec p{margin:0}
+.resumo .res-d{color:#7a7a7a;font-size:.88em}
+.resumo .p-rod{margin-top:12px;border-top:1px solid #ccc;padding-top:5px;font-size:.75em;color:#555}
+@media (max-width:700px){.resumo .res-grid{grid-template-columns:1fr}}
 .sugs{display:flex;flex-wrap:wrap;gap:.35rem;margin:-.4rem 0 .9rem}
 .sug{border:1px solid var(--linha);background:#fff;border-radius:99px;padding:.25em .7em;font-size:.82rem;cursor:pointer;color:#465046;min-height:30px}
 .sug:hover{background:var(--musgo-claro)}
@@ -244,6 +267,8 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
   .p-campo b{display:block;font-size:9pt;text-transform:uppercase;color:#444}
   .p-campo div{white-space:pre-wrap}
   .p-rod{margin-top:18px;border-top:1px solid #999;padding-top:6px;font-size:8.5pt;color:#333}
+  .p-doc.resumo{font-size:9.3pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-doc.resumo .res-grid{grid-template-columns:1fr 1fr}
   /* Receitas — identidade: verde musgo, marrom, azul, bege, dourado; Poppins + Lora itálico */
   .rx{font-family:Poppins,Arial,sans-serif;color:#1f2620;page-break-after:always;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rx:last-child{page-break-after:auto}
@@ -353,7 +378,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.18.0';
+const APP_VERSAO = '1.19.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -521,6 +546,7 @@ function resumoRegistro(r) {
   const c = r.campos || {};
   if (r.tipo === 'escala') return c.resultado || '';
   if (r.tipo === 'litemia') return `${c.valor} mEq/L · ${(c.interp || '').split('\n')[0]}`;
+  if (r.tipo === 'monitor') return [c.peso && `Peso ${c.peso} kg`, c.imc && `IMC ${c.imc}`, c.pa && `PA ${c.pa}`, c.glicemia && `Glicemia ${c.glicemia}`, c.hba1c && `HbA1c ${c.hba1c}%`, c.ldl && `LDL ${c.ldl}`, c.tg && `TG ${c.tg}`, c.neutro && `Neutrófilos ${c.neutro}`, c.valp && `Valproato ${c.valp}`].filter(Boolean).join(' · ') + (c.alertas ? ' · ⚠ ' + c.alertas.split('\n').length + ' alerta(s)' : '');
   const t = (c.titulo ? c.titulo + ': ' : '') + (c.queixa || c.subjetivo || c.texto || c.avaliacao || c.hda || c.medicamentos || c.itens || c.detalhes || '');
   return t.length > 160 ? t.slice(0,160) + '…' : t;
 }
@@ -643,6 +669,7 @@ function render() {
   $('#app').innerHTML = `<div class="shell ${detalhe ? 'detalhe' : ''}">
     <header class="topbar">
       <div class="marca" data-act="ir" data-v="inicio">Prontuário <small>${esc(S.dados.settings.medico)}</small></div>
+      ${nav('busca-geral','Buscar','🔍')}
       ${nav('backup','Backup','⇅', precisaBackup() ? '<span class="ponto"></span>' : '')}
       ${nav('auditoria','Registro de acesso','☰')}
       ${nav('config','Ajustes','⚙')}
@@ -667,6 +694,8 @@ function render() {
   if (v === 'escala') ligarEscala();
   if (v === 'lme') ligarLME();
   if (v === 'litemia') ligarLitemia();
+  if (v === 'monitor') ligarMonitor();
+  if (v === 'busca-geral') ligarBuscaGeral();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -717,6 +746,9 @@ function telaPrincipal() {
     case 'escala': return telaEscala();
     case 'litemia': return telaLitemia();
     case 'lme': return telaLME();
+    case 'monitor': return telaMonitor();
+    case 'linha': return telaLinha();
+    case 'busca-geral': return telaBuscaGeral();
     default: return telaInicio();
   }
 }
@@ -738,13 +770,15 @@ function telaInicio() {
       <div class="kpi"><div class="n">${pend}</div><div class="l">registros aguardando assinatura digital</div></div>
       <div class="kpi"><div class="n" style="font-size:1.15rem;padding-top:.45rem">${u ? fmtDataHora(u.em) : 'Nunca'}</div><div class="l">último backup</div></div>
     </div>
+    ${painelRetornos()}${painelLMEs()}${painelFinanceiro()}
     ${d.patients.length ? '' : `<div class="card"><h2>Para começar</h2><p>Cadastre o primeiro paciente pelo botão “+ Novo paciente”. Se quiser só conhecer o app, carregue pacientes fictícios em <a href="#" data-act="ir" data-v="config">Ajustes</a>.</p></div>`}
     <div class="card"><h2>Como este prontuário funciona</h2>
       <p style="margin:.2rem 0">• Os dados ficam <b>só neste aparelho</b>, criptografados com a sua senha.<br>
-      • Registros finalizados <b>não podem ser alterados</b>: correções entram como adendo, com data e hora.<br>
+      • Registros podem ser <b>editados até serem assinados</b>; cada versão fica guardada. Depois de assinados, correções entram como adendo.<br>
       • Cada registro recebe uma impressão digital (hash SHA-256) que mostra se algo foi mexido.<br>
       • Faça backup pelo menu <b>Backup</b>: arquivo e/ou Google Drive.<br>
-      • A assinatura digital com o VIDaaS entra na próxima etapa.</p></div>`;
+      • Assine com o VIDaaS pelo botão “Assinar” de cada registro.<br>
+      • Use <b>🔍 Buscar</b> para achar pacientes por medicação, CID ou qualquer palavra.</p></div>`;
 }
 
 /* ---------- paciente ---------- */
@@ -764,9 +798,12 @@ function telaPaciente() {
     <div class="grow"><h1>${esc(p.nome)}</h1>
       <div class="meta">${p.nascimento ? `<span>${fmtData(p.nascimento)} (${esc(idade(p.nascimento))})</span>` : ''}${p.telefone ? `<span>${esc(p.telefone)}</span>` : ''}${p.cpf ? `<span>CPF ${esc(p.cpf)}</span>` : ''}${p.tipoAtend ? `<span class="tag ${p.tipoAtend === 'Convênio' ? 'azul' : 'marrom'}">${esc(p.tipoAtend)}${p.convenio ? ' · ' + esc(p.convenio) : ''}</span>` : ''}</div>
       ${p.alergias ? `<div style="margin-top:.4rem"><span class="tag ruim">Alergias: ${esc(p.alergias)}</span></div>` : ''}
+      ${(() => { const x = retornoPrevisto(p.id); return x && x.prev ? `<div style="margin-top:.4rem"><span class="tag ${x.prev < hojeStr() && p.retornoDispensado !== x.ult.id ? 'pend' : 'azul'}">Retorno previsto: ${fmtData(x.prev)}${x.prev < hojeStr() && p.retornoDispensado !== x.ult.id ? ' (atrasado)' : ''}</span></div>` : ''; })()}
     </div>
     <div class="row">
       <button class="btn" data-act="editar-paciente" data-id="${p.id}">Editar dados</button>
+      <button class="btn" data-act="resumo-paciente" data-id="${p.id}">Resumo</button>
+      <button class="btn" data-act="linha-tempo" data-id="${p.id}">Linha do tempo</button>
       <button class="btn" data-act="imprimir-paciente" data-id="${p.id}">Imprimir prontuário</button>
     </div></div></div>
   <div class="row" style="margin-bottom:1rem">
@@ -776,6 +813,7 @@ function telaPaciente() {
     <button class="btn" data-act="novo-doc" data-pid="${p.id}">+ Documento</button>
     <button class="btn" data-act="nova-escala" data-pid="${p.id}">+ Escala</button>
     <button class="btn" data-act="nova-lme" data-pid="${p.id}">+ LME</button>
+    <button class="btn" data-act="novo-monitor" data-pid="${p.id}">+ Sinais e exames</button>
   </div>
   <div class="cols">
     <div>${principais.length ? principais.map(r => cartaoRegistro(r, regs)).join('') : '<div class="card vazio">Nenhum atendimento registrado ainda.</div>'}
@@ -786,7 +824,11 @@ function telaPaciente() {
         ${suspensas.length ? `<details style="margin-top:.6rem"><summary style="cursor:pointer;color:var(--suave)">Histórico (${suspensas.length})</summary>${suspensas.map(m => `<div class="med"><div>${esc(m.nome)} ${esc(m.dose || '')}<small>${m.inicio ? fmtData(m.inicio) : '?'} a ${fmtData(m.fim)}${m.motivo ? ' · ' + esc(m.motivo) : ''}</small></div></div>`).join('')}</details>` : ''}
       </div>
       ${cartaoLitio(p)}
+      ${cartaoClozapina(p)}
+      ${cartaoValproato(p)}
+      ${cartaoMetabolico(p)}
       ${cartaoEscalas(p)}
+      ${cartaoPagamentos(p)}
       ${p.obs ? `<div class="card"><h3>Observações</h3><div style="white-space:pre-wrap">${esc(p.obs)}</div></div>` : ''}
       ${p.responsavel ? `<div class="card"><h3>Contato de emergência / responsável</h3><div style="white-space:pre-wrap">${esc(p.responsavel)}</div></div>` : ''}
     </div>
@@ -829,7 +871,7 @@ async function anularRegistro(id) {
   abrirPaciente(p.id);
   aviso('Registro anulado e retirado da tela. Fica guardado no sistema, como exigem as normas.', 5000);
 }
-const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia', 'lme'];
+const ASSINAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'escala', 'litemia', 'lme', 'monitor'];
 const EDITAVEIS = ['primeira', 'evolucao', 'documento', 'receita', 'lme'];
 function travado(r) { return !!r.pdfAssinado || !!(r.assinatura && ['assinado', 'cfm'].includes(r.assinatura.status)); }
 function editavel(r) { return EDITAVEIS.includes(r.tipo) && !anulado(r) && !travado(r); }
@@ -1046,7 +1088,7 @@ function cartaoRegistro(r, todos) {
   const nv = (r.versoes || []).length;
   const tagEdit = nv && !anul ? '<span class="tag marrom">Editado</span>' : '';
   const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
-  return `<div class="card${anul ? ' anulado' : ''}"><div class="reg ${r.tipo}">
+  return `<div class="card${anul ? ' anulado' : ''}" id="reg-${r.id}"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
       <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}registrado ${fmtDataHora(r.criadoEm)}${nv ? ' · editado ' + fmtDataHora(r.editadoEm) : ''}</div></div>
@@ -1106,6 +1148,7 @@ function telaFormPaciente() {
         <label class="f"><span>Tipo</span><select name="tipoAtend">${['Particular','Convênio'].map(o => `<option ${(p.tipoAtend || 'Particular') === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
         <label class="f"><span>Convênio (se houver)</span><input type="text" name="convenio" value="${v('convenio')}"></label>
       </div>
+      <label class="f"><span>Valor da consulta deste paciente (R$, se diferente do padrão)</span><input type="text" name="valorConsulta" value="${v('valorConsulta')}" inputmode="decimal"></label>
       <label class="f"><span>Alergias</span><input type="text" name="alergias" value="${v('alergias')}"></label>
       <label class="f"><span>Observações</span><textarea name="obs" rows="3">${v('obs')}</textarea></label>
     </div>
@@ -1252,13 +1295,14 @@ async function finalizarRegistro() {
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: r.patientId, tipo: r.tipo, data: r.tipo === 'adendo' ? hojeStr() : r.data, criadoEm: agoraISO(), campos, cid: r.cid.slice(), refId: r.refId || null, autor: `${s.medico} – ${s.crm}`, assinatura: {status:'pendente'}};
   const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
+  const pagLancado = !r.editId && lancarPagamentoAuto(salvo);
   delete S.dados.drafts[r.chave];
   auditar(r.editId ? `${nomeTipo(r.tipo)} editado(a)` : `${nomeTipo(r.tipo)} salvo(a)`, `${paciente(r.patientId).nome}${r.editId ? ' – registro de ' + fmtData(salvo.data) + ', versão ' + (salvo.versoes.length + 1) : ''}`, r.patientId);
   await salvar();
   S.rascunho = null;
   S.abertos.add(r.refId || salvo.id);
   abrirPaciente(r.patientId);
-  aviso(r.editId ? 'Alterações salvas. A versão anterior ficou no histórico.' : 'Registro salvo.');
+  aviso(r.editId ? 'Alterações salvas. A versão anterior ficou no histórico.' : 'Registro salvo.' + (pagLancado ? ' Pagamento pendente lançado.' : ''));
 }
 
 /* ---------- integridade ---------- */
@@ -1380,7 +1424,7 @@ function atualizarMedsDaReceita(p, itens, data) {
     const ex = p.medicacoes.find(m => !m.fim && normMed(m.nome) === normMed(i.nome));
     const pos = String(i.pos || '').split('\n')[0];
     if (!ex) { p.medicacoes.push({id: uid(), nome: i.nome, dose: i.dose || '', posologia: pos, qtd: i.qtd || '', inicio: data, fim: null, criadoEm: agoraISO(), origem: 'receita'}); novos++; }
-    else if ((i.dose && ex.dose !== i.dose) || (pos && ex.posologia !== pos) || (i.qtd && ex.qtd !== i.qtd)) { ex.dose = i.dose || ex.dose; ex.posologia = pos || ex.posologia; ex.qtd = i.qtd || ex.qtd; ex.atualizadoEm = agoraISO(); atual++; }
+    else if ((i.dose && ex.dose !== i.dose) || (pos && ex.posologia !== pos) || (i.qtd && ex.qtd !== i.qtd)) { if (i.dose && normDose(ex.dose) !== normDose(i.dose)) { ex.doses = ex.doses && ex.doses.length ? ex.doses : [{desde: ex.inicio || data, dose: ex.dose || ''}]; ex.doses.push({desde: data, dose: i.dose}); } ex.dose = i.dose || ex.dose; ex.posologia = pos || ex.posologia; ex.qtd = i.qtd || ex.qtd; ex.atualizadoEm = agoraISO(); atual++; }
   }
   if (novos || atual) { p.atualizadoEm = agoraISO(); auditar('Medicações atualizadas pela receita', `${p.nome}: ${novos} nova(s), ${atual} atualizada(s)`, p.id); }
   return {novos, atual};
@@ -2007,7 +2051,7 @@ function formatarOrientacao(t) {
     const x = l.trim();
     if (!x) return '<div class="esp"></div>';
     if (/^(\d+\.|-)\s/.test(x)) return `<div class="it">${esc(x.replace(/^-\s/, '• '))}</div>`;
-    if (x.length < 70 && !/[.:;,]$/.test(x)) return `<div class="st">${esc(x)}</div>`;
+    if (x.length < 70 && !/[.:;,]$/.test(x) && !/_{3}|^Nome do paciente:/.test(x)) return `<div class="st">${esc(x)}</div>`;
     return `<div>${esc(x)}</div>`;
   }).join('');
 }
@@ -2023,7 +2067,7 @@ function htmlDocumento(d, p) {
   if (d.cat === 'exames') {
     corpo = `<div class="doc-ex">${d.exames.map(e => `<div>▪ ${esc(e)}</div>`).join('')}</div>${d.indicacao ? `<div class="rx-or" style="margin-top:6mm"><b>Indicação clínica:</b> ${esc(d.indicacao)}</div>` : ''}`;
   } else {
-    corpo = d.cat === 'orientacao' ? `<div class="doc-or${d.texto.length > 2300 ? ' compacto' : ''}">${formatarOrientacao(d.texto)}</div>` : `<div class="doc-txt">${esc(d.texto)}</div>`;
+    corpo = d.cat === 'orientacao' || d.cat === 'termo' ? `<div class="doc-or${d.texto.length > 2300 || d.texto.split('\n').length > 38 ? ' compacto' : ''}">${formatarOrientacao(d.texto)}</div>` : `<div class="doc-txt">${esc(d.texto)}</div>`;
   }
   return `<div class="rx rx-simples">
     <div class="rx-cab"><div><div class="n">${esc(s.medico)}</div><div class="s">Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div></div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div>
@@ -2073,7 +2117,7 @@ function levarDocAoCFM() {
 function imprimirFolha(html, orientacao, desc, pid) {
   let estilo = $('#estilo-pagina');
   if (!estilo) { estilo = document.createElement('style'); estilo.id = 'estilo-pagina'; document.head.appendChild(estilo); }
-  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : orientacao === 'lme' ? '@page{size:A4 portrait;margin:8mm}' : '@page{size:A4 portrait;margin:14mm}';
+  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : orientacao === 'lme' ? '@page{size:A4 portrait;margin:8mm}' : orientacao === 'resumo' ? '@page{size:A4 portrait;margin:10mm}' : '@page{size:A4 portrait;margin:14mm}';
   imprimir(html, desc, pid);
   setTimeout(() => { estilo.textContent = ''; }, 4000);
 }
@@ -2155,6 +2199,7 @@ function mesclar(inc) {
     if (r.pdfAssinado && !ex.pdfAssinado) { Object.assign(ex, r); cont.atualizados++; continue; }
     if (!ex.pdfAssinado && !travado(ex) && (r.editadoEm || '') > (ex.editadoEm || '')) { Object.assign(ex, {data: r.data, campos: r.campos, cid: r.cid, versoes: r.versoes, editadoEm: r.editadoEm, hash: r.hash, assinatura: r.assinatura}); cont.atualizados++; }
   }
+  if (inc.pagamentos) { const pg = d.pagamentos = d.pagamentos || []; for (const x of inc.pagamentos) { const i = pg.findIndex(y => y.id === x.id); if (i < 0) pg.push(x); else if ((x.atualizadoEm || '') > (pg[i].atualizadoEm || '')) pg[i] = x; } }
   const aids = new Set(d.audit.map(a => a.id));
   for (const a of inc.audit || []) if (!aids.has(a.id)) d.audit.push(a);
   d.audit.sort((a, b) => a.em.localeCompare(b.em));
@@ -2337,6 +2382,8 @@ function telaConfig() {
     <label class="f"><span>Slogan (cabeçalho das receitas)</span><input type="text" name="slogan" value="${esc(s.slogan || '')}"></label></div>
     <div class="grid2"><label class="f"><span>CNS do médico (cartão SUS, para a LME)</span><input type="text" name="cnsMedico" value="${esc(s.cnsMedico || '')}" inputmode="numeric"></label>
     <label class="f"><span>CPF do médico (laudos)</span><input type="text" name="cpfMedico" value="${esc(s.cpfMedico || '')}" inputmode="numeric"></label></div>
+    <div class="grid2"><label class="f"><span>Valor padrão da consulta particular (R$)</span><input type="text" name="valorConsulta" value="${esc(s.valorConsulta || '')}" inputmode="decimal" placeholder="ex.: 450"></label>
+    <label class="f"><span>Lançar pagamento pendente ao salvar consulta particular</span><select name="pagAuto"><option value="sim" ${s.pagAuto !== 'nao' ? 'selected' : ''}>Sim</option><option value="nao" ${s.pagAuto === 'nao' ? 'selected' : ''}>Não</option></select></label></div>
     <div class="grid2"><label class="f"><span>Telefone</span><input type="text" name="telefone" value="${esc(s.telefone)}"></label>
     <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
     <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
@@ -2389,7 +2436,8 @@ function ultimoCid(pid) {
 }
 function abrirLME(pid) {
   const p = paciente(pid), s = S.dados.settings, u = s.lmeUltimo || {}, c = ultimoCid(pid);
-  S.lmeRasc = {patientId: pid, cnes: u.cnes || '', estab: u.estab || '', mae: p.mae || '', peso: '', altura: '',
+  const pesoU = ultimoMon(pid, 'peso'), altU = ultimoMon(pid, 'altura');
+  S.lmeRasc = {patientId: pid, cnes: u.cnes || '', estab: u.estab || '', mae: p.mae || '', peso: pesoU && pesoU.x >= somarMeses(hojeStr(), -6) ? fmtNum(pesoU.y) : '', altura: altU ? String(Math.round(altU.y > 3 ? altU.y : altU.y * 100)) : '',
     meds: Array.from({length: 6}, () => ({nome: '', q: ['', '', '', '', '', '']})), cid: c.cid, diag: c.diag, anamnese: '',
     trat: '', tratTxt: '', incapaz: 'nao', resp: '', data: hojeStr(), branco: false, quem: 'Médico solicitante', outroNome: '', outroCpf: '',
     raca: '', etnia: '', tel: p.telefone || '', docTipo: p.cns ? 'CNS' : 'CPF', docNum: p.cns || p.cpf || '', email: p.email || ''};
@@ -2928,6 +2976,713 @@ async function salvarLitemia() {
   aviso(`Litemia ${campos.valor} mEq/L – ${it.txt}`, 6000);
 }
 
+/* ============================================================
+   1.19.0 · MONITORAMENTO, LINHA DO TEMPO, RETORNOS, BUSCA,
+   PAGAMENTOS, RESUMO, PLANO DE SEGURANÇA E TERMOS
+   ============================================================ */
+const somarDias = (iso, n) => { const d = new Date(iso + 'T12:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const diasEntre = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 86400000);
+const fmtNum = (n, cas = 1) => n === null || n === undefined || isNaN(n) ? '' : Number(n).toLocaleString('pt-BR', {maximumFractionDigits: cas});
+const fmtReal = v => (Number(v) || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+const RE_ANTIPSI = /quetiapina|olanzapina|risperidona|aripiprazol|clozapina|paliperidona|ziprasidona|lurasidona|asenapina|brexpiprazol|cariprazina|haloperidol|clorpromazina|levomepromazina|periciazina|pimozida|sulpirida|amissulprida|zuclopentixol|flufenazina|tioridazina|penfluridol|seroquel|zyprexa|risperdal|abilify|aristab|leponex|invega|geodon|latuda|rexulti|vraylar/i;
+const RE_METAB = new RegExp(RE_ANTIPSI.source + '|valpro|divalpro|depakote|depakene|valpakine|epilenil|torval|l[ií]tio|carbolit|mirtazapina', 'i');
+const RE_CLOZ = /clozapina|leponex/i;
+const RE_VALP = /valpro|divalpro|depakote|depakene|valpakine|epilenil|torval/i;
+const medAtiva = (p, re) => (p.medicacoes || []).find(m => !m.fim && re.test(m.nome || ''));
+const inicioMed = (p, re) => (p.medicacoes || []).filter(m => !m.fim && re.test(m.nome || '')).map(m => m.inicio || (m.criadoEm || '').slice(0, 10)).filter(Boolean).sort()[0] || null;
+
+/* ---------- sinais e exames (monitoramento) ---------- */
+FICHAS.monitor = {titulo: 'Sinais e exames', secoes: [
+  {t: 'Medidas e sinais vitais', campos: [['peso', 'Peso (kg)', 'linha'], ['altura', 'Altura (cm)', 'linha'], ['imc', 'IMC (kg/m²)', 'linha'], ['cintura', 'Circunferência abdominal (cm)', 'linha'], ['pa', 'Pressão arterial (mmHg)', 'linha']]},
+  {t: 'Perfil metabólico', campos: [['glicemia', 'Glicemia de jejum (mg/dL)', 'linha'], ['hba1c', 'HbA1c (%)', 'linha'], ['ct', 'Colesterol total (mg/dL)', 'linha'], ['hdl', 'HDL (mg/dL)', 'linha'], ['ldl', 'LDL (mg/dL)', 'linha'], ['tg', 'Triglicerídeos (mg/dL)', 'linha']]},
+  {t: 'Hemograma', campos: [['leuco', 'Leucócitos (/mm³)', 'linha'], ['neutro', 'Neutrófilos (/mm³)', 'linha'], ['plaq', 'Plaquetas (/mm³)', 'linha']]},
+  {t: 'Função hepática e nível sérico', campos: [['tgo', 'TGO/AST (U/L)', 'linha'], ['tgp', 'TGP/ALT (U/L)', 'linha'], ['valp', 'Ácido valproico sérico (µg/mL)', 'linha']]},
+  {t: 'Avaliação', campos: [['alertas', 'Alertas', 'texto'], ['obs', 'Observações', 'texto']]}
+]};
+const CAMPOS_MON = FICHAS.monitor.secoes.flatMap(s => s.campos.map(c => c[0])).filter(k => !['alertas', 'obs', 'imc'].includes(k));
+const MIL = ['leuco', 'neutro', 'plaq'];
+function numMon(k, s) { if (!MIL.includes(k)) return numBR(s); const n = parseFloat(String(s || '').replace(/\./g, '').replace(',', '.')); if (isNaN(n)) return null; return n < (k === 'plaq' ? 1000 : 100) ? n * 1000 : n; }
+const PLAQ = v => v;
+function calcIMC(peso, alturaCm) { if (!(peso > 0) || !(alturaCm > 0)) return null; const m = alturaCm > 3 ? alturaCm / 100 : alturaCm; return peso / (m * m); }
+function interpMon(k, v, p) {
+  if (v === null || v === undefined || isNaN(v)) return null;
+  const fem = p && p.sexo === 'Feminino', masc = p && p.sexo === 'Masculino';
+  const R = (txt, cls) => ({txt, cls});
+  switch (k) {
+    case 'imc': return v < 18.5 ? R('Baixo peso', 'pend') : v < 25 ? R('Eutrofia', 'ok') : v < 30 ? R('Sobrepeso', 'pend') : v < 35 ? R('Obesidade grau I', 'ruim') : v < 40 ? R('Obesidade grau II', 'ruim') : R('Obesidade grau III', 'ruim');
+    case 'cintura': if (!fem && !masc) return null; return v >= (masc ? 102 : 88) ? R('Muito aumentada', 'ruim') : v >= (masc ? 94 : 80) ? R('Aumentada', 'pend') : R('Adequada', 'ok');
+    case 'glicemia': return v >= 126 ? R('Compatível com diabetes (confirmar)', 'ruim') : v >= 100 ? R('Glicemia de jejum alterada', 'pend') : R('Normal', 'ok');
+    case 'hba1c': return v >= 6.5 ? R('Compatível com diabetes (confirmar)', 'ruim') : v >= 5.7 ? R('Pré-diabetes', 'pend') : R('Normal', 'ok');
+    case 'ct': return v >= 190 ? R('Acima do desejável (< 190)', 'pend') : R('Desejável', 'ok');
+    case 'hdl': if (!fem && !masc) return v < 40 ? R('Baixo', 'pend') : R('Adequado', 'ok'); return v < (masc ? 40 : 50) ? R('Baixo', 'pend') : R('Adequado', 'ok');
+    case 'ldl': return v >= 190 ? R('Muito elevado', 'ruim') : v >= 160 ? R('Elevado', 'pend') : v >= 130 ? R('Limítrofe', 'pend') : R('Adequado ao risco baixo', 'ok');
+    case 'tg': return v >= 500 ? R('Muito elevados', 'ruim') : v >= 150 ? R('Elevados', 'pend') : R('Normais', 'ok');
+    case 'neutro': return v < 500 ? R('Agranulocitose: suspender e conduta de urgência', 'ruim') : v < 1500 ? R('Abaixo de 1.500: interromper a clozapina (bula)', 'ruim') : v < 2000 ? R('Entre 1.500 e 2.000: hemograma 2 vezes por semana (bula)', 'pend') : R('Adequado (≥ 2.000)', 'ok');
+    case 'leuco': return v < 3000 ? R('Abaixo de 3.000: interromper a clozapina (bula)', 'ruim') : v < 3500 ? R('Entre 3.000 e 3.500: hemograma 2 vezes por semana (bula)', 'pend') : R('Adequado (≥ 3.500)', 'ok');
+    case 'plaq': v = PLAQ(v); return v < 100000 ? R('Plaquetopenia importante (< 100 mil)', 'ruim') : v < 150000 ? R('Plaquetas baixas (< 150 mil)', 'pend') : R('Normais', 'ok');
+    case 'tgo': case 'tgp': return v > 120 ? R('Acima de 3 vezes o normal', 'ruim') : v > 40 ? R('Acima do normal', 'pend') : R('Normal', 'ok');
+    case 'valp': return v < 50 ? R('Abaixo da faixa (50–100)', 'pend') : v <= 100 ? R('Faixa terapêutica (50–100)', 'ok') : v <= 125 ? R('Faixa alta (até 125 na mania aguda)', 'pend') : R('Acima de 125: risco de toxicidade', 'ruim');
+  }
+  return null;
+}
+function interpPA(txt) {
+  const m = String(txt || '').match(/(\d{2,3})\s*[x\/]\s*(\d{2,3})/i); if (!m) return null;
+  const s = +m[1], d = +m[2];
+  return s >= 180 || d >= 110 ? {txt: 'Muito elevada (≥ 180/110)', cls: 'ruim', s, d} : s >= 140 || d >= 90 ? {txt: 'Elevada (≥ 140/90): confirmar', cls: 'ruim', s, d} : s >= 130 || d >= 85 ? {txt: 'Pré-hipertensão (130–139/85–89)', cls: 'pend', s, d} : {txt: 'Normal', cls: 'ok', s, d};
+}
+const regsMon = pid => registrosDe(pid).filter(r => r.tipo === 'monitor' && !anulado(r)).sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
+function serieMon(pid, k) {
+  return regsMon(pid).map(r => ({x: r.data, y: k === 'imc' ? numBR(r.campos.imc) : k === 'pas' ? (interpPA(r.campos.pa) || {}).s : numMon(k, r.campos[k]), r})).filter(p => p.y !== null && p.y !== undefined && !isNaN(p.y));
+}
+const ultimoMon = (pid, k) => { const s = serieMon(pid, k); return s.length ? s[s.length - 1] : null; };
+function alturaConhecida(p) { const u = ultimoMon(p.id, 'altura'); return u ? u.r.campos.altura : ''; }
+function abrirMonitor(pid) {
+  const p = paciente(pid);
+  S.monRasc = {patientId: pid, data: hojeStr(), v: {altura: alturaConhecida(p)}};
+  S.view = {nome: 'monitor', pid}; render();
+}
+function telaMonitor() {
+  const r = S.monRasc, p = paciente(r.patientId);
+  const usaC = !!medAtiva(p, RE_CLOZ) || serieMon(p.id, 'neutro').length, usaV = !!medAtiva(p, RE_VALP) || serieMon(p.id, 'valp').length;
+  const c = (k, rot, ph = '') => `<label class="f"><span>${rot}</span><input type="text" data-mon="${k}" value="${esc(r.v[k] || '')}" placeholder="${esc(ph)}" inputmode="${k === 'pa' ? 'text' : 'decimal'}"><small class="mon-int" data-int="${k}"></small></label>`;
+  const sec = (tit, aberto, html) => `<details class="form-sec mon-sec" ${aberto ? 'open' : ''}><summary><h3 style="display:inline">${tit}</h3></summary>${html}</details>`;
+  return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Sinais e exames</h1>
+  <div class="meta" style="margin-bottom:1rem"><span><b>${esc(p.nome)}</b></span>${p.sexo ? `<span>${esc(p.sexo)}</span>` : ''}</div>
+  <div class="form-sec"><div class="grid2"><label class="f"><span>Data da medida / coleta</span><input type="date" id="mon-data" value="${esc(r.data)}"></label><div></div></div>
+    <p style="color:var(--suave);font-size:.85rem;margin:-.3rem 0 .8rem">Preencha só o que tiver. Cada campo mostra a interpretação ao digitar.</p></div>
+  ${sec('Medidas e sinais vitais', true, `<div class="grid3">${c('peso', 'Peso (kg)', 'ex.: 72,5')}${c('altura', 'Altura (cm)', 'ex.: 170')}<label class="f"><span>IMC</span><input type="text" id="mon-imc" disabled><small class="mon-int" data-int="imc"></small></label></div>
+    <div class="grid2">${c('cintura', 'Circunferência abdominal (cm)', 'ex.: 92')}${c('pa', 'Pressão arterial (mmHg)', 'ex.: 120/80')}</div>`)}
+  ${sec('Perfil metabólico (glicemia e lipídeos)', true, `<div class="grid3">${c('glicemia', 'Glicemia de jejum (mg/dL)')}${c('hba1c', 'HbA1c (%)')}${c('tg', 'Triglicerídeos (mg/dL)')}</div><div class="grid3">${c('ct', 'Colesterol total (mg/dL)')}${c('hdl', 'HDL (mg/dL)')}${c('ldl', 'LDL (mg/dL)')}</div>`)}
+  ${sec('Hemograma' + (usaC ? ' · clozapina' : ''), usaC || usaV, `<div class="grid3">${c('leuco', 'Leucócitos (/mm³)', 'ex.: 6500')}${c('neutro', 'Neutrófilos (/mm³)', 'ex.: 3800')}${c('plaq', 'Plaquetas (/mm³)', 'ex.: 250000')}</div>`)}
+  ${sec('Função hepática e nível do valproato', usaV, `<div class="grid3">${c('tgo', 'TGO/AST (U/L)')}${c('tgp', 'TGP/ALT (U/L)')}${c('valp', 'Ácido valproico (µg/mL)', 'ex.: 75')}</div>`)}
+  <div class="form-sec"><label class="f"><span>Observações</span><textarea id="mon-obs" rows="2">${esc(r.obs || '')}</textarea></label></div>
+  <div class="barra-acoes"><span class="salvo">Fica no prontuário e entra nos gráficos.</span>
+    <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn pri" data-act="mon-salvar">Salvar</button></div>`;
+}
+function ligarMonitor() {
+  const r = S.monRasc; if (!r) return; const p = paciente(r.patientId);
+  const atual = () => {
+    document.querySelectorAll('[data-mon]').forEach(i => { r.v[i.dataset.mon] = i.value; });
+    for (const el of document.querySelectorAll('[data-int]')) {
+      const k = el.dataset.int; let it = null;
+      if (k === 'imc') { const imc = calcIMC(numBR(r.v.peso), numBR(r.v.altura)); $('#mon-imc').value = imc ? fmtNum(imc) : ''; it = imc ? interpMon('imc', imc, p) : null; }
+      else if (k === 'pa') it = interpPA(r.v.pa);
+      else it = interpMon(k, numMon(k, r.v[k]), p);
+      el.innerHTML = it ? `<span class="tag ${it.cls}">${esc(it.txt)}</span>` : '';
+    }
+  };
+  document.querySelectorAll('[data-mon]').forEach(i => i.addEventListener('input', atual));
+  atual();
+}
+async function salvarMonitor() {
+  const r = S.monRasc, p = paciente(r.patientId), s = S.dados.settings;
+  document.querySelectorAll('[data-mon]').forEach(i => { r.v[i.dataset.mon] = i.value.trim(); });
+  const campos = {}; for (const k of CAMPOS_MON) if ((r.v[k] || '').trim()) campos[k] = r.v[k].trim();
+  const soAltura = Object.keys(campos).length === 1 && campos.altura;
+  if (!Object.keys(campos).length || soAltura) return aviso('Preencha ao menos uma medida ou exame.');
+  if (campos.pa && !interpPA(campos.pa)) return aviso('Pressão arterial no formato 120/80.');
+  for (const k of Object.keys(campos)) if (k !== 'pa' && numMon(k, campos[k]) === null) return aviso(`Valor inválido em ${FICHAS.monitor.secoes.flatMap(x => x.campos).find(c => c[0] === k)[1]}.`);
+  for (const k of MIL) if (campos[k]) campos[k] = String(Math.round(numMon(k, campos[k])));
+  const imc = calcIMC(numBR(campos.peso), numBR(campos.altura || alturaConhecida(p)));
+  if (imc && campos.peso) { campos.imc = fmtNum(imc); if (!campos.altura) campos.altura = alturaConhecida(p); }
+  const alertas = [];
+  for (const k of Object.keys(campos)) { const it = k === 'pa' ? interpPA(campos.pa) : interpMon(k, numMon(k, campos[k]), p); if (it && it.cls !== 'ok') alertas.push(`${FICHAS.monitor.secoes.flatMap(x => x.campos).find(c => c[0] === k)[1]}: ${it.txt}`); }
+  const peso0 = serieMon(p.id, 'peso')[0];
+  if (peso0 && campos.peso) { const g = (numBR(campos.peso) - peso0.y) / peso0.y * 100; if (g >= 7) alertas.push(`Ganho de ${fmtNum(g)}% do peso desde ${fmtData(peso0.x)} (≥ 7%: clinicamente significativo)`); }
+  if (alertas.length) campos.alertas = alertas.join('\n');
+  const obs = ($('#mon-obs').value || '').trim(); if (obs) campos.obs = obs;
+  const ok = await confirmar({titulo: 'Salvar sinais e exames?', texto: `${Object.keys(campos).filter(k => !['alertas', 'obs'].includes(k)).length} valor(es) para ${fmtData($('#mon-data').value || hojeStr())}.${alertas.length ? '<br><br><b>Atenção:</b><br>' + alertas.map(esc).join('<br>') : ''}`, ok: 'Salvar'});
+  if (!ok) return;
+  const reg = {id: uid(), patientId: p.id, tipo: 'monitor', data: $('#mon-data').value || hojeStr(), criadoEm: agoraISO(), campos, cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'pendente'}};
+  reg.hash = await hashRegistro(reg);
+  S.dados.records.push(reg);
+  auditar('Sinais e exames registrados', p.nome, p.id);
+  await salvar();
+  S.monRasc = null;
+  abrirPaciente(p.id);
+  aviso(alertas.length ? `Salvo, com ${alertas.length} alerta(s).` : 'Sinais e exames salvos.', 5000);
+}
+function linhaPrazo(rot, ult, meses, unidade = '', k = null, p = null) {
+  const venc = ult ? somarMeses(ult.x, meses) : null, atras = !ult || venc < hojeStr();
+  const it = ult && k ? (k === 'pa' ? interpPA(ult.r.campos.pa) : interpMon(k, ult.y, p)) : null;
+  return `<div class="lit-ex"><span>${rot}</span><span>${ult ? `<b>${esc(k === 'pa' ? ult.r.campos.pa : fmtNum(ult.y, k === 'plaq' || k === 'neutro' || k === 'leuco' ? 0 : 2))}</b>${unidade} <small>(${fmtData(ult.x)})</small>${it && it.cls !== 'ok' ? ` <span class="tag ${it.cls}" title="${esc(it.txt)}">!</span>` : ''}` : '<small>sem registro</small>'}${atras ? ' <span class="tag pend">' + (ult ? 'refazer' : 'pedir') + '</span>' : ''}</span></div>`;
+}
+function cartaoMetabolico(p) {
+  const regs = regsMon(p.id), usa = (p.medicacoes || []).some(m => !m.fim && RE_METAB.test(m.nome || ''));
+  if (!usa && !regs.some(r => r.campos.peso || r.campos.glicemia || r.campos.ct || r.campos.pa)) return '';
+  const peso = serieMon(p.id, 'peso'), imcS = serieMon(p.id, 'imc'), ult = peso[peso.length - 1], ultImc = imcS[imcS.length - 1];
+  const iniAP = inicioMed(p, RE_ANTIPSI), recente = iniAP && iniAP > somarMeses(hojeStr(), -6);
+  const ganho = peso.length > 1 ? (ult.y - peso[0].y) / peso[0].y * 100 : null;
+  const itImc = ultImc ? interpMon('imc', ultImc.y, p) : null;
+  const pa = (() => { const s = regs.filter(r => r.campos.pa); const r = s[s.length - 1]; return r ? {x: r.data, y: 0, r} : null; })();
+  const lip = ['ct', 'ldl', 'hdl', 'tg'].map(k => ultimoMon(p.id, k)).filter(Boolean).sort((a, b) => b.x.localeCompare(a.x))[0];
+  const glic = ultimoMon(p.id, 'glicemia') || ultimoMon(p.id, 'hba1c');
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Metabólico</h2><button class="btn sm" data-act="novo-monitor" data-pid="${p.id}">+ Registrar</button></div>
+    ${ult ? `<div class="row" style="justify-content:space-between;align-items:baseline"><span style="font-size:1.5rem;font-weight:600">${fmtNum(ult.y)} <small style="font-size:.85rem;font-weight:400">kg</small></span><small style="color:var(--suave)">${fmtData(ult.x)}${ultImc && ultImc.x === ult.x ? ' · IMC ' + fmtNum(ultImc.y) : ''}</small></div>
+      <div style="margin:.2rem 0 .3rem">${itImc && ultImc.x === ult.x ? `<span class="tag ${itImc.cls}">${esc(itImc.txt)}</span> ` : ''}${ganho !== null ? `<span class="tag ${ganho >= 7 ? 'ruim' : ganho >= 5 ? 'pend' : 'ok'}">${ganho >= 0 ? '+' : ''}${fmtNum(ganho)}% desde ${fmtData(peso[0].x)}</span>` : ''}</div>
+      ${minigrafico(peso)}` : '<div class="vazio" style="padding:.6rem 0">Nenhum peso registrado.</div>'}
+    ${linhaPrazo('Peso / IMC', ult, 3, ' kg')}
+    ${linhaPrazo('Pressão arterial', pa, 12, '', 'pa', p)}
+    ${linhaPrazo('Circunferência abdominal', ultimoMon(p.id, 'cintura'), 12, ' cm', 'cintura', p)}
+    ${linhaPrazo(glic && glic.r.campos.glicemia ? 'Glicemia de jejum' : 'Glicemia / HbA1c', glic, recente ? 3 : 12, glic && !glic.r.campos.glicemia ? '%' : '', glic && glic.r.campos.glicemia ? 'glicemia' : 'hba1c', p)}
+    ${(() => { const lk = lip ? ['tg', 'ldl', 'hdl', 'ct'].find(k => lip.r.campos[k]) : null; const lp = lk ? {...lip, y: numBR(lip.r.campos[lk])} : null; return linhaPrazo('Lipídeos' + (lk ? ` (${lk === 'tg' ? 'TG' : lk.toUpperCase()})` : ''), lp, recente ? 3 : 12, '', lk, p); })()}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Consenso ADA/APA para antipsicóticos: peso a cada consulta nos primeiros meses e depois a cada 3 meses; glicemia, lipídeos e pressão com 12 semanas e depois anualmente; cintura anual.${recente ? ' Antipsicótico iniciado há menos de 6 meses: glicemia e lipídeos com 3 meses.' : ''}</p>
+    <button class="btn sm" style="margin-top:.5rem" data-act="doc-protocolo" data-pid="${p.id}" data-k="prot_metabolico">Pedir exames metabólicos</button>
+  </div>`;
+}
+function proximoHemograma(p, ult, it) {
+  const ini = inicioMed(p, RE_CLOZ);
+  if (!ult) return null;
+  if (it && it.cls === 'pend') return somarDias(ult.x, 3);
+  const sem = ini ? diasEntre(ini, ult.x) / 7 : 99;
+  return somarDias(ult.x, sem < 18 ? 7 : 28);
+}
+function cartaoClozapina(p) {
+  const neut = serieMon(p.id, 'neutro'), usa = medAtiva(p, RE_CLOZ);
+  if (!usa && !neut.length) return '';
+  const ult = neut[neut.length - 1], it = ult ? interpMon('neutro', ult.y, p) : null;
+  const leu = ultimoMon(p.id, 'leuco'), itL = leu ? interpMon('leuco', leu.y, p) : null;
+  const pior = [it, itL].filter(Boolean).sort((a, b) => ({ruim: 0, pend: 1, ok: 2}[a.cls] - {ruim: 0, pend: 1, ok: 2}[b.cls]))[0];
+  const ini = inicioMed(p, RE_CLOZ), sem = ini ? Math.floor(diasEntre(ini, hojeStr()) / 7) : null;
+  const prox = proximoHemograma(p, ult, pior);
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Clozapina: hemograma</h2><button class="btn sm" data-act="novo-monitor" data-pid="${p.id}">+ Registrar</button></div>
+    ${ini ? `<div class="meta" style="margin:0 0 .3rem"><span>Início ${fmtData(ini)} · semana ${sem + 1}</span><span>${sem < 18 ? 'fase semanal (18 semanas)' : 'fase mensal'}</span></div>` : ''}
+    ${ult ? `<div class="row" style="justify-content:space-between;align-items:baseline"><span style="font-size:1.5rem;font-weight:600">${fmtNum(ult.y, 0)} <small style="font-size:.85rem;font-weight:400">neutrófilos/mm³</small></span><small style="color:var(--suave)">${fmtData(ult.x)}</small></div>
+      <div style="margin:.2rem 0 .3rem">${it ? `<span class="tag ${it.cls}">${esc(it.txt)}</span>` : ''}${itL && itL.cls !== 'ok' ? ` <span class="tag ${itL.cls}">Leucócitos ${fmtNum(leu.y, 0)}: ${esc(itL.txt)}</span>` : ''}</div>
+      ${minigrafico(neut, {min: 0, faixa: [2000, Math.max(8000, ...neut.map(x => x.y))], cor: v => v < 1500 ? '#a3442f' : v < 2000 ? '#b08d3c' : '#4a5a3c'})}
+      <div class="lit-ex"><span>Próximo hemograma</span><span>${fmtData(prox)}${prox < hojeStr() ? ' <span class="tag ruim">atrasado</span>' : ''}</span></div>`
+    : '<div class="vazio" style="padding:.6rem 0">Nenhum hemograma registrado. <span class="tag pend">pedir</span></div>'}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Bula brasileira: hemograma semanal nas primeiras 18 semanas e depois ao menos a cada 4 semanas. Leucócitos 3.000–3.500 ou neutrófilos 1.500–2.000: 2 vezes por semana; abaixo de 3.000 ou 1.500: interromper.</p>
+    <div class="row" style="margin-top:.5rem"><button class="btn sm" data-act="doc-protocolo" data-pid="${p.id}" data-k="prot_clozapina">Pedir exames</button><button class="btn sm" data-act="doc-modelo-p" data-pid="${p.id}" data-k="termo_clozapina">Termo de consentimento</button></div>
+  </div>`;
+}
+function cartaoValproato(p) {
+  const niv = serieMon(p.id, 'valp'), usa = medAtiva(p, RE_VALP);
+  if (!usa && !niv.length) return '';
+  const ult = niv[niv.length - 1], it = ult ? interpMon('valp', ult.y, p) : null;
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Valproato</h2><button class="btn sm" data-act="novo-monitor" data-pid="${p.id}">+ Registrar</button></div>
+    ${ult ? `<div class="row" style="justify-content:space-between;align-items:baseline"><span style="font-size:1.5rem;font-weight:600">${fmtNum(ult.y)} <small style="font-size:.85rem;font-weight:400">µg/mL</small></span><small style="color:var(--suave)">${fmtData(ult.x)}</small></div>
+      <div style="margin:.2rem 0 .3rem"><span class="tag ${it.cls}">${esc(it.txt)}</span></div>${minigrafico(niv, {min: 20, max: 140, faixa: [50, 100], cor: v => v > 125 ? '#a3442f' : v >= 50 && v <= 100 ? '#4a5a3c' : '#b08d3c'})}` : ''}
+    ${linhaPrazo('Nível sérico', ult, 6, ' µg/mL')}
+    ${linhaPrazo('TGO / AST', ultimoMon(p.id, 'tgo'), 6, ' U/L', 'tgo', p)}${linhaPrazo('TGP / ALT', ultimoMon(p.id, 'tgp'), 6, ' U/L', 'tgp', p)}
+    ${linhaPrazo('Plaquetas', ultimoMon(p.id, 'plaq'), 6, '', 'plaq', p)}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Nível 50–100 µg/mL (até 125 na mania aguda), coletado antes da dose da manhã. Função hepática, hemograma com plaquetas e nível no início e depois a cada 6 meses, ou se sintomas. Mulheres em idade fértil: contracepção e ácido fólico.</p>
+    <button class="btn sm" style="margin-top:.5rem" data-act="doc-protocolo" data-pid="${p.id}" data-k="prot_valproato">Pedir exames do valproato</button>
+  </div>`;
+}
+PROTOCOLOS.metabolico = {nome: 'Perfil metabólico (antipsicóticos)', exames: ['Glicemia de jejum', 'Hemoglobina glicada (HbA1c)', 'Colesterol total e frações', 'Triglicerídeos', 'TGO (AST)', 'TGP (ALT)', 'Prolactina'],
+  indicacao: 'Monitorização metabólica em uso de antipsicótico / estabilizador do humor.',
+  nota: 'Peso, IMC, cintura e pressão arterial no consultório. Glicemia e lipídeos antes de iniciar, com 12 semanas e depois anualmente (consenso ADA/APA). Prolactina se sintomas. Desmarque o que não se aplicar.'};
+PROTOCOLOS.valproato = {nome: 'Valproato', exames: ['Hemograma completo', 'TGO (AST)', 'TGP (ALT)', 'Gama-GT', 'Bilirrubinas', 'Ácido valproico sérico', 'Glicemia de jejum', 'Colesterol total e frações', 'Triglicerídeos', 'Beta-hCG'],
+  indicacao: 'Avaliação basal e monitorização do uso de valproato / divalproato.',
+  nota: 'Nível sérico coletado antes da dose da manhã (vale), 50–100 µg/mL. Função hepática e hemograma com plaquetas no início e a cada 6 meses. Beta-hCG em mulheres em idade fértil (alto risco teratogênico); amilase se dor abdominal.'};
+MODELOS_DOC.prot_metabolico = {cat: 'exames', rotulo: 'Protocolo: ' + PROTOCOLOS.metabolico.nome, titulo: 'Solicitação de exames', cfm: true, protocolo: 'metabolico'};
+MODELOS_DOC.prot_valproato = {cat: 'exames', rotulo: 'Protocolo: Valproato', titulo: 'Solicitação de exames', cfm: true, protocolo: 'valproato'};
+
+/* ---------- linha do tempo do tratamento ---------- */
+const SAIS = /^(cloridrato|dicloridrato|bromidrato|oxalato|hemifumarato|fumarato|succinato|maleato|mesilato|besilato|carbonato|acido|sulfato|tartarato|hemitartarato|dimesilato|citrato|valproato de sodio e|de|do|da)\s+/;
+function chaveDroga(nome) { let t = normMed(nome).replace(/\d.*$/, '').trim(); let a; do { a = t; t = t.replace(SAIS, ''); } while (t !== a); return t.split(' ')[0] || normMed(nome); }
+function separarDose(nome) { const m = String(nome || '').match(/(\d+[.,]?\d*\s*(mg|mcg|µg|g|ml|mg\/ml|%|ui)\b.*)$/i); return m ? {base: nome.slice(0, m.index).trim(), dose: m[1].trim()} : {base: nome, dose: ''}; }
+const normDose = d => String(d || '').toLowerCase().replace(/\s+/g, '').replace(',', '.');
+function seriesMeds(p) {
+  const g = new Map(), hoje = hojeStr();
+  const add = (nome, data, dose, origem) => {
+    if (!nome || !data) return; const sd = dose ? {base: nome, dose} : separarDose(nome);
+    const k = chaveDroga(sd.base || nome); if (!k) return;
+    if (!g.has(k)) g.set(k, {k, nome: sd.base || nome, pts: [], ativo: false, fim: null});
+    const e = g.get(k); e.pts.push({data: data.slice(0, 10), dose: sd.dose || dose || '', origem}); if (data >= (e.ultData || '')) { e.ultData = data; e.nome = sd.base || nome; }
+  };
+  for (const m of p.medicacoes || []) {
+    const ini = m.inicio || (m.criadoEm || '').slice(0, 10);
+    if (m.doses && m.doses.length) m.doses.forEach(d => add(m.nome, d.desde || ini, d.dose, 'cadastro')); else add(m.nome, ini, m.dose, 'cadastro');
+    const e = g.get(chaveDroga(separarDose(m.nome).base || m.nome)); if (!e) continue;
+    if (!m.fim) e.ativo = true; else if (!e.fim || m.fim > e.fim) e.fim = m.fim;
+  }
+  for (const r of registrosDe(p.id)) {
+    if (anulado(r)) continue;
+    if (r.tipo === 'receita') { let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { continue; } for (const i of d.itens || []) add(i.nome, r.data, i.dose, 'receita'); }
+    if (r.tipo === 'cfm' && r.campos.medicamentos) for (const x of medsDoCFM(r.campos.medicamentos)) add(x.nome, r.data, '', 'cfm');
+  }
+  const out = [];
+  for (const e of g.values()) {
+    e.pts.sort((a, b) => a.data.localeCompare(b.data));
+    const ini = e.pts[0].data, ult = e.pts[e.pts.length - 1].data;
+    let fim = e.ativo ? hoje : (e.fim && e.fim >= ult ? e.fim : somarDias(ult, 30));
+    if (fim > hoje) fim = hoje;
+    const segs = []; let cur = null;
+    for (const pt of e.pts) { const d = pt.dose || (cur && cur.dose) || ''; if (!cur) cur = {de: pt.data, dose: d}; else if (pt.dose && normDose(pt.dose) !== normDose(cur.dose)) { cur.ate = pt.data; segs.push(cur); cur = {de: pt.data, dose: pt.dose}; } }
+    cur.ate = fim < cur.de ? cur.de : fim; segs.push(cur);
+    out.push({nome: e.nome, k: e.k, ini, fim, ativo: e.ativo, segs, suspensa: !e.ativo && !!e.fim});
+  }
+  return out.sort((a, b) => (b.ativo - a.ativo) || a.ini.localeCompare(b.ini));
+}
+const CORES_LT = ['#4a5a3c', '#2f4a63', '#a3442f', '#7a5a43', '#b08d3c', '#3f7d6b', '#6a5a8e', '#5b7f8f', '#8a6a3c', '#9b4f6a'];
+function telaLinha() {
+  const p = paciente(S.view.pid); if (!p) return telaInicio();
+  const per = S.linhaPer || 'tudo', hoje = hojeStr();
+  const meds = seriesMeds(p);
+  const escReg = registrosDe(p.id).filter(r => r.tipo === 'escala' && !anulado(r));
+  const porEsc = {}; for (const r of escReg) { const d = dadosEscalaReg(r); if (!d || !ESCALAS[d.chave]) continue; const res = calcularEscala(d.chave, d.resp); (porEsc[d.chave] = porEsc[d.chave] || []).push({x: r.data, y: d.total, max: res.maximo, interp: res.interp}); }
+  const lit = registrosDe(p.id).filter(r => r.tipo === 'litemia' && !anulado(r)).map(r => ({x: r.data, y: numBR(r.campos.valor)})).filter(x => x.y !== null);
+  const peso = serieMon(p.id, 'peso');
+  const consultas = registrosDe(p.id).filter(r => ['primeira', 'evolucao', 'doctoralia'].includes(r.tipo) && !anulado(r)).map(r => ({x: r.data, t: r.tipo}));
+  const datas = [...meds.flatMap(m => [m.ini]), ...Object.values(porEsc).flat().map(x => x.x), ...lit.map(x => x.x), ...peso.map(x => x.x), ...consultas.map(x => x.x)].filter(Boolean).sort();
+  const voltar = `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>`;
+  if (!datas.length) return `${voltar}<h1 style="font-size:1.5rem;margin:.3rem 0 1rem">Linha do tempo · ${esc(p.nome)}</h1><div class="card vazio">Ainda não há medicações, escalas ou exames para mostrar.</div>`;
+  let ini = per === 'tudo' ? datas[0] : somarMeses(hoje, -{'6m': 6, '1a': 12, '2a': 24}[per]);
+  if (diasEntre(ini, hoje) < 90) ini = somarDias(hoje, -90);
+  ini = ini.slice(0, 8) + '01';
+  const W = 1000, X0 = 190, X1 = 985, total = diasEntre(ini, hoje) || 1;
+  const sx = d => X0 + Math.max(0, Math.min(1, diasEntre(ini, d) / total)) * (X1 - X0);
+  const visiveis = meds.filter(m => m.fim >= ini);
+  let y = 34, svg = '';
+  // grade de meses
+  const nMeses = Math.round(total / 30.4), passo = nMeses <= 8 ? 1 : nMeses <= 18 ? 2 : nMeses <= 36 ? 3 : nMeses <= 72 ? 6 : 12;
+  const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const grade = []; for (let d = ini, i = 0; d <= hoje; d = somarMeses(ini, ++i * passo)) grade.push(d);
+  const altMeds = Math.max(1, visiveis.length) * 30, yEsc0 = 34 + altMeds + 26, altEsc = Object.keys(porEsc).length ? 130 : 0;
+  const yLit0 = yEsc0 + altEsc + (altEsc ? 26 : 0), altLit = lit.length ? 70 : 0;
+  const yPeso0 = yLit0 + altLit + (altLit ? 26 : 0), altPeso = peso.length ? 70 : 0;
+  const yCons = yPeso0 + altPeso + (altPeso ? 26 : 0), H = yCons + 30;
+  for (const d of grade) { const x = sx(d); svg += `<line x1="${x}" y1="22" x2="${x}" y2="${H - 8}" stroke="#e6dccb"/><text x="${x + 3}" y="16" font-size="11" fill="#8a8170">${MES[+d.slice(5, 7) - 1]}${d.slice(5, 7) === '01' || d === grade[0] ? '/' + d.slice(2, 4) : ''}</text>`; }
+  svg += `<line x1="${sx(hoje)}" y1="22" x2="${sx(hoje)}" y2="${H - 8}" stroke="#a3442f" stroke-dasharray="3 3"/><text x="${sx(hoje) - 3}" y="${H - 1}" font-size="10" fill="#a3442f" text-anchor="end">hoje</text>`;
+  // medicações
+  svg += `<text x="4" y="${y - 12}" font-size="11" font-weight="700" fill="#4a5a3c">MEDICAÇÕES</text>`;
+  if (!visiveis.length) svg += `<text x="${X0}" y="${y + 14}" font-size="12" fill="#8a8170">Nenhuma medicação no período.</text>`;
+  visiveis.forEach((m, i) => {
+    const cor = CORES_LT[i % CORES_LT.length], yy = y + i * 30;
+    svg += `<text x="4" y="${yy + 15}" font-size="12.5" fill="#2b2b2b" font-weight="${m.ativo ? 700 : 400}">${esc(m.nome.length > 24 ? m.nome.slice(0, 23) + '…' : m.nome)}</text>`;
+    m.segs.forEach((s, j) => {
+      if (s.ate < ini) return;
+      const xa = sx(s.de < ini ? ini : s.de), xb = Math.max(sx(s.ate), xa + 3), op = (0.45 + 0.55 * (j + 1) / m.segs.length).toFixed(2);
+      svg += `<rect x="${xa}" y="${yy + 3}" width="${xb - xa}" height="17" rx="4" fill="${cor}" fill-opacity="${op}"><title>${esc(m.nome)} ${esc(s.dose)}: ${fmtData(s.de)} a ${s.ate === hoje && m.ativo ? 'hoje' : fmtData(s.ate)}</title></rect>`;
+      if (xb - xa > 34 && s.dose) svg += `<text x="${xa + 4}" y="${yy + 15.5}" font-size="10.5" fill="#fff" pointer-events="none">${esc(s.dose.length > Math.floor((xb - xa) / 6.2) ? s.dose.slice(0, Math.max(3, Math.floor((xb - xa) / 6.2) - 1)) + '…' : s.dose)}</text>`;
+    });
+    if (m.suspensa && m.fim >= ini) svg += `<text x="${sx(m.fim) + 4}" y="${yy + 15}" font-size="10" fill="#8a8170">suspensa</text>`;
+  });
+  // escalas (em % do máximo)
+  const legEsc = [];
+  if (altEsc) {
+    svg += `<text x="4" y="${yEsc0 - 8}" font-size="11" font-weight="700" fill="#4a5a3c">ESCALAS</text><text x="4" y="${yEsc0 + 12}" font-size="10" fill="#8a8170">% do escore máximo</text>`;
+    for (const v of [0, 50, 100]) { const yy = yEsc0 + altEsc - v / 100 * altEsc; svg += `<line x1="${X0}" x2="${X1}" y1="${yy}" y2="${yy}" stroke="#efe7d8"/><text x="${X0 - 6}" y="${yy + 4}" font-size="10" fill="#8a8170" text-anchor="end">${v}%</text>`; }
+    Object.entries(porEsc).forEach(([k, pts], i) => {
+      const cor = CORES_LT[(i + 1) % CORES_LT.length]; pts.sort((a, b) => a.x.localeCompare(b.x)); legEsc.push([ESCALAS[k].sigla, cor]);
+      const vis = pts.filter(x => x.x >= ini), py = q => yEsc0 + altEsc - q.y / q.max * altEsc;
+      if (vis.length > 1) svg += `<polyline fill="none" stroke="${cor}" stroke-width="2" points="${vis.map(q => sx(q.x) + ',' + py(q)).join(' ')}"/>`;
+      svg += vis.map(q => `<circle cx="${sx(q.x)}" cy="${py(q)}" r="4" fill="${cor}"><title>${esc(ESCALAS[k].sigla)} ${q.y}/${q.max} (${fmtData(q.x)}): ${esc(q.interp)}</title></circle>`).join('');
+    });
+  }
+  const faixaLinha = (y0, alt, pts, min, max, rot, faixa, fmtv) => {
+    let s = `<text x="4" y="${y0 - 8}" font-size="11" font-weight="700" fill="#4a5a3c">${rot}</text>`;
+    const py = v => y0 + alt - (Math.min(max, Math.max(min, v)) - min) / (max - min) * alt;
+    if (faixa) s += `<rect x="${X0}" width="${X1 - X0}" y="${py(faixa[1])}" height="${py(faixa[0]) - py(faixa[1])}" fill="rgba(74,90,60,.12)"/>`;
+    const vis = pts.filter(q => q.x >= ini);
+    if (vis.length > 1) s += `<polyline fill="none" stroke="#2f4a63" stroke-width="2" points="${vis.map(q => sx(q.x) + ',' + py(q.y)).join(' ')}"/>`;
+    s += vis.map(q => `<circle cx="${sx(q.x)}" cy="${py(q.y)}" r="3.5" fill="#2f4a63"><title>${fmtData(q.x)}: ${fmtv(q.y)}</title></circle><text x="${sx(q.x)}" y="${py(q.y) - 6}" font-size="9.5" fill="#2f4a63" text-anchor="middle">${fmtv(q.y)}</text>`).join('');
+    return s;
+  };
+  if (altLit) svg += faixaLinha(yLit0, altLit, lit, 0.2, 1.5, 'LITEMIA (mEq/L)', [0.6, 1.0], v => fmtNum(v, 2));
+  if (altPeso) { const ys = peso.map(q => q.y); svg += faixaLinha(yPeso0, altPeso, peso, Math.min(...ys) - 2, Math.max(...ys) + 2, 'PESO (kg)', null, v => fmtNum(v)); }
+  svg += `<text x="4" y="${yCons + 14}" font-size="11" font-weight="700" fill="#4a5a3c">CONSULTAS</text>` + consultas.filter(c => c.x >= ini).map(c => `<circle cx="${sx(c.x)}" cy="${yCons + 10}" r="${c.t === 'primeira' ? 5.5 : 4}" fill="${c.t === 'primeira' ? '#a3442f' : '#7a5a43'}" fill-opacity=".85"><title>${c.t === 'primeira' ? 'Primeira consulta' : 'Consulta'} ${fmtData(c.x)}</title></circle>`).join('');
+  // mudanças de dose (texto)
+  const mudancas = [];
+  for (const m of meds) m.segs.forEach((s, j) => { if (s.de >= ini) mudancas.push({data: s.de, txt: j === 0 ? `Início de ${m.nome}${s.dose ? ' ' + s.dose : ''}` : `${m.nome}: ${m.segs[j - 1].dose || '?'} → ${s.dose}`}); });
+  for (const m of meds) if (m.suspensa && m.fim >= ini) mudancas.push({data: m.fim, txt: `Suspensão de ${m.nome}`});
+  mudancas.sort((a, b) => b.data.localeCompare(a.data));
+  const bt = (k, rot) => `<button class="aba ${per === k ? 'on' : ''}" data-act="linha-periodo" data-k="${k}">${rot}</button>`;
+  return `${voltar}<div class="row" style="justify-content:space-between;align-items:center;margin:.3rem 0 .8rem"><h1 style="font-size:1.5rem;margin:0">Linha do tempo · ${esc(p.nome)}</h1>
+    <div class="apoio-topo" style="display:flex;gap:.3rem">${bt('6m', '6 meses')}${bt('1a', '1 ano')}${bt('2a', '2 anos')}${bt('tudo', 'Tudo')}</div></div>
+    <div class="card" style="overflow-x:auto"><svg class="linha-svg" viewBox="0 0 ${W} ${H}" style="width:100%;min-width:640px;display:block">${svg}</svg>
+    ${legEsc.length ? `<div class="row" style="gap:1rem;font-size:.85rem;margin-top:.4rem">${legEsc.map(([s, c]) => `<span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${c};vertical-align:-1px"></span> ${esc(s)}</span>`).join('')}</div>` : ''}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Montada a partir das medicações cadastradas, receitas e documentos do CFM. A cor mais forte indica a dose mais recente. Toque nos pontos e barras para ver os detalhes.</p></div>
+    ${mudancas.length ? `<div class="card"><h2>Mudanças no tratamento</h2>${mudancas.slice(0, 40).map(x => `<div class="lit-ex"><span>${fmtData(x.data)}</span><span style="text-align:right">${esc(x.txt)}</span></div>`).join('')}</div>` : ''}`;
+}
+
+/* ---------- retornos ---------- */
+const NUM_EXT = {um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12, quinze: 15, vinte: 20, trinta: 30, quarenta: 40, sessenta: 60, noventa: 90};
+function prazoRetorno(txt, base) {
+  const t = semAcento(txt);
+  let m = t.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+  if (m && +m[2] >= 1 && +m[2] <= 12 && +m[1] >= 1 && +m[1] <= 31) {
+    let ano = m[3] ? (m[3].length === 2 ? '20' + m[3] : m[3]) : base.slice(0, 4);
+    let d = `${ano}-${String(m[2]).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+    if (!m[3] && d < base) d = `${+ano + 1}${d.slice(4)}`;
+    return d;
+  }
+  m = t.match(/\b(\d{1,3}|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|quinze|vinte|trinta|quarenta|sessenta|noventa)\s*(?:(?:a|ou|-)\s*\d{1,3}\s*)?(dias?|d\b|semanas?|sem\b|meses|mes|anos?)/);
+  if (m) { const n = NUM_EXT[m[1]] || parseInt(m[1], 10); const u = m[2]; if (!(n > 0)) return null; return /^d/.test(u) ? somarDias(base, n) : /^sem/.test(u) ? somarDias(base, 7 * n) : /^m/.test(u) ? somarMeses(base, n) : somarMeses(base, 12 * n); }
+  const fixo = {semanal: 7, quinzenal: 15, mensal: 30, bimestral: 61, trimestral: 91, semestral: 182, anual: 365};
+  for (const [k, n] of Object.entries(fixo)) if (t.includes(k)) return somarDias(base, n);
+  return null;
+}
+function retornoPrevisto(pid) {
+  const ats = registrosDe(pid).filter(r => ['primeira', 'evolucao', 'doctoralia'].includes(r.tipo) && !anulado(r) && r.data).sort((a, b) => (b.data + (b.criadoEm || '')).localeCompare(a.data + (a.criadoEm || '')));
+  const ult = ats[0]; if (!ult) return null;
+  const c = ult.campos || {};
+  let txt = (c.retorno || '').trim();
+  if (!txt) { const m = [c.conduta, c.plano, c.texto].filter(Boolean).join('\n').match(/retorno[^\n.;]{0,50}/i); txt = m ? m[0] : ''; }
+  if (!txt) return {ult, prev: null, txt: ''};
+  return {ult, prev: prazoRetorno(txt, ult.data), txt};
+}
+function listaRetornos() {
+  const hoje = hojeStr(), semana = somarDias(hoje, 7), atras = [], prox = [];
+  for (const p of S.dados.patients) {
+    if (p.arquivado) continue;
+    const x = retornoPrevisto(p.id); if (!x || !x.prev || p.retornoDispensado === x.ult.id) continue;
+    if (x.prev < hoje) atras.push({p, ...x}); else if (x.prev <= semana) prox.push({p, ...x});
+  }
+  atras.sort((a, b) => b.prev.localeCompare(a.prev)); prox.sort((a, b) => a.prev.localeCompare(b.prev));
+  return {atras, prox};
+}
+function itemRetorno(x, atrasado) {
+  const d = Math.abs(diasEntre(hojeStr(), x.prev));
+  return `<div class="ret-item"><div><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="abrir-paciente" data-id="${x.p.id}">${esc(x.p.nome)}</button>
+    <small style="display:block;color:var(--suave)">Previsto ${fmtData(x.prev)} ${atrasado ? `(há ${d} dia${d === 1 ? '' : 's'})` : d === 0 ? '(hoje)' : `(em ${d} dia${d === 1 ? '' : 's'})`} · consulta de ${fmtData(x.ult.data)}${x.p.telefone ? ' · ' + esc(x.p.telefone) : ''}</small></div>
+    ${atrasado ? `<button class="btn sm link" data-act="ret-dispensar" data-pid="${x.p.id}" data-r="${x.ult.id}" title="Não esperar mais este retorno (alta, mudou de médico…)">Dispensar</button>` : ''}</div>`;
+}
+function painelRetornos() {
+  const {atras, prox} = listaRetornos();
+  if (!atras.length && !prox.length) return '';
+  const N = 8;
+  return `<div class="card"><h2>Retornos</h2>
+    ${prox.length ? `<h3 style="margin:.2rem 0">Próximos 7 dias (${prox.length})</h3>${prox.slice(0, N).map(x => itemRetorno(x, false)).join('')}${prox.length > N ? `<details><summary style="cursor:pointer;color:var(--suave);padding:.3rem 0">mais ${prox.length - N}</summary>${prox.slice(N).map(x => itemRetorno(x, false)).join('')}</details>` : ''}` : ''}
+    ${atras.length ? `<h3 style="margin:.8rem 0 .2rem;color:var(--terracota)">Deveriam ter voltado (${atras.length})</h3>${atras.slice(0, N).map(x => itemRetorno(x, true)).join('')}${atras.length > N ? `<details><summary style="cursor:pointer;color:var(--suave);padding:.3rem 0">mais ${atras.length - N}</summary>${atras.slice(N).map(x => itemRetorno(x, true)).join('')}</details>` : ''}` : ''}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Calculado pelo campo “Retorno” (ou pela frase “retorno em…” da conduta) da última consulta.</p></div>`;
+}
+
+/* ---------- LMEs a renovar ---------- */
+function lmesARenovar(dias = 20) {
+  const hoje = hojeStr(), lim = somarDias(hoje, dias), out = [];
+  for (const p of S.dados.patients) {
+    if (p.arquivado) continue;
+    const l = registrosDe(p.id).filter(r => r.tipo === 'lme' && !anulado(r)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm))[0];
+    if (!l || p.lmeDispensada === l.id) continue;
+    const venc = somarDias(l.data, 90);
+    if (venc <= lim) out.push({p, l, venc, meds: String(l.campos.medicamentos || '').split('\n').map(x => x.split(':')[0].trim()).filter(Boolean).join(', ')});
+  }
+  return out.sort((a, b) => a.venc.localeCompare(b.venc));
+}
+function painelLMEs() {
+  const lst = lmesARenovar(); if (!lst.length) return '';
+  const hoje = hojeStr();
+  return `<div class="card"><h2>LMEs a renovar (${lst.length})</h2>${lst.map(x => { const d = diasEntre(hoje, x.venc); return `<div class="ret-item"><div><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="abrir-paciente" data-id="${x.p.id}">${esc(x.p.nome)}</button>
+    <small style="display:block;color:var(--suave)">LME de ${fmtData(x.l.data)}${x.meds ? ' · ' + esc(x.meds.slice(0, 80)) : ''} · ${d < 0 ? `<b style="color:var(--terracota)">venceu há ${-d} dia(s)</b>` : d === 0 ? '<b>vence hoje</b>' : `vence em ${d} dia(s) (${fmtData(x.venc)})`}</small></div>
+    <div class="row" style="gap:.3rem;flex-wrap:nowrap"><button class="btn sm" data-act="nova-lme" data-pid="${x.p.id}">Renovar</button><button class="btn sm link" data-act="lme-dispensar" data-pid="${x.p.id}" data-r="${x.l.id}" title="Não renovar">✕</button></div></div>`; }).join('')}
+    <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Considera 90 dias (3 competências) a partir da data da última LME de cada paciente. Mostra as que vencem nos próximos 20 dias.</p></div>`;
+}
+
+/* ---------- pagamentos ---------- */
+const pags = () => (S.dados.pagamentos = S.dados.pagamentos || []);
+const pagsDe = pid => pags().filter(x => x.patientId === pid && !x.excluido).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+const FORMAS_PAG = ['Pix', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Transferência', 'Outro'];
+function valorPadrao(p) { return numBR(p.valorConsulta) || numBR(S.dados.settings.valorConsulta) || 0; }
+function lancarPagamentoAuto(reg) {
+  const p = paciente(reg.patientId), s = S.dados.settings;
+  if (s.pagAuto === 'nao' || !p || p.tipoAtend === 'Convênio' || !['primeira', 'evolucao'].includes(reg.tipo)) return false;
+  if (pags().some(x => x.refId === reg.id)) return false;
+  pags().push({id: uid(), patientId: p.id, refId: reg.id, data: reg.data, valor: valorPadrao(p), forma: '', status: 'pendente', recibo: false, pagador: '', pagadorCpf: '', obs: nomeTipo(reg.tipo), criadoEm: agoraISO(), atualizadoEm: agoraISO()});
+  return true;
+}
+function modalPagamento(pid, id) {
+  const p = paciente(pid), ex = id ? pags().find(x => x.id === id) : null;
+  const v = ex || {data: hojeStr(), valor: valorPadrao(p), forma: 'Pix', status: 'pago', recibo: false, pagador: '', pagadorCpf: '', obs: 'Consulta'};
+  modal(`<h2>${ex ? 'Pagamento' : 'Lançar pagamento'} · ${esc(p.nome)}</h2>
+    <div class="grid2"><label class="f"><span>Data</span><input type="date" id="pg-data" value="${esc(v.data)}"></label>
+    <label class="f"><span>Valor (R$)</span><input type="text" id="pg-valor" inputmode="decimal" value="${v.valor ? esc(String(v.valor).replace('.', ',')) : ''}" placeholder="ex.: 450"></label></div>
+    <div class="grid2"><label class="f"><span>Situação</span><select id="pg-status"><option value="pago" ${v.status === 'pago' ? 'selected' : ''}>Pago</option><option value="pendente" ${v.status === 'pendente' ? 'selected' : ''}>Pendente</option></select></label>
+    <label class="f"><span>Forma</span><select id="pg-forma"><option></option>${FORMAS_PAG.map(f => `<option ${v.forma === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label></div>
+    <label class="f"><span>Referente a</span><input type="text" id="pg-obs" value="${esc(v.obs || '')}" placeholder="ex.: Consulta"></label>
+    <details ${v.pagador ? 'open' : ''}><summary style="cursor:pointer;color:var(--suave);margin-bottom:.4rem">Quem pagou não foi o paciente?</summary>
+    <div class="grid2"><label class="f"><span>Nome do pagador</span><input type="text" id="pg-pagador" value="${esc(v.pagador || '')}"></label>
+    <label class="f"><span>CPF do pagador</span><input type="text" id="pg-pcpf" inputmode="numeric" value="${esc(v.pagadorCpf || '')}"></label></div></details>
+    <label style="display:flex;gap:.5rem;align-items:center;margin:.3rem 0 .8rem"><input type="checkbox" id="pg-recibo" ${v.recibo ? 'checked' : ''} style="width:20px;height:20px;min-height:0"> Recibo emitido no Receita Saúde</label>
+    <div class="acoes">${ex ? '<button class="btn perigo" data-m="del" style="margin-right:auto">Excluir</button>' : ''}<button class="btn" data-m="nao">Cancelar</button><button class="btn pri" data-m="sim">Salvar</button></div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    if (ex) m.querySelector('[data-m=del]').onclick = async () => { fechar(); if (!await confirmar({titulo: 'Excluir pagamento?', texto: `${fmtReal(ex.valor)} de ${fmtData(ex.data)}.`, ok: 'Excluir', perigo: true})) return; ex.excluido = true; ex.atualizadoEm = agoraISO(); auditar('Pagamento excluído', `${p.nome}: ${fmtReal(ex.valor)} de ${fmtData(ex.data)}`, pid); await salvar(); render(); };
+    m.querySelector('[data-m=sim]').onclick = async () => {
+      const g = s => m.querySelector(s).value.trim(), valor = numBR(g('#pg-valor'));
+      if (valor === null || valor < 0) return aviso('Informe o valor.');
+      const dados = {data: g('#pg-data') || hojeStr(), valor, status: g('#pg-status'), forma: g('#pg-forma'), obs: g('#pg-obs'), pagador: g('#pg-pagador'), pagadorCpf: g('#pg-pcpf'), recibo: m.querySelector('#pg-recibo').checked, atualizadoEm: agoraISO()};
+      if (ex) Object.assign(ex, dados); else pags().push({id: uid(), patientId: pid, refId: null, criadoEm: agoraISO(), ...dados});
+      auditar(ex ? 'Pagamento alterado' : 'Pagamento lançado', `${p.nome}: ${fmtReal(valor)} (${dados.status})`, pid);
+      await salvar(); fechar(); render();
+    };
+  });
+}
+function dadosReciboTexto(x) {
+  const p = paciente(x.patientId);
+  return [`Pagador: ${x.pagador || p.nome} – CPF ${x.pagadorCpf || p.cpf || '[sem CPF no cadastro]'}`, `Beneficiário (paciente): ${p.nome} – CPF ${p.cpf || '[sem CPF no cadastro]'}`, `Valor: ${fmtReal(x.valor)}`, `Data do pagamento: ${fmtData(x.data)}`, x.obs ? `Descrição: ${x.obs}` : ''].filter(Boolean).join('\n');
+}
+async function copiarRecibo(id) {
+  const x = pags().find(y => y.id === id); if (!x) return;
+  try { await navigator.clipboard.writeText(dadosReciboTexto(x)); aviso('Dados copiados. Cole no Receita Saúde (app Receita Federal ou Carnê-Leão Web).', 5000); }
+  catch (e) { modal(`<h2>Dados para o recibo</h2><textarea rows="6" style="width:100%">${esc(dadosReciboTexto(x))}</textarea><div class="acoes"><button class="btn pri" data-m="ok">Fechar</button></div>`, (m, f) => { m.querySelector('[data-m=ok]').onclick = f; }); }
+}
+function linhaPag(x, comNome) {
+  const p = paciente(x.patientId);
+  return `<div class="ret-item"><button class="btn link" style="padding:0;min-height:0;text-align:left;flex:1" data-act="${comNome ? 'abrir-paciente' : 'pag-editar'}" data-id="${comNome ? p.id : x.id}" data-pid="${p.id}"><b>${comNome ? esc(p.nome) + ' · ' : ''}${fmtReal(x.valor)}</b><small style="display:block;color:var(--suave)">${fmtData(x.data)}${x.obs ? ' · ' + esc(x.obs) : ''}${x.forma ? ' · ' + esc(x.forma) : ''}</small></button>
+    <span class="row" style="gap:.3rem;flex-wrap:nowrap">${x.status === 'pendente' ? `<span class="tag pend">pendente</span><button class="btn sm" data-act="pag-pago" data-id="${x.id}">Recebido</button>` : x.recibo ? '<span class="tag ok">recibo ✓</span>' : `<button class="btn sm" data-act="pag-copiar" data-id="${x.id}" title="Copiar os dados para o Receita Saúde">Copiar</button><button class="btn sm" data-act="pag-recibo" data-id="${x.id}">Recibo emitido</button>`}</span></div>`;
+}
+function cartaoPagamentos(p) {
+  const lst = pagsDe(p.id);
+  if (p.tipoAtend === 'Convênio' && !lst.length) return '';
+  const pend = lst.filter(x => x.status === 'pendente'), semRec = lst.filter(x => x.status === 'pago' && !x.recibo);
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:.3rem"><h2 style="margin:0">Pagamentos</h2><button class="btn sm" data-act="pag-novo" data-pid="${p.id}">+ Lançar</button></div>
+    ${pend.length ? `<div style="margin-bottom:.3rem"><span class="tag pend">${pend.length} pendente(s): ${fmtReal(pend.reduce((a, x) => a + x.valor, 0))}</span></div>` : ''}
+    ${semRec.length ? `<div style="margin-bottom:.3rem"><span class="tag ruim">${semRec.length} recibo(s) a emitir</span></div>` : ''}
+    ${lst.length ? lst.slice(0, 6).map(x => linhaPag(x, false)).join('') + (lst.length > 6 ? `<details><summary style="cursor:pointer;color:var(--suave);padding:.3rem 0">mais ${lst.length - 6}</summary>${lst.slice(6).map(x => linhaPag(x, false)).join('')}</details>` : '') : '<div class="vazio" style="padding:.6rem 0">Nenhum pagamento lançado.</div>'}
+  </div>`;
+}
+function painelFinanceiro() {
+  const todos = pags().filter(x => !x.excluido && paciente(x.patientId)); if (!todos.length) return '';
+  const mes = hojeStr().slice(0, 7);
+  const rec = todos.filter(x => x.status === 'pago' && x.data.slice(0, 7) === mes), pend = todos.filter(x => x.status === 'pendente'), semRec = todos.filter(x => x.status === 'pago' && !x.recibo).sort((a, b) => a.data.localeCompare(b.data));
+  return `<div class="card"><h2>Financeiro</h2>
+    <div class="kpis" style="margin-bottom:.6rem"><div class="kpi" style="box-shadow:none;border:1px solid #eee3d1"><div class="n" style="font-size:1.3rem">${fmtReal(rec.reduce((a, x) => a + x.valor, 0))}</div><div class="l">recebido em ${['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'][+mes.slice(5) - 1]} (${rec.length})</div></div>
+    <div class="kpi" style="box-shadow:none;border:1px solid #eee3d1"><div class="n" style="font-size:1.3rem">${fmtReal(pend.reduce((a, x) => a + x.valor, 0))}</div><div class="l">pendente (${pend.length})</div></div>
+    <div class="kpi" style="box-shadow:none;border:1px solid #eee3d1"><div class="n" style="font-size:1.3rem;${semRec.length ? 'color:var(--terracota)' : ''}">${semRec.length}</div><div class="l">recibo(s) a emitir no Receita Saúde</div></div></div>
+    ${semRec.length ? `<h3 style="margin:.2rem 0">Recibos a emitir</h3>${semRec.slice(0, 8).map(x => linhaPag(x, true)).join('')}${semRec.length > 8 ? `<p style="color:var(--suave);font-size:.85rem">e mais ${semRec.length - 8}.</p>` : ''}
+      <p style="color:var(--suave);font-size:.8rem;margin:.5rem 0 0">Emita pelo Receita Saúde (app Receita Federal ou Carnê-Leão Web, no e-CAC), de preferência no dia do pagamento. “Copiar” leva CPF do pagador e do paciente, valor e data.</p>` : ''}
+    ${pend.length ? `<details style="margin-top:.5rem"><summary style="cursor:pointer;color:var(--suave)">Pagamentos pendentes (${pend.length})</summary>${pend.sort((a, b) => a.data.localeCompare(b.data)).map(x => linhaPag(x, true)).join('')}</details>` : ''}
+  </div>`;
+}
+
+/* ---------- busca no prontuário inteiro ---------- */
+function telaBuscaGeral() {
+  S.buscaG = S.buscaG || {q: '', f: ''};
+  const chip = (rot, q, f = '') => `<button class="aba ${(f && S.buscaG.f === f) || (!f && !S.buscaG.f && S.buscaG.q === q) ? 'on' : ''}" data-act="bg-chip" data-q="${esc(q)}" data-f="${f}">${rot}</button>`;
+  return `${btnVoltar()}<h1 style="font-size:1.5rem;margin:.3rem 0 .8rem">Buscar no prontuário</h1>
+    <div class="form-sec" style="padding-top:.9rem"><label class="f"><span>Medicação, CID, palavra ou nome</span><input type="search" id="bg-q" value="${esc(S.buscaG.q)}" placeholder="ex.: lítio · F31 · ideação · Maria" autocomplete="off"></label>
+    <div class="apoio-topo" style="display:flex;flex-wrap:wrap;gap:.35rem;padding-bottom:.9rem">${chip('Usa lítio', 'lítio')}${chip('Usa clozapina', 'clozapina')}${chip('Usa valproato', 'valpro')}${chip('CID F31', 'F31')}${chip('CID F32/F33', 'F3')}${chip('LMEs a renovar', '', 'lme')}${chip('Retornos atrasados', '', 'ret')}${chip('Pagamentos pendentes', '', 'pag')}</div></div>
+    <div id="bg-res">${resultadosBusca()}</div>`;
+}
+function ligarBuscaGeral() {
+  const i = $('#bg-q'); if (!i) return;
+  i.addEventListener('input', () => { S.buscaG.q = i.value; S.buscaG.f = ''; $('#bg-res').innerHTML = resultadosBusca(); document.querySelectorAll('[data-act=bg-chip]').forEach(b => b.classList.toggle('on', !b.dataset.f && b.dataset.q === i.value)); });
+  if (!ehToque) i.focus();
+}
+function trecho(txt, qn) {
+  const t = String(txt), i = semAcento(t).indexOf(qn); if (i < 0) return esc(t.slice(0, 120));
+  const a = Math.max(0, i - 60), b = Math.min(t.length, i + qn.length + 80);
+  return (a ? '…' : '') + esc(t.slice(a, i)) + '<mark>' + esc(t.slice(i, i + qn.length)) + '</mark>' + esc(t.slice(i + qn.length, b)) + (b < t.length ? '…' : '');
+}
+function resultadosBusca() {
+  const B = S.buscaG || {q: '', f: ''};
+  if (B.f === 'lme') return painelLMEs() || '<div class="card vazio">Nenhuma LME vencendo nos próximos 20 dias.</div>';
+  if (B.f === 'ret') { const {atras} = listaRetornos(); return atras.length ? `<div class="card"><h2>Retornos atrasados (${atras.length})</h2>${atras.map(x => itemRetorno(x, true)).join('')}</div>` : '<div class="card vazio">Nenhum retorno atrasado.</div>'; }
+  if (B.f === 'pag') { const pend = pags().filter(x => !x.excluido && x.status === 'pendente' && paciente(x.patientId)).sort((a, b) => a.data.localeCompare(b.data)); return pend.length ? `<div class="card"><h2>Pagamentos pendentes (${pend.length}) · ${fmtReal(pend.reduce((a, x) => a + x.valor, 0))}</h2>${pend.map(x => linhaPag(x, true)).join('')}</div>` : '<div class="card vazio">Nenhum pagamento pendente.</div>'; }
+  const q = (B.q || '').trim(), qn = semAcento(q);
+  if (qn.length < 2) return '<p style="color:var(--suave)">Digite ao menos 2 letras. A busca olha medicações, CIDs, todos os registros e os cadastros.</p>';
+  const ativos = S.dados.patients.filter(p => !p.arquivado);
+  const emUso = [], usou = [];
+  for (const p of ativos) for (const m of p.medicacoes || []) if (semAcento(m.nome).includes(qn)) (m.fim ? usou : emUso).push({p, m});
+  const ehCid = /^[a-z]\d{0,2}(\.\d)?$/i.test(q);
+  const porCid = new Map();
+  if (ehCid) for (const r of S.dados.records) { if (anulado(r) || !paciente(r.patientId)) continue; for (const c of r.cid || []) if (c.toUpperCase().replace(/\s/g, '').startsWith(q.toUpperCase())) { const e = porCid.get(r.patientId); if (!e || r.data > e.data) porCid.set(r.patientId, {data: r.data, cid: c}); } }
+  const pacs = ativos.filter(p => semAcento(p.nome).includes(qn) || (qn.replace(/\D/g, '').length >= 4 && (p.cpf || '').replace(/\D/g, '').includes(qn.replace(/\D/g, ''))));
+  const regs = [];
+  for (const r of S.dados.records) {
+    if (anulado(r) || r.tipo === 'anulacao' || !paciente(r.patientId)) continue;
+    const txt = Object.entries(r.campos || {}).filter(([k]) => !/^dados/.test(k)).map(([, v]) => v).join('\n') + '\n' + (r.cid || []).join('; ');
+    if (semAcento(txt).includes(qn)) regs.push({r, txt});
+  }
+  regs.sort((a, b) => (b.r.data + b.r.criadoEm).localeCompare(a.r.data + a.r.criadoEm));
+  const pac = id => paciente(id);
+  const bloco = (tit, itens) => itens ? `<div class="card"><h2>${tit}</h2>${itens}</div>` : '';
+  let h = '';
+  h += bloco(`Em uso de “${esc(q)}” (${emUso.length})`, emUso.sort((a, b) => a.p.nome.localeCompare(b.p.nome, 'pt-BR')).map(x => `<div class="ret-item"><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="abrir-paciente" data-id="${x.p.id}">${esc(x.p.nome)}</button><small style="color:var(--suave);text-align:right">${esc(x.m.nome)} ${esc(x.m.dose || '')}${x.m.inicio ? ' · desde ' + fmtData(x.m.inicio) : ''}</small></div>`).join(''));
+  h += bloco(`Já usaram (${usou.length})`, usou.map(x => `<div class="ret-item"><button class="btn link" style="padding:0;min-height:0" data-act="abrir-paciente" data-id="${x.p.id}">${esc(x.p.nome)}</button><small style="color:var(--suave);text-align:right">${esc(x.m.nome)} ${esc(x.m.dose || '')} · até ${fmtData(x.m.fim)}${x.m.motivo ? ' · ' + esc(x.m.motivo) : ''}</small></div>`).join(''));
+  h += bloco(`Com CID ${esc(q.toUpperCase())} (${porCid.size})`, [...porCid.entries()].sort((a, b) => pac(a[0]).nome.localeCompare(pac(b[0]).nome, 'pt-BR')).map(([pid, x]) => `<div class="ret-item"><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="abrir-paciente" data-id="${pid}">${esc(pac(pid).nome)}</button><small style="color:var(--suave);text-align:right">${esc(x.cid)} · ${fmtData(x.data)}</small></div>`).join(''));
+  h += bloco(`Pacientes (${pacs.length})`, pacs.map(p => `<div class="ret-item"><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="abrir-paciente" data-id="${p.id}">${esc(p.nome)}</button><small style="color:var(--suave)">${p.nascimento ? esc(idade(p.nascimento)) : ''}</small></div>`).join(''));
+  h += bloco(`Nos registros (${regs.length}${regs.length > 60 ? ', mostrando 60' : ''})`, regs.slice(0, 60).map(x => `<div class="ret-item" style="display:block"><button class="btn link" style="padding:0;min-height:0;font-weight:600" data-act="bg-abrir" data-pid="${x.r.patientId}" data-r="${x.r.id}">${esc(pac(x.r.patientId).nome)}</button> <small style="color:var(--suave)">· ${esc(nomeTipo(x.r.tipo))} · ${fmtData(x.r.data)}</small><div class="bg-trecho">${trecho(x.txt, qn)}</div></div>`).join(''));
+  return h || `<div class="card vazio">Nada encontrado para “${esc(q)}”.</div>`;
+}
+
+/* ---------- resumo do paciente (1 página) ---------- */
+function htmlResumo(p) {
+  const regs = registrosDe(p.id).filter(r => !anulado(r));
+  const ord = regs.slice().sort((a, b) => (b.data + (b.criadoEm || '')).localeCompare(a.data + (a.criadoEm || '')));
+  const ats = ord.filter(r => ['primeira', 'evolucao', 'doctoralia'].includes(r.tipo));
+  const prim = ord.find(r => r.tipo === 'primeira');
+  const corta = (t, n) => { t = String(t || '').trim(); return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t; };
+  const cids = new Map(); for (const r of ord) for (const c of r.cid || []) { const k = c.split(/\s|–/)[0].toUpperCase(); if (!cids.has(k)) cids.set(k, {c, data: r.data}); }
+  const ativas = (p.medicacoes || []).filter(m => !m.fim), susp = (p.medicacoes || []).filter(m => m.fim).sort((a, b) => b.fim.localeCompare(a.fim));
+  const risco = ord.find(r => ['primeira', 'evolucao'].includes(r.tipo) && (r.campos.ris_ideacao || r.campos.ris_nivel || r.campos.risco));
+  const ultCond = ord.find(r => ['primeira', 'evolucao'].includes(r.tipo) && r.campos.conduta);
+  const ret = retornoPrevisto(p.id);
+  const escs = {}; for (const r of regs.filter(r => r.tipo === 'escala').sort((a, b) => a.data.localeCompare(b.data))) { const d = dadosEscalaReg(r); if (d && ESCALAS[d.chave]) (escs[d.chave] = escs[d.chave] || []).push({r, d}); }
+  const lit = ord.find(r => r.tipo === 'litemia');
+  const mon = k => ultimoMon(p.id, k);
+  const lme = ord.find(r => r.tipo === 'lme');
+  const sec = (t, h) => h ? `<div class="res-sec"><h4>${t}</h4>${h}</div>` : '';
+  const li = arr => arr.filter(Boolean).length ? `<ul>${arr.filter(Boolean).map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+  const antes = prim ? [['tentativas', 'Tentativas/autolesão'], ['internacoes', 'Internações'], ['ant_psiq', 'Antecedentes psiquiátricos'], ['ant_clinicos', 'Clínicos'], ['substancias', 'Substâncias'], ['familiar', 'Família']].filter(([k]) => (prim.campos[k] || '').trim()).map(([k, rot]) => `<b>${rot}:</b> ${esc(corta(prim.campos[k], 220))}`) : [];
+  const monTxt = [mon('peso') && `Peso ${fmtNum(mon('peso').y)} kg${mon('imc') ? ' · IMC ' + fmtNum(mon('imc').y) : ''} (${fmtData(mon('peso').x)})`,
+    (() => { const s = regsMon(p.id).filter(r => r.campos.pa); const r = s[s.length - 1]; return r ? `PA ${esc(r.campos.pa)} (${fmtData(r.data)})` : ''; })(),
+    mon('glicemia') && `Glicemia ${fmtNum(mon('glicemia').y, 0)} (${fmtData(mon('glicemia').x)})`, mon('hba1c') && `HbA1c ${fmtNum(mon('hba1c').y)}% (${fmtData(mon('hba1c').x)})`,
+    mon('ldl') && `LDL ${fmtNum(mon('ldl').y, 0)} (${fmtData(mon('ldl').x)})`, mon('tg') && `TG ${fmtNum(mon('tg').y, 0)} (${fmtData(mon('tg').x)})`,
+    mon('neutro') && `Neutrófilos ${fmtNum(mon('neutro').y, 0)} (${fmtData(mon('neutro').x)})`, mon('valp') && `Valproato ${fmtNum(mon('valp').y)} µg/mL (${fmtData(mon('valp').x)})`,
+    lit && `Litemia ${esc(lit.campos.valor)} mEq/L (${fmtData(lit.data)})`].filter(Boolean);
+  return `<div class="p-doc resumo">${cabecalhoImpressao()}
+    <h2 style="font-size:13pt;margin:0 0 2px">Resumo do paciente</h2><div class="res-sub">Gerado em ${fmtDataHora(agoraISO())}</div>
+    <div class="res-id"><b style="font-size:12pt">${esc(p.nome)}</b>${p.nomeSocial ? ` (nome social: ${esc(p.nomeSocial)})` : ''}<br>
+      ${[p.nascimento && `Nasc. ${fmtData(p.nascimento)} (${esc(idade(p.nascimento))})`, p.sexo && esc(p.sexo), p.cpf && 'CPF ' + esc(p.cpf), p.cns && 'CNS ' + esc(p.cns), p.telefone && esc(p.telefone), p.tipoAtend && esc(p.tipoAtend + (p.convenio ? ' · ' + p.convenio : ''))].filter(Boolean).join(' · ')}
+      ${p.responsavel ? `<br>Responsável / emergência: ${esc(p.responsavel)}` : ''}
+      ${p.alergias || (prim && prim.campos.alergias) ? `<br><b style="color:#a3442f">Alergias: ${esc(p.alergias || prim.campos.alergias)}</b>` : ''}</div>
+    <div class="res-grid"><div>
+      ${sec('Acompanhamento', li([ats.length ? `${ats.length} atendimento(s): de ${fmtData(ats[ats.length - 1].data)} a ${fmtData(ats[0].data)}` : 'Sem atendimentos registrados', ret && ret.prev ? `Retorno previsto: <b>${fmtData(ret.prev)}</b>${ret.prev < hojeStr() ? ' (atrasado)' : ''}` : '', lme ? `LME de ${fmtData(lme.data)} · renovar até ${fmtData(somarDias(lme.data, 90))}` : '']))}
+      ${sec('Diagnósticos (CID-10)', li([...cids.values()].slice(0, 6).map(x => `${esc(x.c)} <span class="res-d">${fmtData(x.data)}</span>`)))}
+      ${sec('Medicações em uso', ativas.length ? li(ativas.map(m => `<b>${esc(m.nome)}</b> ${esc(m.dose || '')}${m.posologia ? ' – ' + esc(m.posologia) : ''}${m.inicio ? ` <span class="res-d">desde ${fmtData(m.inicio)}</span>` : ''}`)) : '<p>Nenhuma.</p>')}
+      ${sec('Já usou', li(susp.slice(0, 8).map(m => `${esc(m.nome)} ${esc(m.dose || '')} <span class="res-d">${m.inicio ? fmtData(m.inicio) : '?'}–${fmtData(m.fim)}${m.motivo ? ' · ' + esc(corta(m.motivo, 60)) : ''}</span>`).concat(prim && prim.campos.med_previas ? [esc(corta(prim.campos.med_previas, 260))] : [])))}
+    </div><div>
+      ${sec('Risco', risco ? `<p>${fmtData(risco.data)}: ${[risco.campos.ris_ideacao && 'ideação ' + esc(risco.campos.ris_ideacao.toLowerCase()), risco.campos.ris_nivel && 'risco ' + esc(risco.campos.ris_nivel.toLowerCase()), risco.campos.risco && esc(risco.campos.risco)].filter(Boolean).join(' · ')}</p>` : '')}
+      ${sec('Antecedentes', li(antes))}
+      ${sec('Escalas', li(Object.entries(escs).map(([k, l]) => { const u = l[l.length - 1], pr = l[0]; return `<b>${esc(ESCALAS[k].sigla)}</b> ${u.d.total} – ${esc(calcularEscala(k, u.d.resp).interp)} <span class="res-d">${fmtData(u.r.data)}${l.length > 1 ? ` · 1ª: ${pr.d.total} em ${fmtData(pr.r.data)}` : ''}</span>`; })))}
+      ${sec('Exames e medidas', li(monTxt))}
+    </div></div>
+    ${ultCond ? sec(`Última conduta (${fmtData(ultCond.data)})`, `<p style="white-space:pre-wrap">${esc(corta(ultCond.campos.conduta, 700))}</p>`) : ''}
+    <div class="p-rod">Resumo gerado a partir do prontuário de ${esc(S.dados.settings.medico)} – ${esc(S.dados.settings.crm)}. Não substitui o prontuário completo.</div>
+  </div>`;
+}
+function mostrarResumo(pid) {
+  const p = paciente(pid), html = htmlResumo(p);
+  auditar('Resumo do paciente visualizado', p.nome, pid); salvar();
+  modal(`<h2>Resumo · ${esc(p.nome)}</h2><div class="resumo-tela">${html}</div><div class="acoes"><button class="btn" data-m="nao">Fechar</button><button class="btn pri" data-m="imp">Imprimir / PDF</button></div>`, (m, fechar) => {
+    m.classList.add('largo');
+    m.querySelector('[data-m=nao]').onclick = fechar;
+    m.querySelector('[data-m=imp]').onclick = () => { fechar(); imprimirFolha(html, 'resumo', 'Resumo do paciente – ' + p.nome, pid); };
+  });
+}
+
+/* ---------- plano de segurança e termos de consentimento ---------- */
+const TXT_PLANO_SEG = `Este plano foi feito junto com você para ser usado em momentos de crise. Guarde-o num lugar fácil de achar (celular, carteira, mesa de cabeceira) e siga os passos em ordem, até se sentir em segurança.
+
+1. Sinais de alerta: pensamentos, imagens, sentimentos, situações ou comportamentos que mostram que uma crise pode estar começando
+- [ ]
+- [ ]
+- [ ]
+
+2. O que eu mesmo posso fazer para me acalmar e tirar a mente dos problemas, sem precisar de outra pessoa
+- [ex.: caminhar, tomar banho, ouvir música, respiração lenta]
+- [ ]
+- [ ]
+
+3. Pessoas e lugares que me ajudam a me distrair
+- Nome: [ ]  Telefone: [ ]
+- Nome: [ ]  Telefone: [ ]
+- Lugar: [ ]
+
+4. Pessoas a quem posso pedir ajuda e contar como estou
+- Nome: [ ]  Telefone: [ ]
+- Nome: [ ]  Telefone: [ ]
+- Nome: [ ]  Telefone: [ ]
+
+5. Profissionais e serviços que posso procurar durante uma crise
+- Psiquiatra: {medico} · {telefone}
+- Psicólogo(a): [ ]  Telefone: [ ]
+- CAPS ou serviço de referência: [ ]
+- CVV (Centro de Valorização da Vida): ligue 188, 24 horas, gratuito, ou converse pelo site cvv.org.br
+- SAMU: 192
+- Pronto-socorro / UPA mais próxima: [ ]
+
+6. Como deixar o ambiente mais seguro (reduzir o acesso a meios)
+- [ex.: medicações guardadas e entregues por um familiar]
+- [ex.: retirar de casa armas, cordas ou objetos cortantes]
+- [ ]
+
+O que mais importa para mim e vale a pena viver
+- [ ]
+
+Se a vontade de se machucar ficar forte ou você não conseguir se manter em segurança, não espere: ligue 192 ou vá ao pronto-socorro mais próximo.
+
+Baseado no Plano de Segurança de Stanley e Brown (Safety Planning Intervention).`;
+const ASS_TERMO = `
+
+Declaro que li (ou que me foi lido) este termo, que recebi as explicações em linguagem clara, que tive oportunidade de fazer perguntas e que minhas dúvidas foram respondidas. Sei que posso retirar este consentimento a qualquer momento, sem prejuízo ao meu atendimento.
+
+Nome do paciente: {nome}
+Assinatura do paciente: ______________________________________
+
+Responsável legal (se houver): ______________________________  CPF: _______________
+Assinatura do responsável: ______________________________________`;
+const TERMOS = {
+  termo_clozapina: ['Clozapina', `Eu, {nome}, fui informado(a) pelo meu médico, {medico} ({crm}), sobre o tratamento com clozapina, indicado para [esquizofrenia resistente ao tratamento / redução do risco de comportamento suicida / outra indicação: ____].
+
+Benefícios esperados
+- Melhora dos sintomas que não responderam a outros antipsicóticos e redução do risco de suicídio em pessoas com esquizofrenia.
+
+Riscos e cuidados que entendi
+- Neutropenia e agranulocitose (queda das células de defesa do sangue): rara, mas grave. Por isso o hemograma é obrigatório: antes de começar, semanal nas primeiras 18 semanas e depois ao menos a cada 4 semanas enquanto eu usar o remédio. Sem o exame em dia, a medicação não deve ser mantida.
+- Miocardite e cardiomiopatia (inflamação do coração), mais comuns nos primeiros 2 meses: devo avisar se tiver dor no peito, falta de ar, palpitações, febre ou cansaço intenso.
+- Prisão de ventre, que pode ser grave (obstrução intestinal): avisar se ficar mais de 3 dias sem evacuar ou tiver dor e inchaço na barriga.
+- Convulsões (risco maior com doses altas), sonolência, salivação excessiva, tontura ao levantar, taquicardia, febre nas primeiras semanas, ganho de peso e aumento de glicose e colesterol.
+- Parar de fumar ou começar a fumar muda o nível do remédio no sangue: devo avisar o médico.
+- Não devo interromper por conta própria nem tomar outros remédios sem orientação.
+
+Devo procurar atendimento de urgência se tiver: febre, dor de garganta, feridas na boca ou outros sinais de infecção; dor no peito ou falta de ar; convulsão; dor abdominal forte com vômitos.
+
+Alternativas: foram discutidas outras opções de tratamento e suas limitações.
+
+Para retirar a clozapina pelo SUS também é necessário o Termo de Esclarecimento e Responsabilidade do Protocolo Clínico do Ministério da Saúde, que acompanha a LME.`],
+  termo_litio: ['Carbonato de lítio', `Eu, {nome}, fui informado(a) pelo meu médico, {medico} ({crm}), sobre o tratamento com carbonato de lítio, indicado para [transtorno bipolar / depressão / outra indicação: ____].
+
+Benefícios esperados
+- Estabilização do humor, prevenção de novos episódios de mania e de depressão e redução do risco de suicídio.
+
+Riscos e cuidados que entendi
+- O lítio tem margem estreita entre a dose que trata e a dose tóxica. Por isso preciso fazer litemia (exame de sangue colhido cerca de 12 horas após a última dose) sempre que a dose mudar e depois regularmente, além de exames de rim, tireoide e cálcio.
+- Sinais de intoxicação: tremor forte, diarreia, vômitos, fraqueza, sonolência excessiva, fala arrastada, desequilíbrio ou confusão. Se surgirem, devo suspender a dose seguinte e procurar atendimento.
+- Desidratação (calor, febre, vômitos, diarreia, dieta sem sal, exercício intenso) aumenta o nível do lítio: devo beber água com regularidade.
+- Anti-inflamatórios (ibuprofeno, diclofenaco, nimesulida e outros), alguns remédios de pressão (diuréticos, enalapril, losartana e semelhantes) podem elevar o lítio: não usar sem avisar o médico.
+- Efeitos possíveis: tremor fino, sede e urina em maior quantidade, ganho de peso, acne, alterações da tireoide e, com o uso prolongado, dos rins.
+- Gravidez: devo avisar antes de engravidar ou assim que souber, para planejarmos juntos; não devo parar por conta própria.
+- Parar de forma brusca aumenta o risco de recaída.
+
+Alternativas: foram discutidas outras opções de tratamento e suas limitações.`],
+  termo_escetamina: ['Escetamina (spray nasal)', `Eu, {nome}, fui informado(a) pelo meu médico, {medico} ({crm}), sobre o tratamento com escetamina em spray nasal, indicado para [depressão resistente ao tratamento / sintomas depressivos com ideação suicida, em associação a antidepressivo oral].
+
+Como funciona o tratamento
+- A aplicação é feita por mim, no consultório, sob supervisão. Depois de cada sessão fico em observação até ser liberado(a) pela equipe (em geral cerca de 2 horas), com medida da pressão arterial.
+- Devo evitar comer nas 2 horas antes e beber líquidos nos 30 minutos antes da aplicação.
+- No dia da aplicação não posso dirigir, operar máquinas ou fazer atividades que exijam atenção até o dia seguinte, após uma noite de sono. Preciso de um acompanhante para voltar para casa.
+
+Riscos e cuidados que entendi
+- Efeitos comuns e passageiros: sensação de estar fora do corpo ou do ambiente (dissociação), tontura, vertigem, sonolência, náusea, alteração do paladar, dormência e aumento temporário da pressão arterial.
+- Risco de uso indevido: a medicação só pode ser usada no consultório.
+- Contraindicações: aneurisma, malformação arteriovenosa, sangramento cerebral prévio e alergia ao produto. Devo informar pressão alta, doenças do coração, uso de outras substâncias e gravidez ou amamentação.
+- Devo avisar se tiver piora do humor, pensamentos de morte ou efeitos que não passam.
+
+Alternativas: foram discutidas outras opções de tratamento e suas limitações.`],
+  termo_offlabel: ['Uso fora da bula (off-label)', `Eu, {nome}, fui informado(a) pelo meu médico, {medico} ({crm}), de que a medicação [nome e dose] está sendo indicada para [indicação], uso que não consta na bula aprovada pela Anvisa para esta finalidade (uso off-label).
+
+Entendi que
+- O uso fora da bula é permitido quando há embasamento científico e é de responsabilidade do médico que prescreve.
+- Motivo da indicação: [ex.: falta de resposta ou intolerância a tratamentos aprovados; evidências de estudos e diretrizes].
+- Benefícios esperados: [ ].
+- Riscos e efeitos possíveis: [ ].
+- Alternativas disponíveis: [ ].
+- Posso interromper o tratamento a qualquer momento, de preferência conversando antes com o médico.
+- Alguns planos de saúde e o SUS podem não fornecer ou não cobrir a medicação para esta indicação.`],
+  termo_teleconsulta: ['Teleconsulta', `Eu, {nome}, autorizo meu atendimento por telemedicina (teleconsulta) com {medico} ({crm}), conforme a Resolução CFM nº 2.314/2022 e a Lei nº 14.510/2022.
+
+Entendi que
+- A consulta presencial é a referência e a teleconsulta é complementar. O médico pode indicar atendimento presencial sempre que julgar necessário.
+- Em acompanhamento de doença crônica ou de longa duração deve haver consulta presencial em intervalos não superiores a 180 dias.
+- A teleconsulta tem limites: não há exame físico, e falhas de conexão podem interromper o atendimento.
+- O atendimento é registrado no prontuário, com o mesmo sigilo da consulta presencial. Meus dados são tratados conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+- Devo estar em local reservado. Nenhuma das partes pode gravar a consulta sem autorização da outra.
+- Receitas, atestados e documentos são emitidos eletronicamente, com assinatura digital ICP-Brasil.
+- Em situação de emergência devo procurar o pronto-socorro mais próximo ou ligar 192 (SAMU), sem esperar pela teleconsulta. Para apoio emocional imediato: CVV, ligue 188.
+
+Plataforma utilizada: [ ]. Telefone para contato se a conexão cair: [ ].`]
+};
+CATS_DOC.push(['termo', 'Termos de consentimento']);
+COR_CAT.termo = '#7a5a43';
+MODELOS_DOC.plano_seguranca = {cat: 'orientacao', rotulo: 'Plano de segurança (Stanley-Brown)', titulo: 'Plano de segurança', texto: TXT_PLANO_SEG};
+for (const [k, [rot, txt]] of Object.entries(TERMOS)) MODELOS_DOC[k] = {cat: 'termo', rotulo: rot, titulo: 'Termo de consentimento: ' + rot, texto: txt + ASS_TERMO};
+
 const ACOES = {
   'ir': d => { S.view = {nome: d.v}; render(); },
   'bloquear': () => bloquear(),
@@ -2996,7 +3751,23 @@ const ACOES = {
   'drive-puxar': (d, el) => drivePuxar(el),
   'trocar-senha': () => trocarSenha(),
   'demo': () => carregarDemo(),
-  'apagar-tudo': () => apagarTudo()
+  'apagar-tudo': () => apagarTudo(),
+  'novo-monitor': d => abrirMonitor(d.pid),
+  'mon-salvar': () => salvarMonitor(),
+  'doc-protocolo': d => { abrirDocumento(d.pid); escolherModeloDoc(d.k); },
+  'doc-modelo-p': d => { abrirDocumento(d.pid); escolherModeloDoc(d.k); },
+  'linha-tempo': d => { S.view = {nome: 'linha', pid: d.id}; render(); },
+  'linha-periodo': d => { S.linhaPer = d.k; render(); },
+  'resumo-paciente': d => mostrarResumo(d.id),
+  'ret-dispensar': async d => { const p = paciente(d.pid); if (!await confirmar({titulo: 'Dispensar este retorno?', texto: `${esc(p.nome)} sai da lista de retornos até a próxima consulta registrada.`, ok: 'Dispensar'})) return; p.retornoDispensado = d.r; p.atualizadoEm = agoraISO(); auditar('Retorno dispensado', p.nome, p.id); await salvar(); render(); },
+  'lme-dispensar': async d => { const p = paciente(d.pid); if (!await confirmar({titulo: 'Não renovar esta LME?', texto: `${esc(p.nome)} sai da lista até a próxima LME registrada.`, ok: 'Confirmar'})) return; p.lmeDispensada = d.r; p.atualizadoEm = agoraISO(); auditar('LME não renovada', p.nome, p.id); await salvar(); render(); },
+  'pag-novo': d => modalPagamento(d.pid),
+  'pag-editar': d => modalPagamento(d.pid, d.id),
+  'pag-pago': async d => { const x = pags().find(y => y.id === d.id); x.status = 'pago'; x.atualizadoEm = agoraISO(); auditar('Pagamento recebido', `${paciente(x.patientId).nome}: ${fmtReal(x.valor)}`, x.patientId); await salvar(); render(); aviso('Marcado como recebido. Lembre de emitir o recibo no Receita Saúde.', 5000); },
+  'pag-recibo': async d => { const x = pags().find(y => y.id === d.id); x.recibo = true; x.atualizadoEm = agoraISO(); auditar('Recibo Receita Saúde emitido', `${paciente(x.patientId).nome}: ${fmtReal(x.valor)}`, x.patientId); await salvar(); render(); },
+  'pag-copiar': d => copiarRecibo(d.id),
+  'bg-chip': d => { S.buscaG = {q: d.q || '', f: d.f || ''}; render(); },
+  'bg-abrir': d => { S.abertos.add(d.r); abrirPaciente(d.pid); setTimeout(() => { const el = document.querySelector(`[data-reg="${d.r}"]`) || document.getElementById('reg-' + d.r); if (el) el.scrollIntoView({block: 'center'}); }, 50); }
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || !S.chave) return;
