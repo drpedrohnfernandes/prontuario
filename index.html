@@ -474,7 +474,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.20.1';
+const APP_VERSAO = '1.21.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -733,6 +733,7 @@ function aposEntrar() {
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
   render();
   if (Store.volatil) aviso('Atenção: este navegador não permite guardar dados. Nada será salvo ao fechar.', 7000);
+  if (temPasta()) setTimeout(() => varrerPasta(true).catch(() => {}), 1500);
 }
 function bloquear(motivo) {
   S.chave = null; S.senha = null; S.dados = null; S.rascunho = null; S.abertos.clear();
@@ -1089,33 +1090,39 @@ function pdfDoRegistro(r) {
   }
   const adendos = S.dados.records.filter(a => a.tipo === 'adendo' && a.refId === r.id).sort((a, b) => a.criadoEm.localeCompare(b.criadoEm));
   for (const a of adendos) { bloco('ADENDO – ' + fmtDataHora(a.criadoEm), 'B', 8, 'cinza', 10); bloco(a.campos.texto, 'R', 10.5, 'texto', 1); }
-  // rodapé de identificação
-  if (y - 90 < BASE) novaPag();
+  // rodapé de identificação (com espaço para o campo de assinatura)
+  if (y - 175 < BASE) novaPag();
   y -= 16; linha('cinza', .5); y -= 2;
   bloco(`Registrado por ${r.autor} em ${fmtDataHora(r.criadoEm)}.${r.editadoEm ? ' Última edição em ' + fmtDataHora(r.editadoEm) + ' (versões anteriores guardadas no prontuário).' : ''}`, 'R', 8.5, 'cinza', 2);
   bloco('Código de integridade (SHA-256): ' + r.hash, 'R', 8, 'cinza', 1);
   bloco(`Documento assinado digitalmente por ${r.autor} com certificado ICP-Brasil (VIDaaS). Verifique em validar.iti.gov.br.`, 'R', 8.5, 'cinza', 1);
+  // campo de assinatura digital (o Acrobat assina clicando nele)
+  y -= 14; bloco('Assinatura digital do médico', 'B', 8, 'cinza', 0);
+  const sigPag = paginas.length - 1, sigRect = [M, y - 66, M + 260, y - 6];
+  pg().push(`0.75 0.72 0.66 RG 0.6 w [3 2] 0 d ${sigRect[0]} ${sigRect[1].toFixed(2)} ${sigRect[2] - sigRect[0]} ${(sigRect[3] - sigRect[1]).toFixed(2)} re S [] 0 d`);
+  y = sigRect[1];
   // numeração
   const N = paginas.length;
   const rodPag = (i) => { const t = `${p.nome} · ${ficha.titulo} ${fmtData(r.data)} · página ${i + 1} de ${N}`; const c = codigos1252(t); const x = W - M - largPdf(c, 'R', 7.5); return `BT /F1 7.5 Tf ${cor.cinza} rg ${x.toFixed(2)} 30 Td <${c.map(v => v.toString(16).padStart(2, '0')).join('')}> Tj ET`; };
   // montar o arquivo
   const objs = [];
   const add = o => { objs.push(o); return objs.length; };
-  const iCat = add(null), iPags = add(null);
+  const iCat = add(null), iPags = add(null), iSig = add(null);
   const iF1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
   const iF2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
   const filhos = [];
   paginas.forEach((ops, i) => {
     const conteudo = ops.filter(Boolean).concat(rodPag(i)).join('\n');
     const iC = add(`<< /Length ${conteudo.length} >>\nstream\n${conteudo}\nendstream`);
-    filhos.push(add(`<< /Type /Page /Parent ${iPags} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${iF1} 0 R /F2 ${iF2} 0 R >> >> /Contents ${iC} 0 R >>`));
+    filhos.push(add(`<< /Type /Page /Parent ${iPags} 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${iF1} 0 R /F2 ${iF2} 0 R >> >> /Contents ${iC} 0 R${i === sigPag ? ` /Annots [${iSig} 0 R]` : ''} >>`));
   });
-  objs[iCat - 1] = `<< /Type /Catalog /Pages ${iPags} 0 R >>`;
+  objs[iSig - 1] = `<< /Type /Annot /Subtype /Widget /FT /Sig /T (Assinatura do medico) /F 4 /Rect [${sigRect.map(v => v.toFixed(2)).join(' ')}] /P ${filhos[sigPag]} 0 R >>`;
+  objs[iCat - 1] = `<< /Type /Catalog /Pages ${iPags} 0 R /AcroForm << /Fields [${iSig} 0 R] >> >>`;
   objs[iPags - 1] = `<< /Type /Pages /Kids [${filhos.map(f => f + ' 0 R').join(' ')}] /Count ${filhos.length} >>`;
   const hexStr = t => '<FEFF' + [...String(t)].map(c => { const u = c.codePointAt(0); return u > 0xFFFF ? '' : u.toString(16).padStart(4, '0'); }).join('') + '>';
   const d = new Date(), z = n => String(n).padStart(2, '0');
-  const iInfo = add(`<< /Title ${hexStr(ficha.titulo + ' – ' + p.nome + ' – ' + fmtData(r.data))} /Author ${hexStr(s.medico || '')} /Producer (Prontuario ${APP_VERSAO}) /CreationDate (D:${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}) >>`);
-  let pdf = '%PDF-1.4\n%\u00E2\u00E3\u00CF\u00D3\n'; const offs = [];
+  const iInfo = add(`<< /Title ${hexStr(ficha.titulo + ' – ' + p.nome + ' – ' + fmtData(r.data))} /Author ${hexStr(s.medico || '')} /Producer (Principal ${APP_VERSAO}) /ProntuarioId (${r.id}) /ProntuarioHash (${r.hash}) /CreationDate (D:${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}) >>`);
+  let pdf = `%PDF-1.4\n%\u00E2\u00E3\u00CF\u00D3\n%PRONTUARIO ${r.id} ${r.hash}\n`; const offs = [];
   objs.forEach((o, i) => { offs.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
   const xref = pdf.length;
   pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
@@ -1138,8 +1145,8 @@ function assinarVidaas(id) {
   modal(`<h2>Assinar com o VIDaaS</h2>
     <ol class="passos-ass">
       <li><b>Baixe o PDF.</b> O arquivo é salvo direto em Downloads, já com o nome do paciente e do registro.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="pdf">Baixar PDF deste registro</button> <span id="m-pdfnome" style="font-size:.85rem;color:var(--musgo)"></span><br><a href="#" data-m="imp" style="font-size:.82rem">ou usar a tela de impressão</a></li>
-      <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o arquivo baixado (abre no Adobe Reader), clique em assinar com o <b>VIDaaS Connect</b> e autorize lendo o QR code com o app do celular. Salve o arquivo assinado.</li>
-      <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro. A partir daí o registro <b>não pode mais ser editado</b>.<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
+      <li><b>Assine com seu certificado VIDaaS.</b> No computador: abra o arquivo baixado no Adobe Acrobat Reader, clique no <b>campo “Assinatura digital do médico”</b> no fim do documento, escolha o certificado do <b>VIDaaS Connect</b> e autorize pelo app do celular. Salve o arquivo assinado.</li>
+      <li><b>Anexe o PDF assinado aqui.</b> O app confere se o arquivo tem assinatura digital e guarda junto ao registro. A partir daí o registro <b>não pode mais ser editado</b>.${temPasta() ? ` <a href="#" data-m="pasta" style="font-size:.85rem">No computador dá para anexar sozinho: configurar pasta de assinaturas</a>` : ''}<br><label class="btn sm" style="margin-top:.4rem;display:inline-flex;cursor:pointer">Anexar PDF assinado<input type="file" accept="application/pdf,.pdf" id="m-pdfass" style="display:none"></label></li>
     </ol>
     <p style="font-size:.85rem;color:var(--suave)">Não edite nem reimprima o PDF depois de assinado: qualquer alteração invalida a assinatura. Para conferir, use validar.iti.gov.br.</p>
     <div class="acoes"><button class="btn" data-m="nao">Fechar</button></div>`, (m, fechar) => {
@@ -1149,21 +1156,118 @@ function assinarVidaas(id) {
     m.querySelector('#m-pdfass').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       if (f.size > 8 * 1024 * 1024) return aviso('Arquivo grande demais (máx. 8 MB).');
-      const buf = new Uint8Array(await f.arrayBuffer());
-      const cab = new TextDecoder('latin1').decode(buf.slice(0, 5));
-      if (cab !== '%PDF-') return aviso('Esse arquivo não é um PDF.');
-      const txt = new TextDecoder('latin1').decode(buf);
-      if (!/\/ByteRange/.test(txt) || !/\/Type\s*\/Sig|adbe\.pkcs7|ETSI\.CAdES/.test(txt)) return aviso('Esse PDF não tem assinatura digital. Assine no app do VIDaaS e anexe o arquivo que ele devolver.', 7000);
-      if (S.pdfGerado && S.pdfGerado[r.id] && S.pdfGerado[r.id] !== r.hash) return aviso('O registro foi editado depois que o PDF foi gerado. Gere o PDF de novo, assine e anexe.', 8000);
-      let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
-      const hashArq = await sha256Bytes(buf);
-      r.pdfAssinado = btoa(bin);
-      r.assinatura = {status: 'assinado', via: 'VIDaaS (PDF)', em: agoraISO(), hashRegistro: r.hash, arquivo: {nome: f.name, tamanho: f.size, sha256: hashArq}};
-      auditar('Registro assinado digitalmente', `${nomeTipo(r.tipo)} de ${fmtData(r.data)} – ${paciente(r.patientId).nome} – arquivo ${f.name}`, r.patientId);
-      await salvar(); fechar(); render();
+      const res = await anexarPdfAssinado(r, new Uint8Array(await f.arrayBuffer()), f.name, false);
+      if (res !== true) return aviso(res, 8000);
+      fechar(); render();
       aviso('PDF assinado anexado. O registro aparece como Assinado.', 5000);
     };
+    const bp = m.querySelector('[data-m=pasta]'); if (bp) bp.onclick = async () => { fechar(); await configurarPastaAss(id); };
   });
+}
+async function anexarPdfAssinado(r, buf, nomeArq, auto) {
+  const L1 = new TextDecoder('latin1');
+  if (L1.decode(buf.slice(0, 5)) !== '%PDF-') return 'Esse arquivo não é um PDF.';
+  const txt = L1.decode(buf);
+  if (!pdfTemAssinatura(txt)) return 'Esse PDF não tem assinatura digital. Assine no Acrobat com o VIDaaS e anexe o arquivo salvo depois da assinatura.';
+  const mk = marcaPdf(txt);
+  if (mk.id && mk.id !== r.id) return 'Esse PDF assinado é de outro registro. Confira o arquivo.';
+  if ((mk.hash && mk.hash !== r.hash) || (!mk.hash && S.pdfGerado && S.pdfGerado[r.id] && S.pdfGerado[r.id] !== r.hash)) return 'O registro foi editado depois que o PDF foi gerado. Gere o PDF de novo, assine e anexe.';
+  let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  const hashArq = await sha256Bytes(buf);
+  r.pdfAssinado = btoa(bin);
+  r.assinatura = {status: 'assinado', via: auto ? 'VIDaaS (PDF, anexado da pasta)' : 'VIDaaS (PDF)', em: agoraISO(), hashRegistro: r.hash, arquivo: {nome: nomeArq, tamanho: buf.length, sha256: hashArq}};
+  if (S.esperando) delete S.esperando[r.id];
+  auditar('Registro assinado digitalmente', `${nomeTipo(r.tipo)} de ${fmtData(r.data)} – ${paciente(r.patientId).nome} – arquivo ${nomeArq}${auto ? ' (anexado automaticamente da pasta de assinaturas)' : ''}`, r.patientId);
+  await salvar();
+  return true;
+}
+const pdfTemAssinatura = txt => /\/ByteRange/.test(txt) && /\/Type\s*\/Sig\b|adbe\.pkcs7|ETSI\.CAdES/.test(txt);
+function marcaPdf(txt) {
+  const a = txt.match(/%PRONTUARIO ([\w-]+) ([0-9a-f]{64})/);
+  if (a) return {id: a[1], hash: a[2]};
+  const i = txt.match(/\/ProntuarioId\s*\(([\w-]+)\)/), h = txt.match(/\/ProntuarioHash\s*\(([0-9a-f]{64})\)/);
+  return {id: i ? i[1] : null, hash: h ? h[1] : null};
+}
+/* ---------- assinatura no computador: pasta acompanhada pelo app ---------- */
+const temPasta = () => typeof window.showDirectoryPicker === 'function';
+async function pastaAss() { if (S._pasta === undefined) S._pasta = (await Store.get('pastaAss')) || null; return S._pasta; }
+async function permissaoPasta(pedir) {
+  const h = await pastaAss(); if (!h) return false;
+  try {
+    if ((await h.queryPermission({mode: 'read'})) === 'granted') return true;
+    return pedir ? (await h.requestPermission({mode: 'read'})) === 'granted' : false;
+  } catch (e) { return false; }
+}
+async function escolherPastaAss() {
+  try {
+    const h = await window.showDirectoryPicker({id: 'principal-assinaturas', mode: 'read', startIn: 'downloads'});
+    await Store.set('pastaAss', h); S._pasta = h;
+    auditar('Pasta de assinaturas definida', h.name); await salvar();
+    return h;
+  } catch (e) {
+    if (e.name !== 'AbortError') aviso('O navegador não deixa usar essa pasta (ele bloqueia Downloads, Documentos e Área de Trabalho inteiros). Crie e escolha uma subpasta, por exemplo Downloads\\Principal.', 9000);
+    return null;
+  }
+}
+function configurarPastaAss(idDepois) {
+  return new Promise(res => modal(`<h2>Assinar sem procurar arquivo</h2>
+    <p style="margin-top:0">Configuração feita uma vez neste computador. Depois disso: <b>Salvar e assinar</b> → o PDF abre no Acrobat → você assina com o VIDaaS e salva → o Principal <b>anexa sozinho</b>.</p>
+    <ol class="passos-ass">
+      <li><b>Escolha a pasta de assinaturas.</b> Na janela que abrir, entre em Downloads, clique em <i>Nova pasta</i>, chame de <b>Principal</b> e selecione. Se o navegador perguntar, permita o acesso <b>em todas as visitas</b>.<br><button class="btn sm pri" style="margin-top:.4rem" data-m="esc">Escolher pasta</button> <span id="m-pasta" style="font-size:.85rem;color:var(--musgo)"></span></li>
+      <li><b>Faça o navegador salvar os downloads nessa pasta.</b> Configurações → Downloads → Local → <i>Alterar</i> → Downloads\\Principal. Deixe desligado “Perguntar onde salvar cada arquivo”.</li>
+      <li><b>Faça o PDF abrir sozinho no Acrobat.</b> Deixe o Adobe Acrobat Reader como leitor padrão de PDF no Windows. No navegador: Configurações → Privacidade e segurança → Configurações do site → Documentos PDF → <i>Fazer o download de PDFs</i>. No primeiro PDF baixado, abra a lista de downloads, clique nos três pontinhos do arquivo e marque <b>Abrir sempre arquivos deste tipo</b>.</li>
+    </ol>
+    <p style="font-size:.85rem;color:var(--suave)">No Acrobat, clique no campo “Assinatura digital do médico”, escolha o certificado do VIDaaS, autorize no celular e salve na mesma pasta (pode substituir o arquivo). No iPad continua o anexo manual.</p>
+    <div class="acoes"><button class="btn" data-m="nao">Fechar</button>${idDepois ? '<button class="btn pri" data-m="seguir" disabled>Continuar e assinar</button>' : ''}</div>`, (m, fechar) => {
+    m.querySelector('[data-m=nao]').onclick = () => { fechar(); res(false); };
+    m.querySelector('[data-m=esc]').onclick = async () => {
+      const h = await escolherPastaAss();
+      if (h) { m.querySelector('#m-pasta').textContent = '✓ Pasta “' + h.name + '”'; const b = m.querySelector('[data-m=seguir]'); if (b) b.disabled = false; if (S.view.nome === 'config') render(); }
+    };
+    const sg = m.querySelector('[data-m=seguir]'); if (sg) sg.onclick = () => { fechar(); res(true); assinarDireto(idDepois); };
+  }));
+}
+async function assinarDireto(id) {
+  const r = S.dados.records.find(x => x.id === id); if (!r) return;
+  if (r.pdfAssinado) return verAssinado(id);
+  if (!temPasta()) return assinarVidaas(id);
+  if (!(await pastaAss())) return configurarPastaAss(id);
+  if (!(await permissaoPasta(true))) { aviso('Sem acesso à pasta de assinaturas: use o anexo manual.', 6000); return assinarVidaas(id); }
+  const nome = baixarPdfParaAssinar(r); if (!nome) return;
+  S.esperando = S.esperando || {}; S.esperando[r.id] = Date.now();
+  vigiarPasta(); render();
+  aviso(`PDF “${nome}” baixado. No Acrobat: clique no campo de assinatura, assine com o VIDaaS e salve. O Principal anexa sozinho.`, 10000);
+}
+let vigia = null;
+function vigiarPasta() { if (!vigia) vigia = setInterval(() => varrerPasta(false), 2500); }
+async function varrerPasta(manual) {
+  if (S._varrendo || !S.dados) return 0;
+  const esp = S.esperando || {};
+  for (const [id, t] of Object.entries(esp)) if (Date.now() - t > 45 * 60000) delete esp[id];
+  if (!manual && !Object.keys(esp).length) { clearInterval(vigia); vigia = null; return 0; }
+  const h = await pastaAss(); if (!h || !(await permissaoPasta(manual === 'pedir'))) return 0;
+  S._varrendo = true; let n = 0;
+  try {
+    const vistos = S._vistos || (S._vistos = {}), L1 = new TextDecoder('latin1');
+    for await (const [nome, ent] of h.entries()) {
+      if (ent.kind !== 'file' || !/\.pdf$/i.test(nome)) continue;
+      let f; try { f = await ent.getFile(); } catch (e) { continue; }
+      const chave = nome + '|' + f.size + '|' + f.lastModified;
+      if (vistos[chave] || f.size > 8 * 1024 * 1024) continue;
+      vistos[chave] = 1;
+      const buf = new Uint8Array(await f.arrayBuffer()), txt = L1.decode(buf);
+      if (!pdfTemAssinatura(txt)) continue;
+      const mk = marcaPdf(txt);
+      let r = mk.id ? S.dados.records.find(x => x.id === mk.id) : null;
+      if (!r && !mk.id) r = S.dados.records.find(x => esp[x.id] && nome.startsWith(nomeArquivoReg(x)));
+      if (!r || r.pdfAssinado || travado(r) || anulado(r)) continue;
+      const res = await anexarPdfAssinado(r, buf, nome, true);
+      if (res === true) n++; else if (esp[r.id]) { delete esp[r.id]; aviso(`${paciente(r.patientId).nome}: ${res}`, 9000); }
+    }
+  } catch (e) { console.warn('pasta', e); }
+  S._varrendo = false;
+  if (n) { if (!(S.view.nome === 'registro' || S.view.nome === 'documento' || S.view.nome === 'receita' || S.view.nome === 'lme')) render(); aviso(n === 1 ? 'Assinatura anexada sozinha ao prontuário ✓' : `${n} assinaturas anexadas sozinhas ao prontuário ✓`, 6000); }
+  return n;
 }
 async function sha256Bytes(buf) { const h = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 function verAssinado(id) {
@@ -1204,7 +1308,7 @@ function cartaoRegistro(r, todos) {
         ${!anul && r.tipo === 'guia' ? `<button class="btn sm pri" data-act="gv-reimprimir" data-id="${r.id}">Imprimir guia</button><button class="btn sm" data-act="gv-novo-de" data-id="${r.id}">Ajustar e gerar outro</button>` : ''}
         ${!anul && r.tipo === 'lme' ? `<button class="btn sm pri" data-act="lme-reimprimir" data-id="${r.id}">Imprimir LME</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
-        ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : `<button class="btn sm azul" data-act="assinar-vidaas" data-id="${r.id}">Assinar com VIDaaS</button>`}
+        ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : S.esperando && S.esperando[r.id] ? `<span class="tag pend">Aguardando assinatura no Acrobat…</span><button class="btn sm" data-act="ass-verificar">Verificar agora</button><button class="btn sm link" data-act="assinar-vidaas" data-id="${r.id}">Anexar à mão</button>` : `<button class="btn sm azul" data-act="assinar-direto" data-id="${r.id}">Assinar com VIDaaS</button>${temPasta() ? `<button class="btn sm link" data-act="assinar-vidaas" data-id="${r.id}" title="Baixar o PDF ou anexar um arquivo assinado manualmente">opções</button>` : ''}`}
         <button class="btn sm" data-act="imprimir-registro" data-id="${r.id}">${r.tipo === 'receita' || r.tipo === 'documento' ? 'Imprimir registro' : 'Imprimir / PDF'}</button>
         <button class="btn sm" data-act="verificar" data-pid="${r.patientId}">Verificar integridade</button>
         ${anul ? '' : `<button class="btn sm link perigo-txt" data-act="anular" data-id="${r.id}">Anular</button>`}
@@ -1341,6 +1445,7 @@ function telaFormRegistro() {
     ${ficha.secoes.map(s => `<div class="form-sec"><div class="row" style="justify-content:space-between;margin-bottom:.6rem"><h3 style="margin:0">${esc(s.t)}</h3>${s.eem ? '<button type="button" class="btn sm" data-act="eem-normal">Preencher sem alterações</button>' : ''}</div>${s.campos.map(campo).join('')}</div>`).join('')}
     <div class="barra-acoes"><span class="salvo" id="salvo">Rascunho salvo automaticamente</span>
       <button type="button" class="btn perigo" data-act="descartar-rascunho">Descartar</button>
+      ${r.tipo !== 'adendo' && temPasta() ? `<button type="button" class="btn azul" data-act="salvar-assinar">${r.editId ? 'Salvar e assinar' : 'Salvar e assinar'}</button>` : ''}
       <button type="submit" class="btn pri">${r.editId ? 'Salvar alterações' : r.tipo === 'adendo' ? 'Finalizar adendo' : 'Salvar registro'}</button></div>
   </form>`;
 }
@@ -1382,7 +1487,7 @@ function abrirRegistro(tipo, pid, ref) {
   render();
   if (S.dados.drafts[chave]) aviso('Rascunho anterior recuperado.');
 }
-async function finalizarRegistro() {
+async function finalizarRegistro(assinarDepois) {
   const r = S.rascunho;
   const ci = $('#cid-input'); if (ci && ci.value.trim()) { r.cid.push(ci.value.trim()); ci.value = ''; }
   const campos = {}; for (const k in r.campos) if ((r.campos[k] || '').trim()) campos[k] = r.campos[k].trim();
@@ -1392,6 +1497,7 @@ async function finalizarRegistro() {
     : r.editId ? {titulo:'Salvar alterações?', texto:'A versão anterior fica guardada no histórico do registro, com data e hora.', ok:'Salvar'}
     : {titulo:'Salvar registro?', texto:'Você ainda pode <b>editar</b> este registro enquanto ele não for assinado. Cada alteração fica guardada no histórico. Depois de assinado, correções entram como adendo.', ok:'Salvar'});
   if (!ok) return;
+  if (assinarDepois && (await pastaAss())) await permissaoPasta(true);
   const s = S.dados.settings;
   const reg = {id: uid(), patientId: r.patientId, tipo: r.tipo, data: r.tipo === 'adendo' ? hojeStr() : r.data, criadoEm: agoraISO(), campos, cid: r.cid.slice(), refId: r.refId || null, autor: `${s.medico} – ${s.crm}`, assinatura: {status:'pendente'}};
   const salvo = await gravarOuEditar(reg, r.editId); if (!salvo) return;
@@ -1403,6 +1509,7 @@ async function finalizarRegistro() {
   S.abertos.add(r.refId || salvo.id);
   abrirPaciente(r.patientId);
   aviso(r.editId ? 'Alterações salvas. A versão anterior ficou no histórico.' : 'Registro salvo.' + (pagLancado ? ' Pagamento pendente lançado.' : ''));
+  if (assinarDepois) assinarDireto(salvo.id);
 }
 
 /* ---------- integridade ---------- */
@@ -2488,6 +2595,8 @@ function telaConfig() {
     <label class="f"><span>Bloquear após (minutos sem uso)</span><input type="number" name="bloqueioMin" min="1" max="120" value="${esc(s.bloqueioMin)}"></label></div>
     <div class="row" style="justify-content:flex-end;padding-bottom:1rem"><button class="btn pri">Salvar ajustes</button></div>
   </form>
+  ${temPasta() ? `<div class="card"><h2>Assinatura no computador</h2><p style="margin-top:0">Pasta de assinaturas: <b id="cfg-pasta">${S._pasta ? esc(S._pasta.name) : 'não definida'}</b>. Os PDFs assinados salvos nela são anexados sozinhos ao registro certo.</p>
+    <div class="row"><button class="btn" data-act="cfg-pasta">${S._pasta ? 'Rever configuração' : 'Configurar'}</button>${S._pasta ? '<button class="btn" data-act="ass-verificar-todos">Procurar PDFs assinados agora</button>' : ''}</div></div>` : ''}
   <div class="card"><h2>Segurança</h2><div class="row"><button class="btn" data-act="trocar-senha">Trocar senha</button></div></div>
   <div class="card"><h2>Pacientes fictícios</h2><p style="margin-top:0">Carrega 3 pacientes inventados, com consultas e evoluções, para você conhecer o app.</p><button class="btn" data-act="demo">Carregar pacientes fictícios</button></div>
   <div class="card"><h2>Apagar dados deste aparelho</h2><p style="margin-top:0">Remove tudo deste aparelho. Só faça isso se tiver backup.</p><button class="btn perigo" data-act="apagar-tudo">Apagar tudo deste aparelho</button></div>
@@ -4204,6 +4313,11 @@ const ACOES = {
   'suspender-med': d => suspenderMedicacao(d.pid, d.id),
   'anular': d => anularRegistro(d.id),
   'assinar-vidaas': d => assinarVidaas(d.id),
+  'assinar-direto': d => assinarDireto(d.id),
+  'salvar-assinar': () => finalizarRegistro(true),
+  'ass-verificar': async () => { const n = await varrerPasta('pedir'); if (!n) aviso('Nenhum PDF assinado novo na pasta ainda. Depois de assinar no Acrobat, salve o arquivo na pasta de assinaturas.', 6000); },
+  'ass-verificar-todos': async () => { const n = await varrerPasta('pedir'); if (!n) aviso('Nenhum PDF assinado pendente de anexo na pasta.', 5000); },
+  'cfg-pasta': () => configurarPastaAss(null),
   'editar-registro': d => editarRegistro(d.id),
   'ver-assinado': d => verAssinado(d.id),
   'ver-anulados': d => { S.mostrarAnulados = S.mostrarAnulados === d.pid ? null : d.pid; render(); },
