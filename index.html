@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prontuário</title>
+<title>Principal</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Prontuário">
+<meta name="apple-mobile-web-app-title" content="Principal">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#4a5a3c">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -474,7 +474,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.20.0';
+const APP_VERSAO = '1.20.1';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -687,7 +687,7 @@ async function telaBloqueio() {
   const app = $('#app');
   if (!cofre) {
     app.innerHTML = `<div class="lock"><form class="card" id="f-criar" autocomplete="off">
-      <h1>Prontuário</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Primeiro acesso neste aparelho</div>
+      <h1>Principal</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Primeiro acesso neste aparelho</div>
       <label class="f"><span>Crie uma senha (mínimo 8 caracteres)</span><input type="password" id="s1" autocomplete="new-password"></label>
       <label class="f"><span>Repita a senha</span><input type="password" id="s2" autocomplete="new-password"></label>
       <div class="aviso"><b>Guarde bem esta senha.</b> Ela protege os dados dos pacientes e não pode ser recuperada: sem ela, nem os backups abrem.<br><br>Já usa o prontuário em outro aparelho? Crie aqui a <b>mesma senha</b> e depois importe o backup.</div>
@@ -707,7 +707,7 @@ async function telaBloqueio() {
     });
   } else {
     app.innerHTML = `<div class="lock"><form class="card" id="f-entrar">
-      <h1>Prontuário</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Digite sua senha para abrir</div>
+      <h1>Principal</h1><div class="slogan">Saúde mental, seu cuidado principal!</div><div class="sub">Digite sua senha para abrir</div>
       <label class="f"><span>Senha</span><input type="password" id="s1" autocomplete="current-password"></label>
       <div class="erro" id="erro"></div>
       <button class="btn pri" style="width:100%">Entrar</button>
@@ -764,7 +764,7 @@ function render() {
   const nav = (n, rot, ic, extra = '') => `<button class="nav ${v === n ? 'on' : ''}" data-act="ir" data-v="${n}" title="${rot}">${ic} <span class="txt">${rot}</span>${extra}</button>`;
   $('#app').innerHTML = `<div class="shell ${detalhe ? 'detalhe' : ''}">
     <header class="topbar">
-      <div class="marca" data-act="ir" data-v="inicio">Prontuário <small>${esc(S.dados.settings.medico)}</small></div>
+      <div class="marca" data-act="ir" data-v="inicio">Principal <small>${esc(S.dados.settings.medico)}</small></div>
       ${nav('busca-geral','Buscar','🔍')}
       ${nav('backup','Backup','⇅', precisaBackup() ? '<span class="ponto"></span>' : '')}
       ${nav('auditoria','Registro de acesso','☰')}
@@ -4260,7 +4260,7 @@ if ('serviceWorker' in navigator && !emIframe && location.protocol === 'https:')
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 if (!window.crypto || !crypto.subtle) {
-  document.getElementById('app').innerHTML = '<div class="lock"><div class="card"><h1>Prontuário</h1><p>Este navegador não oferece a criptografia necessária. Abra pelo endereço seguro (https) do app.</p></div></div>';
+  document.getElementById('app').innerHTML = '<div class="lock"><div class="card"><h1>Principal</h1><p>Este navegador não oferece a criptografia necessária. Abra pelo endereço seguro (https) do app.</p></div></div>';
 } else {
   telaBloqueio();
 }
