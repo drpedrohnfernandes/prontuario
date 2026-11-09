@@ -254,6 +254,102 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
 }
 @media (max-width:600px){ .grid2,.grid3{grid-template-columns:1fr} .topbar .marca small{display:none} }
 
+/* Guia visual dos remédios (tela e impressão) */
+.reg.guia{border-left-color:#b4583a}
+.gv{font-family:Poppins,Arial,sans-serif;color:#1f2620;background:#fff;box-sizing:border-box;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:calc(10pt * var(--gk,1));line-height:1.3;text-align:left}
+.gv *{box-sizing:border-box}
+.gv svg{display:block;flex:none}
+.gv-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:6mm;padding-bottom:3mm;border-bottom:2pt solid #4a5a3c;position:relative;margin-bottom:5mm}
+.gv-cab:after{content:"";position:absolute;left:0;right:0;bottom:-3.2pt;border-bottom:.7pt solid #b48a3c}
+.gv-selo{display:inline-block;font-size:7pt;font-weight:600;letter-spacing:2pt;color:#f3ead7;background:#b4583a;padding:.9mm 3mm;border-radius:99px;margin-bottom:1.6mm}
+.gv-tit{font-family:Lora,Georgia,serif;font-style:italic;font-weight:500;font-size:23pt;color:#4a5a3c;line-height:1.05}
+.gv-para{font-size:10.5pt;color:#7a5a43;margin-top:1.4mm}
+.gv-para b{color:#1f2620;font-weight:600}
+.gv-med{text-align:right;font-size:8.3pt;color:#7a5a43;line-height:1.4;padding-top:1mm}
+.gv-med .n{font-family:Lora,Georgia,serif;font-style:italic;font-size:12pt;color:#4a5a3c;font-weight:500;white-space:nowrap}
+.gv-med .sl{font-family:Lora,Georgia,serif;font-style:italic;color:#2f4a63;white-space:nowrap}
+.gv-grade{display:grid;gap:calc(1.8mm * var(--gk,1));margin-bottom:calc(4.5mm * var(--gk,1))}
+.gv-canto{display:flex;align-items:flex-end;padding:0 0 2mm 1.5mm;font-size:7.5pt;font-weight:600;letter-spacing:1.6pt;color:#7a5a43;text-transform:uppercase}
+.gv-hd{border-radius:3.5mm;padding:1.5mm 1mm 2mm;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.gv-hd svg{width:100%;max-width:29mm;height:auto;object-fit:contain}
+.gv-hd b{font-family:Lora,Georgia,serif;font-style:italic;font-weight:600;font-size:13pt;line-height:1;margin-top:.5mm}
+.gv-hd small{font-size:6.8pt;letter-spacing:.3pt;opacity:.85;margin-top:.8mm}
+.gv-hd.manha{background:#fbe9c4;color:#7a5a43}
+.gv-hd.tarde{background:#f7dccb;color:#8f4a2f}
+.gv-hd.noite{background:#2f4a63;color:#f3ead7}
+.gv-hd.deitar{background:#3a4730;color:#f3ead7}
+.gv-nome{display:flex;gap:2.5mm;align-items:center;background:#f5f0e7;border-radius:3.5mm;padding:2mm 2.5mm;min-height:calc(22mm * var(--gk,1))}
+.gv-nome .nm,.gv-sos .nm{font-weight:600;font-size:1.08em;line-height:1.15}
+.gv-nome .ds,.gv-sos .ds{font-size:.85em;color:#7a5a43;font-weight:500}
+.gv-nome .pq,.gv-sos .pq{font-family:Lora,Georgia,serif;font-style:italic;color:#2f4a63;font-size:.95em;margin-top:.6mm;line-height:1.2}
+.gv-badge{display:inline-flex;align-items:center;gap:1mm;font-size:7.2pt;font-weight:600;border-radius:99px;padding:.4mm 2mm;margin-top:1.2mm;background:#fff;border:.6pt solid #d9cdb6;color:#7a5a43;white-space:nowrap}
+.gv-cel{border-radius:3.5mm;display:flex;align-items:center;justify-content:center;padding:1.5mm 1mm;min-height:calc(20mm * var(--gk,1))}
+.gv-cel.manha{background:#fdf5e3}
+.gv-cel.tarde{background:#fcefe7}
+.gv-cel.noite{background:#e8eff6}
+.gv-cel.deitar{background:#ebefe5}
+.gv-dose{text-align:center}
+.gv-ics{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.6mm}
+.gv-cel .gv-ics svg{height:calc(8mm * var(--gk,1));width:auto}
+.gv-nome .ic svg,.gv-sos .ic svg{height:calc(9.5mm * var(--gk,1));width:auto}
+.gv-hd svg{max-height:calc(14mm * var(--gk,1))}
+.gv-leg{font-size:.86em;font-weight:600;margin-top:.9mm;line-height:1.15}
+.gv-vazio{width:5mm;border-top:1.3pt dotted #c9bfae}
+.gv-obs{grid-column:1/-1;margin-top:-.6mm;font-size:.85em;color:#3a3f39;background:#fff8e8;border-left:2pt solid #b48a3c;border-radius:0 2mm 2mm 0;padding:1.2mm 3mm}
+.gv-obs b{color:#7a5a43}
+.gv-sec{font-family:Lora,Georgia,serif;font-style:italic;font-weight:600;font-size:13pt;color:#4a5a3c;display:flex;align-items:center;gap:2mm;margin:0 0 2mm}
+.gv-sec small{font-family:Poppins,Arial,sans-serif;font-style:normal;font-weight:400;font-size:7.5pt;color:#7a5a43;margin-left:1mm}
+.gv-sos{display:grid;grid-template-columns:1fr 1fr;gap:2mm;margin-bottom:4.5mm}
+.gv-sos>div{border:1pt dashed #b4583a;border-radius:3.5mm;padding:2.2mm 3mm;display:flex;gap:2.5mm;align-items:flex-start;background:#fdf3ee}
+.gv-sos .qt{font-size:.92em;margin-top:.5mm}
+.gv-sos .ob{font-size:.84em;color:#3a3f39;margin-top:.8mm;line-height:1.25}
+.gv-recado{display:flex;gap:3mm;align-items:center;background:#e7ecdf;border-radius:3.5mm;padding:2.5mm 4mm;font-family:Lora,Georgia,serif;font-style:italic;font-size:11pt;color:#3a4730;margin-bottom:3.5mm;line-height:1.3}
+.gv-dicas{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;margin-bottom:3.5mm}
+.gv-dicas>div{display:flex;gap:2mm;align-items:center;font-size:7.6pt;line-height:1.25;background:#f5f0e7;border-radius:2.5mm;padding:2mm 2.2mm}
+.gv-dicas b{font-weight:600;color:#4a5a3c;white-space:nowrap}
+.gv-semana{border:1pt solid #ddd5c6;border-radius:3.5mm;padding:2.5mm 3.5mm 1.5mm;break-inside:avoid;page-break-inside:avoid}
+.gv-semana table{width:100%;border-collapse:separate;border-spacing:0 1mm}
+.gv-semana th{font-size:7.8pt;font-weight:600;color:#7a5a43;text-align:center}
+.gv-semana td{text-align:center;padding:0}
+.gv-semana .lp{text-align:left;font-size:8.3pt;font-weight:600;white-space:nowrap;width:24mm}
+.gv-bola{display:inline-block;width:6.3mm;height:6.3mm;border-radius:50%;border:1.2pt dashed #b9ae98;background:#fff;vertical-align:middle}
+.gv-pt{display:inline-block;width:2.6mm;height:2.6mm;border-radius:50%;margin-right:1.5mm;vertical-align:middle}
+.gv-pt.manha{background:#f2bd45}.gv-pt.tarde{background:#f0a24c}.gv-pt.noite{background:#2f4a63}.gv-pt.deitar{background:#3a4730}
+.gv-sp{flex:1;min-height:3mm}
+.gv-linha{display:inline-block;width:7mm;border-bottom:.8pt solid #b9ae98;height:3mm}
+.gv-tela .gv + .gv{margin-top:6mm;border-top:2px dashed var(--linha)}
+.gv-rod{background:#f5f0e7;border-top:1.5pt solid #4a5a3c;padding:2.2mm 4mm;display:flex;justify-content:space-between;gap:4mm;font-size:7.8pt;color:#7a5a43}
+.gv-rod .ig{color:#4a5a3c;font-weight:600;white-space:nowrap}
+/* editor */
+.gv-edit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.2rem;align-items:start}
+.gv-prev-wrap{position:sticky;top:.5rem}
+.gv-prev-tit{font-size:.82rem;font-weight:600;color:var(--suave);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+.gv-prev{border-radius:10px;overflow:hidden;box-shadow:var(--sombra);background:#fff;border:1px solid var(--linha)}
+.gv-tela .gv{width:210mm;min-height:297mm;padding:9mm}
+@media (max-width:1250px){.gv-edit{grid-template-columns:minmax(0,1fr)}.gv-prev-wrap{position:static}}
+.gv-edit>div{min-width:0}
+.gv-it{border:1px solid var(--linha);border-left:6px solid var(--musgo);border-radius:12px;padding:.7rem .9rem .2rem;margin-bottom:.8rem;background:#fff}
+.gv-it-ic{display:inline-flex;align-items:center;gap:.4rem}
+.gv-it-ic svg{display:block}
+.gv-orig{font-size:.84rem;color:var(--suave);margin:-.4rem 0 .5rem;font-style:italic}
+.gv-pers{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.gv-per{display:block;border-radius:12px;padding:.35rem .4rem .45rem;text-align:center}
+.gv-per span{display:flex;flex-direction:column;align-items:center;font-size:.82rem;margin-bottom:.25rem}
+.gv-per span svg{width:62px;height:auto;display:block}
+.gv-per span b{font-family:Lora,Georgia,serif;font-style:italic;font-weight:600}
+.gv-per input{text-align:center;font-weight:600;font-size:1.05rem;padding:.45em .3em;background:#fff}
+.gv-per.manha{background:#fbe9c4;color:#7a5a43}.gv-per.tarde{background:#f7dccb;color:#8f4a2f}.gv-per.noite{background:#2f4a63;color:#f3ead7}.gv-per.deitar{background:#3a4730;color:#f3ead7}
+.gv-per.noite input,.gv-per.deitar input{color:var(--texto)}
+.gv-dica{font-size:.82rem;color:var(--suave);margin:.35rem 0 .7rem}
+.gv-cores{display:flex;flex-wrap:wrap;gap:.4rem}
+.gv-cor{width:32px;height:32px;min-height:0;border-radius:50%;border:2px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
+.gv-cor.on{outline:3px solid var(--musgo);outline-offset:2px}
+@media (max-width:600px){.gv-pers{grid-template-columns:1fr 1fr}}
+@media print{
+  .gv{min-height:277mm;page-break-after:always}
+  .gv:last-child{page-break-after:auto}
+}
+
 /* Impressão */
 @media print{
   body{background:#fff}
@@ -378,7 +474,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.19.0';
+const APP_VERSAO = '1.20.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -696,6 +792,7 @@ function render() {
   if (v === 'litemia') ligarLitemia();
   if (v === 'monitor') ligarMonitor();
   if (v === 'busca-geral') ligarBuscaGeral();
+  if (v === 'guia') ligarGuia();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -749,6 +846,7 @@ function telaPrincipal() {
     case 'monitor': return telaMonitor();
     case 'linha': return telaLinha();
     case 'busca-geral': return telaBuscaGeral();
+    case 'guia': return telaGuia();
     default: return telaInicio();
   }
 }
@@ -810,6 +908,7 @@ function telaPaciente() {
     <button class="btn ${temPrimeira ? '' : 'pri'}" data-act="novo-registro" data-tipo="primeira" data-pid="${p.id}">+ Primeira consulta</button>
     <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
     <button class="btn" data-act="nova-receita" data-pid="${p.id}">+ Receita</button>
+    <button class="btn" data-act="novo-guia" data-pid="${p.id}">+ Guia visual</button>
     <button class="btn" data-act="novo-doc" data-pid="${p.id}">+ Documento</button>
     <button class="btn" data-act="nova-escala" data-pid="${p.id}">+ Escala</button>
     <button class="btn" data-act="nova-lme" data-pid="${p.id}">+ LME</button>
@@ -1087,7 +1186,7 @@ function cartaoRegistro(r, todos) {
   const tagVidaas = r.pdfAssinado ? '<span class="tag ok">Assinado · VIDaaS</span>' : '';
   const nv = (r.versoes || []).length;
   const tagEdit = nv && !anul ? '<span class="tag marrom">Editado</span>' : '';
-  const assin = r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
+  const assin = r.tipo === 'guia' ? '<span class="tag azul">Entregue ao paciente</span>' : r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
   return `<div class="card${anul ? ' anulado' : ''}" id="reg-${r.id}"><div class="reg ${r.tipo}">
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
@@ -1101,7 +1200,8 @@ function cartaoRegistro(r, todos) {
       <div class="row" style="margin-top:.8rem">
         ${editavel(r) ? `<button class="btn sm pri" data-act="editar-registro" data-id="${r.id}">Editar</button>` : ''}
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
-        ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button>` : ''}
+        ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button><button class="btn sm" data-act="gv-de-receita" data-id="${r.id}">Guia visual</button>` : ''}
+        ${!anul && r.tipo === 'guia' ? `<button class="btn sm pri" data-act="gv-reimprimir" data-id="${r.id}">Imprimir guia</button><button class="btn sm" data-act="gv-novo-de" data-id="${r.id}">Ajustar e gerar outro</button>` : ''}
         ${!anul && r.tipo === 'lme' ? `<button class="btn sm pri" data-act="lme-reimprimir" data-id="${r.id}">Imprimir LME</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
         ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : `<button class="btn sm azul" data-act="assinar-vidaas" data-id="${r.id}">Assinar com VIDaaS</button>`}
@@ -2117,7 +2217,7 @@ function levarDocAoCFM() {
 function imprimirFolha(html, orientacao, desc, pid) {
   let estilo = $('#estilo-pagina');
   if (!estilo) { estilo = document.createElement('style'); estilo.id = 'estilo-pagina'; document.head.appendChild(estilo); }
-  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : orientacao === 'lme' ? '@page{size:A4 portrait;margin:8mm}' : orientacao === 'resumo' ? '@page{size:A4 portrait;margin:10mm}' : '@page{size:A4 portrait;margin:14mm}';
+  estilo.textContent = orientacao === 'landscape' ? '@page{size:A4 landscape;margin:10mm}' : orientacao === 'lme' ? '@page{size:A4 portrait;margin:8mm}' : orientacao === 'resumo' ? '@page{size:A4 portrait;margin:10mm}' : orientacao === 'guia' ? '@page{size:A4 portrait;margin:9mm}' : '@page{size:A4 portrait;margin:14mm}';
   imprimir(html, desc, pid);
   setTimeout(() => { estilo.textContent = ''; }, 4000);
 }
@@ -3683,6 +3783,374 @@ COR_CAT.termo = '#7a5a43';
 MODELOS_DOC.plano_seguranca = {cat: 'orientacao', rotulo: 'Plano de segurança (Stanley-Brown)', titulo: 'Plano de segurança', texto: TXT_PLANO_SEG};
 for (const [k, [rot, txt]] of Object.entries(TERMOS)) MODELOS_DOC[k] = {cat: 'termo', rotulo: rot, titulo: 'Termo de consentimento: ' + rot, texto: txt + ASS_TERMO};
 
+/* ---------- guia visual dos remédios (manhã, tarde, noite, ao deitar) ---------- */
+FICHAS.guia = {titulo: 'Guia visual dos remédios', secoes: [{t: 'Guia visual', campos: [['itens', 'Remédios e horários', 'longo'], ['recado', 'Recado ao paciente', 'texto']]}]};
+const PERIODOS_GV = [
+  {k: 'manha', rot: 'Manhã', sub: 'ao acordar · café'},
+  {k: 'tarde', rot: 'Tarde', sub: 'almoço'},
+  {k: 'noite', rot: 'Noite', sub: 'jantar'},
+  {k: 'deitar', rot: 'Ao deitar', sub: 'antes de dormir'}
+];
+const CORES_GV = [['Branco', '#fbfaf5'], ['Amarelo', '#f2d36b'], ['Laranja', '#eea56c'], ['Rosa', '#efb4c2'], ['Vermelho', '#d9715f'], ['Lilás', '#bba8d8'], ['Azul', '#93b6da'], ['Verde', '#a3c79d'], ['Marrom', '#bf9372'], ['Bege', '#e9dbbb']];
+const CICLO_GV = ['#f2d36b', '#93b6da', '#efb4c2', '#a3c79d', '#eea56c', '#bba8d8', '#bf9372', '#d9715f'];
+const FORMAS_GV = [['comprimido', 'Comprimido'], ['capsula', 'Cápsula'], ['gota', 'Gotas'], ['ml', 'Líquido (mL)'], ['jato', 'Spray / jato'], ['adesivo', 'Adesivo'], ['sache', 'Sachê']];
+const UNID_GV = {comprimido: ['comprimido', 'comprimidos'], capsula: ['cápsula', 'cápsulas'], gota: ['gota', 'gotas'], ml: ['mL', 'mL'], jato: ['jato', 'jatos'], adesivo: ['adesivo', 'adesivos'], sache: ['sachê', 'sachês']};
+const COMIDA_GV = [['', 'Sem observação'], ['comida', 'Com comida'], ['jejum', 'Em jejum'], ['boca', 'Derreter na boca'], ['agua', 'Com bastante água']];
+const PARA_GV = ['Para o humor', 'Para a ansiedade', 'Para dormir', 'Para o foco', 'Para estabilizar o humor', 'Para organizar os pensamentos', 'Para as crises', 'Para a impulsividade'];
+const RECADO_GV = 'Cada dia de tratamento é um passo no seu cuidado. Conte comigo no caminho!';
+const FRAC_GV = {'1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾'};
+
+function tomGV(hex, f) { const n = parseInt(String(hex || '#cccccc').slice(1), 16); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(v * f))).toString(16).padStart(2, '0')).join(''); }
+function valorGV(t) {
+  const s = String(t || '').toLowerCase().replace(/½/g, ' 1/2').replace(/⅓/g, ' 1/3').replace(/⅔/g, ' 2/3').replace(/¼/g, ' 1/4').replace(/¾/g, ' 3/4').replace(/\b(meio|meia)\b/g, '1/2').replace(/,/g, '.').replace(/\be\b|\+/g, ' ').trim();
+  if (!s) return null;
+  let tot = 0;
+  for (const part of s.split(/\s+/)) { const m = part.match(/^(\d+(?:\.\d+)?)(?:\/(\d+))?$/); if (!m) return null; tot += m[2] ? Number(m[1]) / Number(m[2]) : Number(m[1]); }
+  return tot > 0 ? tot : null;
+}
+function bonitoGV(v, t) {
+  if (v === null || v === undefined) return String(t || '').trim().replace(/(\d)\s*\/\s*(\d)/g, (x, a, b) => FRAC_GV[a + '/' + b] || x);
+  const int = Math.floor(v + 1e-9), fr = v - int;
+  if (fr < .02) return String(int);
+  const f = [[.5, '½'], [1 / 3, '⅓'], [2 / 3, '⅔'], [.25, '¼'], [.75, '¾']].find(([x]) => Math.abs(fr - x) < .02);
+  if (f) return int ? `${int} e ${f[1]}` : f[1];
+  return String(Math.round(v * 100) / 100).replace('.', ',');
+}
+function legendaGV(t, forma) {
+  const v = valorGV(t), u = UNID_GV[forma] || UNID_GV.comprimido, b = bonitoGV(v, t);
+  if (!b) return '';
+  if (/[a-z]{3,}/.test(semAcento(b))) return b;
+  return `${b} ${v !== null && v <= 1 ? u[0] : u[1]}`;
+}
+
+/* desenhos */
+function svgComprimido(cor, frac, tam) {
+  const e = tomGV(cor, .72);
+  let corpo;
+  if (frac >= .98) corpo = `<circle cx="18" cy="18" r="15" fill="${cor}" stroke="${e}" stroke-width="2"/><path d="M6.5 18h23" stroke="${e}" stroke-opacity=".45" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="12.5" cy="11.5" rx="4.6" ry="2.5" fill="#fff" opacity=".55" transform="rotate(-25 12.5 11.5)"/>`;
+  else {
+    const a = -Math.PI / 2 + 2 * Math.PI * frac, x = 18 + 15 * Math.sin(a), y = 18 - 15 * Math.cos(a);
+    corpo = `<circle cx="18" cy="18" r="15" fill="none" stroke="${e}" stroke-opacity=".5" stroke-width="1.3" stroke-dasharray="2.4 2.4"/><path d="M18 18 L3 18 A15 15 0 ${frac > .5 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z" fill="${cor}" stroke="${e}" stroke-width="2" stroke-linejoin="round"/><ellipse cx="12" cy="12" rx="3.6" ry="2" fill="#fff" opacity=".55" transform="rotate(-25 12 12)"/>`;
+  }
+  return `<svg viewBox="0 0 36 36" width="${tam}" height="${tam}">${corpo}</svg>`;
+}
+function svgCapsula(cor, tam) {
+  const e = tomGV(cor, .72);
+  return `<svg viewBox="-2 -6 48 36" width="${tam * 1.25}" height="${tam * .95}"><g transform="rotate(-25 22 12)"><path d="M22 4h-10a8 8 0 0 0 0 16h10z" fill="${cor}" stroke="${e}" stroke-width="1.8"/><path d="M22 4h10a8 8 0 0 1 0 16h-10z" fill="#fbfaf5" stroke="${e}" stroke-width="1.8"/><rect x="8" y="7" width="9" height="2.6" rx="1.3" fill="#fff" opacity=".6"/></g></svg>`;
+}
+const txtSvgGV = (t, x, y) => t ? `<text x="${x}" y="${y}" text-anchor="middle" font-size="${t.length > 4 ? 7 : t.length > 2 ? 8.5 : 11}" font-weight="700" fill="#1f2620" font-family="Poppins,Arial,sans-serif">${esc(t)}</text>` : '';
+function svgGota(cor, t, tam) { return `<svg viewBox="0 0 32 40" width="${tam * .8}" height="${tam}"><path d="M16 2C16 2 4 17 4 26a12 12 0 0 0 24 0C28 17 16 2 16 2z" fill="${cor}" stroke="${tomGV(cor, .7)}" stroke-width="1.8"/><ellipse cx="10.5" cy="22" rx="2.2" ry="3.8" fill="#fff" opacity=".55"/>${txtSvgGV(t, 16, 31)}</svg>`; }
+function svgCopo(cor, t, tam) { return `<svg viewBox="0 0 36 40" width="${tam * .9}" height="${tam}"><path d="M7.6 16h20.8l-1.9 20H9.5z" fill="${cor}"/><path d="M6 5h24l-3 31H9z" fill="none" stroke="#6b7268" stroke-width="1.8" stroke-linejoin="round"/><path d="M24 10h3M24.5 15h2.5M25 20h2" stroke="#6b7268" stroke-width="1.2"/>${txtSvgGV(t, 18, 30)}</svg>`; }
+function svgSpray(cor, t, tam) { return `<svg viewBox="0 0 32 40" width="${tam * .8}" height="${tam}"><rect x="13" y="2" width="6" height="8" rx="1.5" fill="${tomGV(cor, .8)}"/><path d="M19 4h5M24 2.5v3" stroke="#6b7268" stroke-width="1.3" stroke-linecap="round"/><rect x="7" y="10" width="18" height="28" rx="5" fill="${cor}" stroke="${tomGV(cor, .7)}" stroke-width="1.6"/>${txtSvgGV(t, 16, 28)}</svg>`; }
+function svgAdesivo(cor, t, tam) { return `<svg viewBox="0 0 36 36" width="${tam}" height="${tam}"><rect x="3" y="3" width="30" height="30" rx="7" fill="${cor}" stroke="${tomGV(cor, .7)}" stroke-width="1.6"/><rect x="8" y="8" width="20" height="20" rx="4" fill="none" stroke="#fff" stroke-width="1.4" stroke-dasharray="2 2"/>${txtSvgGV(t, 18, 22)}</svg>`; }
+function svgSache(cor, t, tam) { return `<svg viewBox="0 0 32 40" width="${tam * .8}" height="${tam}"><path d="M5 6l2.75-3 2.75 3 2.75-3 2.75 3 2.75-3 2.75 3 2.75-3 2.75 3V37H5z" fill="${cor}" stroke="${tomGV(cor, .7)}" stroke-width="1.6" stroke-linejoin="round"/>${txtSvgGV(t, 16, 27)}</svg>`; }
+function iconeGV(forma, cor, tam, t) {
+  if (forma === 'capsula') return svgCapsula(cor, tam);
+  if (forma === 'gota') return svgGota(cor, t, tam);
+  if (forma === 'ml') return svgCopo(cor, t, tam);
+  if (forma === 'jato') return svgSpray(cor, t, tam);
+  if (forma === 'adesivo') return svgAdesivo(cor, t, tam);
+  if (forma === 'sache') return svgSache(cor, t, tam);
+  return svgComprimido(cor, 1, tam);
+}
+function raiosGV(cx, cy, r1, r2, de, ate, n, cor, w) {
+  let h = '';
+  for (let i = 0; i < n; i++) { const a = (de + (ate - de) * i / (n - 1)) * Math.PI / 180; h += `<line x1="${(cx + r1 * Math.cos(a)).toFixed(1)}" y1="${(cy + r1 * Math.sin(a)).toFixed(1)}" x2="${(cx + r2 * Math.cos(a)).toFixed(1)}" y2="${(cy + r2 * Math.sin(a)).toFixed(1)}"/>`; }
+  return `<g stroke="${cor}" stroke-width="${w}" stroke-linecap="round">${h}</g>`;
+}
+const estrelaGV = (x, y, r, cor) => `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}z" fill="${cor}"/>`;
+function ilustraGV(k) {
+  if (k === 'manha') return `<svg viewBox="0 0 120 56"><circle cx="60" cy="44" r="15" fill="#f2bd45"/>${raiosGV(60, 44, 21, 29, 195, 345, 7, '#e2a531', 3.2)}<circle cx="54" cy="39" r="4" fill="#fff" opacity=".35"/><path d="M0 47 Q28 38 60 46 T120 44 V56 H0z" fill="#a9bf95"/><path d="M0 52 Q35 45 70 51 T120 50 V56 H0z" fill="#8ea77a"/></svg>`;
+  if (k === 'tarde') return `<svg viewBox="0 0 120 56"><circle cx="58" cy="28" r="13" fill="#f0a24c"/>${raiosGV(58, 28, 18, 25, 0, 315, 8, '#e08a3a', 3)}<circle cx="53" cy="23" r="3.5" fill="#fff" opacity=".35"/><g fill="#fffaf2"><circle cx="85" cy="40" r="7"/><circle cx="94" cy="36" r="9"/><circle cx="103" cy="41" r="6"/><rect x="85" y="40" width="18" height="7" rx="3.5"/></g></svg>`;
+  if (k === 'noite') return `<svg viewBox="0 0 120 56"><circle cx="60" cy="29" r="15" fill="#f3ead7"/><circle cx="67" cy="23" r="13" fill="#2f4a63"/>${estrelaGV(30, 16, 4.5, '#f3ead7')}${estrelaGV(88, 12, 3.5, '#f2d36b')}${estrelaGV(95, 38, 4.5, '#f3ead7')}${estrelaGV(24, 40, 3, '#f2d36b')}<circle cx="80" cy="26" r="1.2" fill="#f3ead7"/><circle cx="40" cy="30" r="1" fill="#f3ead7"/></svg>`;
+  return `<svg viewBox="0 0 120 56"><circle cx="46" cy="30" r="13" fill="#f2d36b"/><circle cx="52" cy="25" r="11.5" fill="#3a4730"/><text x="70" y="26" font-family="Lora,Georgia,serif" font-style="italic" font-weight="600" font-size="13" fill="#f3ead7">z</text><text x="80" y="18" font-family="Lora,Georgia,serif" font-style="italic" font-weight="600" font-size="10" fill="#f3ead7" opacity=".85">z</text><text x="88" y="11" font-family="Lora,Georgia,serif" font-style="italic" font-weight="600" font-size="7.5" fill="#f3ead7" opacity=".7">z</text><path d="M14 50 Q60 41 106 50 V56 H14z" fill="#e7ecdf" opacity=".9"/><ellipse cx="34" cy="47" rx="14" ry="5" fill="#fffaf2"/></svg>`;
+}
+const icoGV = {
+  comida: '<svg viewBox="0 0 20 20" width="11" height="11"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="3.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 3v5M1.5 8v10M18.5 3c-1.8 1-1.8 5 0 6v9" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>',
+  jejum: '<svg viewBox="0 0 20 20" width="11" height="11"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 5v5l3.5 2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+  boca: '<svg viewBox="0 0 20 20" width="11" height="11"><path d="M10 2l1.6 4.6L16 8l-4.4 1.4L10 14l-1.6-4.6L4 8l4.4-1.4z" fill="currentColor"/><circle cx="16" cy="15" r="1.6" fill="currentColor"/><circle cx="4" cy="16" r="1.2" fill="currentColor"/></svg>',
+  agua: '<svg viewBox="0 0 20 20" width="11" height="11"><path d="M4 2h12l-1.6 16H5.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5.2 9h9.6l-1 8H6.2z" fill="currentColor"/></svg>',
+  coracao: '<svg viewBox="0 0 24 22" width="22" height="20"><path d="M12 21S2 14.5 2 7.6A5.3 5.3 0 0 1 12 5a5.3 5.3 0 0 1 10 2.6C22 14.5 12 21 12 21z" fill="#b4583a"/><ellipse cx="7.5" cy="7.5" rx="2" ry="1.3" fill="#fff" opacity=".5" transform="rotate(-30 7.5 7.5)"/></svg>',
+  boia: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9.5" fill="#b4583a"/><circle cx="12" cy="12" r="4.4" fill="#fdf3ee"/><path d="M5.3 5.3l3.6 3.6M18.7 5.3l-3.6 3.6M5.3 18.7l3.6-3.6M18.7 18.7l-3.6-3.6" stroke="#fdf3ee" stroke-width="3"/></svg>',
+  check: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" fill="#4a5a3c"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#f3ead7" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  alerta: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="#b4583a"/><path d="M12 6.5v7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.6" fill="#fff"/></svg>',
+  relogio: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="#2f4a63"/><circle cx="12" cy="12" r="7" fill="#e3ebf3"/><path d="M12 7.5V12l3 2" stroke="#2f4a63" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+  casa: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="#7a5a43"/><path d="M6.5 12L12 7l5.5 5v5h-11z" fill="#f3ead7"/><rect x="10.5" y="13.5" width="3" height="3.5" fill="#7a5a43"/></svg>',
+  fone: '<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="#4a5a3c"/><rect x="8.5" y="5.5" width="7" height="13" rx="1.8" fill="#f3ead7"/><rect x="9.8" y="7.2" width="4.4" height="8" rx=".6" fill="#4a5a3c"/><circle cx="12" cy="16.9" r=".8" fill="#4a5a3c"/></svg>'
+};
+
+/* leitura da posologia escrita ("Tomar 1 comprimido pela manhã e 2 à noite") */
+function formaGV(forma, txt) {
+  const t = semAcento((forma || '') + ' ' + (txt || ''));
+  if (/gota/.test(t)) return 'gota';
+  if (/capsula/.test(t)) return 'capsula';
+  if (/spray|jato|borrifad|nasal/.test(t)) return 'jato';
+  if (/adesivo|transderm/.test(t)) return 'adesivo';
+  if (/sache|envelope/.test(t)) return 'sache';
+  if (/\bml\b|solucao oral|xarope|suspensao|liquido/.test(t)) return 'ml';
+  return 'comprimido';
+}
+const Q_GV = '(?:\\d+\\s*e\\s*(?:meio|meia|1/2)|\\d+(?:[.,]\\d+)?(?:/\\d+)?|meio|meia|um terco|um quarto|uma|um|dois|duas|tres|quatro|cinco|seis)';
+const NUM_GV = {meio: '1/2', meia: '1/2', 'um terco': '1/3', 'um quarto': '1/4', um: '1', uma: '1', dois: '2', duas: '2', tres: '3', quatro: '4', cinco: '5', seis: '6'};
+const qtdTxtGV = q => q.replace(/\s+/g, ' ').trim().replace(/\b(um terco|um quarto|meio|meia|uma|um|dois|duas|tres|quatro|cinco|seis)\b/g, w => NUM_GV[w]);
+function lerPosologiaGV(pos, forma, nome) {
+  const linhas = String(pos || '').split('\n').map(x => x.trim()).filter(Boolean);
+  const l1 = linhas[0] || '';
+  const t0 = [...l1].map(c => (semAcento(c) || ' ')[0]).join('');
+  const o = {p: {manha: '', tarde: '', noite: '', deitar: ''}, sos: false, sosQtd: '', obs: '', comida: '', forma: formaGV(forma, l1 + ' ' + (nome || '')), confira: false};
+  const extras = linhas.slice(1).filter(x => !/^equivalentes?\s*:/i.test(x));
+  if (/jejum|antes do cafe/.test(t0)) o.comida = 'jejum';
+  else if (/(apos|depois d)[oa]?s? (o |a )?(cafe|almoco|jantar|refeic|comer)|com (as |a )?(refeic|aliment|comida)|junto (com|a|ao) |durante (a |as )?refeic/.test(t0) || extras.some(x => /refei[cç]/i.test(x))) o.comida = 'comida';
+  else if (/dissolver na boca|derreter na boca|sem agua|sublingual|abaixo da lingua|debaixo da lingua|embaixo da lingua/.test(t0)) o.comida = 'boca';
+  const desmame = /desmame|reduzir|interromper|suspender/.test(t0);
+  o.sos = !desmame && /\bsos\b|se (necessario|preciso|precisar|houver)|se crise|em caso de|quando necessario|se (ansiedade|insonia|agitacao|dor|enjoo|nausea|panico)/.test(t0);
+  let corte = desmame || o.sos ? -1 : t0.search(/\bpor\s+(\d+|um|uma|dois|duas|tres|quatro)\s+(dias?|semanas?|mes(es)?)\b|em seguida|\bdepois\b|\bapos\s+(\d+|o termino|terminar)|;|\.\s/);
+  const trecho = corte > 0 ? t0.slice(0, corte) : t0;
+  let resto = corte > 0 ? l1.slice(corte).replace(/^[\s.;,]+/, '') : '';
+  if (resto && /^por\s/i.test(resto)) resto = 'Assim ' + resto;
+  if (o.sos || desmame) o.obs = [l1, ...extras].join(' ');
+  else o.obs = [resto, ...extras].filter(Boolean).join(' ');
+  if (resto && /seguida|depois|semana|aumentar|diminuir/i.test(resto)) o.confira = true;
+  // horários
+  let t = ' ' + trecho.replace(/\([^)]*\)/g, ' ').replace(/½/g, ' 1/2 ') + ' ';
+  const marcas = [];
+  const iv = t.match(/(\d+)\s*\/\s*(\d+)\s*h/);
+  if (iv && iv[1] === iv[2]) { const h = Number(iv[1]); (h === 12 ? ['manha', 'noite'] : h === 8 ? ['manha', 'tarde', 'noite'] : h === 6 ? ['manha', 'tarde', 'noite', 'deitar'] : h === 24 ? ['manha'] : []).forEach(k => marcas.push({pos: iv.index, k})); }
+  const vz = t.match(/\b(2|duas|3|tres)\s*(x|vezes)\s*(ao|por|no)\s*dia/);
+  if (vz) (/2|duas/.test(vz[1]) ? ['manha', 'noite'] : ['manha', 'tarde', 'noite']).forEach(k => marcas.push({pos: vz.index, k}));
+  for (const m of t.matchAll(/\b(?:as|a)\s+(\d{1,2})\s*(?:h\b|horas?\b|:00)/g)) { const h = Number(m[1]); marcas.push({pos: m.index, k: h >= 5 && h < 12 ? 'manha' : h >= 12 && h < 18 ? 'tarde' : h >= 18 && h < 22 ? 'noite' : 'deitar'}); }
+  t = t.replace(/(\d+)\s*\/\s*(\d+)\s*h/g, m => ' '.repeat(m.length)).replace(/\b\d+\s*(?:x|vezes)\b/g, m => ' '.repeat(m.length)).replace(/\b(?:as|a)\s+\d{1,2}\s*(?:h\b|horas?\b|:00)/g, m => ' '.repeat(m.length)).replace(/\d+(?:[.,]\d+)?\s*(?:mg|mcg|g|ui|%|mg\/ml)\b/g, m => ' '.repeat(m.length)).replace(/\d+\s*horas?\s*(antes|apos|depois)/g, m => ' '.repeat(m.length));
+  const PAL = [['manha', /\b(manha|cafe|acordar|matinal|desjejum)\b/g], ['tarde', /\b(almoco|tarde|meio[- ]dia)\b/g], ['noite', /\b(noite|jantar|noturn\w*)\b/g], ['deitar', /\b(deitar|dormir)\b/g]];
+  for (const [k, re] of PAL) for (const m of t.matchAll(re)) marcas.push({pos: m.index, k});
+  if (/(manha|noite) ou (a |pela )?(noite|manha)/.test(t)) { o.confira = true; const primeira = marcas.filter(m => ['manha', 'noite'].includes(m.k)).sort((a, b) => a.pos - b.pos)[0]; if (primeira) for (let i = marcas.length - 1; i >= 0; i--) if (['manha', 'noite'].includes(marcas[i].k) && marcas[i].k !== primeira.k) marcas.splice(i, 1); }
+  const reQ = new RegExp(`\\b(${Q_GV}(?:\\s*a\\s*${Q_GV})?)\\s*(comprimidos?|cps?\\b|cp\\b|capsulas?|gotas?|ml\\b|jatos?|borrifadas?|aplicac\\w*|adesivos?|saches?|envelopes?)?`, 'g');
+  const qs = [];
+  for (const m of t.matchAll(reQ)) {
+    const depois = t.slice(m.index + m[0].length);
+    if (/^\s*(vez|vezes|dias?|semanas?|mes|meses|horas?|minutos?|x\b|semana)/.test(depois)) continue;
+    if (!m[2] && !/^\d/.test(m[1].trim()) && !/^(meio|meia)/.test(m[1].trim())) continue;
+    qs.push({pos: m.index, q: qtdTxtGV(m[1]), u: m[2] || ''});
+    if (m[2]) { const f = formaGV(m[2], ''); if (f !== 'comprimido') o.forma = f; }
+  }
+  const tem = k => marcas.some(m => m.k === k);
+  if (tem('noite') && tem('deitar') && qs.length < 2) for (let i = marcas.length - 1; i >= 0; i--) if (marcas[i].k === 'noite') marcas.splice(i, 1);
+  if (o.sos) { o.sosQtd = qs[0] ? qs[0].q : ''; return o; }
+  if (desmame) { for (const m of marcas) o.p[m.k] = 'ver abaixo'; o.confira = true; return o; }
+  if (!marcas.length) { o.confira = true; return o; }
+  for (const m of marcas) {
+    const antes = qs.filter(q => q.pos < m.pos).pop(), dep = qs.find(q => q.pos > m.pos);
+    const q = iv || vz ? (qs[0] || null) : (antes || dep || null);
+    if (!o.p[m.k]) o.p[m.k] = q ? q.q : '1';
+    if (!q) o.confira = true;
+  }
+  return o;
+}
+function itemGV(nome, dose, pos, forma, i, mem) {
+  const lido = lerPosologiaGV(pos, forma, nome);
+  const ant = mem && mem.get(normMed(nome));
+  return {nome: nome || '', dose: dose || '', forma: lido.forma, cor: ant ? ant.cor : (lido.forma === 'gota' ? '#93b6da' : CICLO_GV[i % CICLO_GV.length]), para: ant ? ant.para || '' : '', p: lido.p, sos: lido.sos, sosQtd: lido.sosQtd, obs: lido.obs, comida: lido.comida, orig: String(pos || '').split('\n')[0], confira: lido.confira};
+}
+const guiasDe = pid => registrosDe(pid).filter(r => r.tipo === 'guia' && !anulado(r)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+const dadosGuiaDe = r => { try { return JSON.parse(r.campos.dadosGuia); } catch (e) { return null; } };
+function abrirGuia(pid, origem) {
+  const p = paciente(pid);
+  const ult = guiasDe(pid)[0], dAnt = ult && dadosGuiaDe(ult);
+  const mem = new Map(((dAnt && dAnt.itens) || []).map(m => [normMed(m.nome), m]));
+  const receitas = registrosDe(pid).filter(r => r.tipo === 'receita' && !anulado(r)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+  const ativas = (p.medicacoes || []).filter(m => !m.fim);
+  let itens = [], rot = '';
+  const deReceita = r => { let d; try { d = JSON.parse(r.campos.dadosReceita); } catch (e) { return []; } return (d.itens || []).map((i, n) => itemGV(i.nome, i.dose, i.pos, i.forma, n, mem)); };
+  if (!origem) origem = ativas.length ? 'meds' : receitas[0] ? receitas[0].id : 'vazio';
+  const reg = origem.length > 10 ? S.dados.records.find(x => x.id === origem) : null;
+  if (origem === 'meds') { itens = ativas.map((m, n) => itemGV(m.nome, m.dose, m.posologia, '', n, mem)); rot = 'Medicações em uso'; }
+  else if (reg && reg.tipo === 'receita') { itens = deReceita(reg); rot = 'Receita de ' + fmtData(reg.data); }
+  else if (reg && reg.tipo === 'guia') { const d = dadosGuiaDe(reg); itens = d ? d.itens.map(m => ({...m, p: {...m.p}, confira: false})) : []; rot = 'Guia de ' + fmtData(reg.data); }
+  if (!itens.length) itens = [{nome: '', dose: '', forma: 'comprimido', cor: CICLO_GV[0], para: '', p: {manha: '', tarde: '', noite: '', deitar: ''}, sos: false, sosQtd: '', obs: '', comida: '', orig: '', confira: false}];
+  const base = reg && reg.tipo === 'guia' ? dadosGuiaDe(reg) : dAnt;
+  S.guiaRasc = {patientId: pid, origem, rotOrigem: rot, itens, recado: base ? base.recado || '' : RECADO_GV, semana: base ? base.semana !== false : true, receitas: receitas.slice(0, 3).map(r => ({id: r.id, data: r.data})), nAtivas: ativas.length};
+  S.view = {nome: 'guia', pid};
+  render();
+}
+
+/* a folha */
+function celulaGV(m, k) {
+  const t = String(m.p[k] || '').trim();
+  if (!t) return '<div class="gv-vazio"></div>';
+  const v = valorGV(t), f = m.forma || 'comprimido', cor = m.cor || CICLO_GV[0];
+  let ic;
+  if (f === 'comprimido' && v !== null && v <= 4) { const n = Math.floor(v + 1e-9), fr = v - n; ic = Array.from({length: n}, () => svgComprimido(cor, 1, 25)).join('') + (fr > .02 ? svgComprimido(cor, fr, 25) : ''); }
+  else if (['capsula', 'adesivo', 'sache', 'jato'].includes(f) && v !== null && v <= 4 && Number.isInteger(v)) ic = Array.from({length: v}, () => iconeGV(f, cor, 25, '')).join('');
+  else ic = iconeGV(f, cor, 30, ['gota', 'ml', 'jato', 'adesivo', 'sache'].includes(f) && bonitoGV(v, t).length <= 6 ? bonitoGV(v, t) : '');
+  return `<div class="gv-dose"><div class="gv-ics">${ic}</div><div class="gv-leg">${esc(legendaGV(t, f))}</div></div>`;
+}
+const badgeGV = c => { const x = COMIDA_GV.find(y => y[0] === c); return c && x ? `<span class="gv-badge">${icoGV[c]} ${esc(x[1].toLowerCase())}</span>` : ''; };
+function tabelaSemanaGV(usados, titulo, sub) {
+  const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  return `<div class="gv-semana"><div class="gv-sec" style="margin-top:0">${icoGV.check} ${titulo} <small>${sub}</small></div><table><tr><th></th>${dias.map(x => `<th>${x}</th>`).join('')}</tr>${usados.map(x => `<tr><td class="lp"><span class="gv-pt ${x.k}"></span>${x.rot}</td>${dias.map(() => '<td><span class="gv-bola"></span></td>').join('')}</tr>`).join('')}</table></div>`;
+}
+const rodapeGV = s => `<div class="gv-rod"><span>${esc(s.endereco)}${s.telefone ? ' · ' + esc(s.telefone) : ''}</span>${s.instagram ? `<span class="ig">${esc(s.instagram)}</span>` : ''}</div>`;
+function htmlGuiaBase(d, p, semSemana) {
+  const s = S.dados.settings;
+  const meds = (d.itens || []).filter(m => (m.nome || '').trim());
+  const fixos = meds.filter(m => !m.sos), sos = meds.filter(m => m.sos);
+  const pers = PERIODOS_GV.filter(x => x.k !== 'deitar' || fixos.some(m => String(m.p.deitar || '').trim()));
+  const nObs = fixos.filter(m => (m.obs || '').trim()).length;
+  const alt = 32 + 27 + fixos.length * 25 + nObs * 8 + (sos.length ? 10 + Math.ceil(sos.length / 2) * 20 : 0) + ((d.recado || '').trim() ? 14 : 0) + 17 + (d.semana && fixos.length ? 15 + pers.length * 9 : 0) + 14;
+  const k = Math.max(.72, Math.min(1, 277 / alt));
+  const cab = `<div class="gv-cab"><div><div class="gv-selo">GUIA DE REMÉDIOS</div><div class="gv-tit">Como tomar meus remédios</div><div class="gv-para">Feito para <b>${esc(p.nomeSocial || p.nome)}</b> · ${fmtData(d.data || hojeStr())}</div></div>
+    <div class="gv-med"><div class="n">${esc(s.medico)}</div><div>Médico · ${esc(s.crm)}${s.rqe ? ' · RQE ' + esc(s.rqe) : ''}</div>${s.slogan ? `<div class="sl">${esc(s.slogan)}</div>` : ''}</div></div>`;
+  const grade = fixos.length ? `<div class="gv-grade" style="grid-template-columns:50mm repeat(${pers.length},1fr)">
+    <div class="gv-canto">Remédio</div>
+    ${pers.map(x => `<div class="gv-hd ${x.k}">${ilustraGV(x.k)}<b>${x.rot}</b><small>${x.sub}</small></div>`).join('')}
+    ${fixos.map(m => `<div class="gv-nome"><div class="ic">${iconeGV(m.forma, m.cor, 34, '')}</div><div><div class="nm">${esc(m.nome)}</div>${m.dose ? `<div class="ds">${esc(m.dose)}</div>` : ''}${m.para ? `<div class="pq">${esc(m.para)}</div>` : ''}${badgeGV(m.comida)}</div></div>
+      ${pers.map(x => `<div class="gv-cel ${x.k}">${celulaGV(m, x.k)}</div>`).join('')}
+      ${(m.obs || '').trim() ? `<div class="gv-obs"><b>${esc(m.nome.split(/[\s(]/)[0])}:</b> ${esc(m.obs)}</div>` : ''}`).join('')}
+  </div>` : '';
+  const blocoSos = sos.length ? `<div class="gv-sec">${icoGV.boia} Só se precisar</div><div class="gv-sos">${sos.map(m => `<div><div class="ic">${iconeGV(m.forma, m.cor, 32, ['gota', 'ml'].includes(m.forma) ? bonitoGV(valorGV(m.sosQtd), m.sosQtd).slice(0, 6) : '')}</div><div><div class="nm">${esc(m.nome)}${m.dose ? ` <span class="ds">${esc(m.dose)}</span>` : ''}</div>${m.sosQtd ? `<div class="qt">Quanto: <b>${esc(legendaGV(m.sosQtd, m.forma))}</b></div>` : ''}${m.para ? `<div class="pq">${esc(m.para)}</div>` : ''}${m.obs ? `<div class="ob">${esc(m.obs)}</div>` : ''}${badgeGV(m.comida)}</div></div>`).join('')}</div>` : '';
+  const recado = (d.recado || '').trim() ? `<div class="gv-recado">${icoGV.coracao}<div>${esc(d.recado)}</div></div>` : '';
+  const dicas = `<div class="gv-dicas"><div>${icoGV.alerta}<span>Não pare nem mude a dose por conta própria.</span></div><div>${icoGV.relogio}<span>Esqueceu uma dose? Não tome dobrado na próxima.</span></div><div>${icoGV.casa}<span>Guarde longe do calor, da umidade e das crianças.</span></div><div>${icoGV.fone}<span>Dúvidas? Fale comigo${s.telefone ? ':<br><b>' + esc(s.telefone) + '</b>' : '.'}</span></div></div>`;
+  const usados = pers.filter(x => fixos.some(m => String(m.p[x.k] || '').trim()));
+  const semana = d.semana && fixos.length && !semSemana ? tabelaSemanaGV(usados, 'Minha semana', 'marque ✓ quando tomar') : '';
+  return `<div class="gv" style="--gk:${k.toFixed(3)}">${cab}${grade}${blocoSos}${recado}${dicas}${semana}<div class="gv-sp"></div>${rodapeGV(s)}</div>`;
+}
+function paginaSemanaGV(d, p) {
+  const s = S.dados.settings, fixos = (d.itens || []).filter(m => (m.nome || '').trim() && !m.sos);
+  const usados = PERIODOS_GV.filter(x => fixos.some(m => String(m.p[x.k] || '').trim()));
+  const de = '<span class="gv-linha"></span>';
+  return `<div class="gv" style="--gk:1"><div class="gv-cab"><div><div class="gv-selo">GUIA DE REMÉDIOS</div><div class="gv-tit">Meu mês de cuidado</div><div class="gv-para">Marque ✓ cada vez que tomar · <b>${esc(p.nomeSocial || p.nome)}</b></div></div>
+    <div class="gv-med"><div class="n">${esc(s.medico)}</div><div>Médico · ${esc(s.crm)}</div></div></div>
+    ${[1, 2, 3, 4].map(n => tabelaSemanaGV(usados, 'Semana ' + n, `de ${de}/${de} a ${de}/${de}`)).join('<div style="height:4mm"></div>')}
+    <div class="gv-sp"></div>${rodapeGV(s)}</div>`;
+}
+function medirGV(h, kMin) {
+  // mede a folha fora da tela e reduz a escala até caber em uma página A4
+  const caixa = document.createElement('div');
+  caixa.style.cssText = 'position:absolute;left:-10000px;top:0;width:192mm;visibility:hidden';
+  caixa.innerHTML = h; document.body.appendChild(caixa);
+  const g = caixa.querySelector('.gv'); g.style.minHeight = '0';
+  const limite = 272 * 96 / 25.4;
+  let k = 1; g.style.setProperty('--gk', '1');
+  while (k > kMin && g.scrollHeight > limite) { k -= .03; g.style.setProperty('--gk', k.toFixed(3)); }
+  const cabe = g.scrollHeight <= limite;
+  caixa.remove();
+  return {h: h.replace(/--gk:[\d.]+/, '--gk:' + k.toFixed(3)), cabe};
+}
+function htmlGuia(d, p) {
+  const r = medirGV(htmlGuiaBase(d, p), .82);
+  if (r.cabe) return r.h;
+  if (d.semana && (d.itens || []).some(m => (m.nome || '').trim() && !m.sos)) return medirGV(htmlGuiaBase(d, p, true), .64).h + paginaSemanaGV(d, p);
+  return medirGV(htmlGuiaBase(d, p), .64).h;
+}
+function textoGuia(meds) {
+  return meds.map((m, n) => {
+    const nm = `${n + 1}. ${m.nome}${m.dose ? ' ' + m.dose : ''}${m.para ? ' (' + m.para.toLowerCase() + ')' : ''}`;
+    const quando = m.sos ? `só se precisar: ${legendaGV(m.sosQtd, m.forma) || '—'}` : PERIODOS_GV.filter(x => String(m.p[x.k] || '').trim()).map(x => `${x.rot.toLowerCase()}: ${legendaGV(m.p[x.k], m.forma)}`).join('; ');
+    const com = m.comida ? ' · ' + COMIDA_GV.find(y => y[0] === m.comida)[1].toLowerCase() : '';
+    return `${nm} — ${quando}${com}${m.obs ? '\n   ' + m.obs : ''}`;
+  }).join('\n');
+}
+
+/* tela de edição */
+function telaGuia() {
+  const g = S.guiaRasc, p = g && paciente(g.patientId);
+  if (!g || !p) return telaInicio();
+  const corBtn = (m, i) => CORES_GV.map(([n, c]) => `<button type="button" class="gv-cor ${m.cor === c ? 'on' : ''}" style="background:${c}" title="${n}" data-act="gv-cor" data-i="${i}" data-c="${c}"></button>`).join('');
+  return `<button class="btn link" data-act="abrir-paciente" data-id="${p.id}">‹ Voltar ao paciente</button>
+  <h1 style="font-size:1.5rem;margin:.3rem 0 .2rem">Guia visual dos remédios</h1>
+  <div class="meta" style="margin-bottom:.8rem"><span><b>${esc(p.nome)}</b></span>${g.rotOrigem ? `<span>Puxado de: ${esc(g.rotOrigem)}</span>` : ''}</div>
+  <div class="banner info" style="font-size:.92rem">Folha colorida para o paciente: cada remédio com o desenho na cor do comprimido e a dose da manhã, da tarde, da noite e de antes de dormir. <b>Confira os horários antes de imprimir.</b></div>
+  <div class="row" style="margin-bottom:1rem;align-items:center"><span style="color:var(--suave);font-size:.9rem">Puxar de:</span>
+    ${g.nAtivas ? `<button type="button" class="btn sm ${g.origem === 'meds' ? 'pri' : ''}" data-act="gv-origem" data-o="meds">Medicações em uso (${g.nAtivas})</button>` : ''}
+    ${g.receitas.map(r => `<button type="button" class="btn sm ${g.origem === r.id ? 'pri' : ''}" data-act="gv-origem" data-o="${r.id}">Receita de ${fmtData(r.data)}</button>`).join('')}</div>
+  <div class="gv-edit"><div>
+    ${g.itens.map((m, i) => `<div class="gv-it" style="border-left-color:${m.cor}">
+      <div class="row" style="justify-content:space-between;margin-bottom:.4rem;align-items:center"><span class="gv-it-ic">${iconeGV(m.forma, m.cor, 28, '')}<b>${i + 1}.</b></span>
+        <span class="row">${i > 0 ? `<button type="button" class="btn sm link" data-act="gv-subir" data-i="${i}" title="Subir">↑</button>` : ''}<button type="button" class="btn sm link" data-act="gv-tirar" data-i="${i}">Remover</button></span></div>
+      <div class="grid2"><label class="f"><span>Remédio</span><input type="text" data-gv="nome" data-i="${i}" value="${esc(m.nome)}" placeholder="ex.: Sertralina"></label>
+        <label class="f"><span>Dose</span><input type="text" data-gv="dose" data-i="${i}" value="${esc(m.dose)}" placeholder="ex.: 50 mg"></label></div>
+      ${m.orig ? `<div class="gv-orig">Na prescrição: ${esc(m.orig)}</div>` : ''}
+      ${m.confira ? `<div class="alerta-rx" style="margin-top:.2rem">Confira: ${m.sos ? 'veja quanto tomar.' : 'a posologia tem mudança de dose ou horário a escolher; a tabela mostra a dose de agora e o resto vai na observação.'}</div>` : ''}
+      <label style="display:flex;gap:.45rem;align-items:center;margin:.1rem 0 .7rem;font-size:.95rem;cursor:pointer"><input type="checkbox" data-gv="sos" data-i="${i}" ${m.sos ? 'checked' : ''} style="width:20px;height:20px;min-height:0;margin:0"> Só se precisar (SOS)</label>
+      ${m.sos ? `<div class="grid2"><label class="f"><span>Quanto tomar</span><input type="text" data-gv="sosQtd" data-i="${i}" value="${esc(m.sosQtd)}" placeholder="ex.: 1 ou 3 a 6"></label><div></div></div>`
+        : `<div class="gv-pers">${PERIODOS_GV.map(x => `<label class="gv-per ${x.k}"><span>${ilustraGV(x.k)}<b>${x.rot}</b></span><input type="text" data-gv="p.${x.k}" data-i="${i}" value="${esc(m.p[x.k])}" placeholder="–" inputmode="text"></label>`).join('')}</div>
+        <p class="gv-dica">Escreva 1, ½, 1 e ½, 2… Em gotas, o número de gotas.</p>`}
+      <div class="grid2"><label class="f"><span>Forma</span><select data-gv="forma" data-i="${i}">${FORMAS_GV.map(([v, r]) => `<option value="${v}" ${m.forma === v ? 'selected' : ''}>${r}</option>`).join('')}</select></label>
+        <label class="f"><span>Como tomar</span><select data-gv="comida" data-i="${i}">${COMIDA_GV.map(([v, r]) => `<option value="${v}" ${m.comida === v ? 'selected' : ''}>${r}</option>`).join('')}</select></label></div>
+      <label class="f"><span>Para que serve (em palavras simples)</span><input type="text" data-gv="para" data-i="${i}" value="${esc(m.para)}" placeholder="ex.: Para a ansiedade"></label>
+      <div class="sugs">${PARA_GV.map(t => `<button type="button" class="sug" data-act="gv-para" data-i="${i}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+      <div class="f" style="margin-bottom:.8rem"><span class="rot-f">Cor do ${m.forma === 'capsula' ? 'remédio' : m.forma === 'gota' ? 'frasco / gota' : 'comprimido'}</span><div class="gv-cores">${corBtn(m, i)}</div></div>
+      <label class="f"><span>${m.sos ? 'Quando e como usar' : 'Observação para o paciente (opcional)'}</span><textarea data-gv="obs" data-i="${i}" rows="2" placeholder="${m.sos ? 'ex.: Se crise forte de ansiedade. Pode repetir após 30 minutos.' : 'ex.: Depois de 6 dias, passar para 1 comprimido.'}">${esc(m.obs)}</textarea></label>
+    </div>`).join('')}
+    <div class="row" style="margin-bottom:1rem"><button type="button" class="btn" data-act="gv-mais">+ Outro remédio</button></div>
+    <div class="form-sec"><label class="f"><span>Recadinho no fim da folha</span><textarea id="gv-recado" rows="2">${esc(g.recado)}</textarea></label>
+      <label style="display:flex;gap:.45rem;align-items:center;margin:0 0 1rem;font-size:.95rem;cursor:pointer"><input type="checkbox" id="gv-semana" ${g.semana ? 'checked' : ''} style="width:20px;height:20px;min-height:0;margin:0"> Incluir “Minha semana” para o paciente marcar ✓</label></div>
+  </div>
+  <div class="gv-prev-wrap" id="gv-prev-wrap"><div class="gv-prev-tit">Prévia da folha</div><div class="gv-prev"><div id="gv-prev" class="gv-tela">${htmlGuia(dadosGuiaRasc(), p)}</div></div></div>
+  </div>
+  <div class="barra-acoes"><span class="salvo">A folha fica registrada no prontuário e pode ser impressa de novo.</span>
+    <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
+    <button type="button" class="btn pri" data-act="gv-gerar">Gerar e imprimir</button></div>`;
+}
+function dadosGuiaRasc() {
+  const g = S.guiaRasc;
+  return {data: hojeStr(), itens: g.itens.filter(m => (m.nome || '').trim()).map(m => ({nome: m.nome.trim(), dose: (m.dose || '').trim(), forma: m.forma, cor: m.cor, para: (m.para || '').trim(), p: {...m.p}, sos: !!m.sos, sosQtd: (m.sosQtd || '').trim(), obs: (m.obs || '').trim(), comida: m.comida || ''})), recado: (g.recado || '').trim(), semana: !!g.semana};
+}
+function ajustarPrevGuia() {
+  const w = $('#gv-prev-wrap'), el = $('#gv-prev'); if (!w || !el) return;
+  el.style.zoom = Math.min(1, (w.clientWidth - 2) / 794).toFixed(3);
+}
+function atualizarPrevGuia() { const el = $('#gv-prev'), g = S.guiaRasc; if (!el || !g) return; el.innerHTML = htmlGuia(dadosGuiaRasc(), paciente(g.patientId)); }
+function rerenderGuia() { const y = $('#main').scrollTop; render(); $('#main').scrollTop = y; }
+function ligarGuia() {
+  const m = $('#main');
+  const setar = el => {
+    const g = S.guiaRasc; if (!g) return false;
+    if (el.id === 'gv-recado') { g.recado = el.value; return true; }
+    if (el.id === 'gv-semana') { g.semana = el.checked; return true; }
+    const c = el.dataset.gv; if (!c) return false;
+    const it = g.itens[Number(el.dataset.i)];
+    if (c.startsWith('p.')) it.p[c.slice(2)] = el.value;
+    else if (c === 'sos') it.sos = el.checked;
+    else it[c] = el.value;
+    return true;
+  };
+  m.addEventListener('input', e => { if (setar(e.target)) atualizarPrevGuia(); });
+  m.addEventListener('change', e => { const el = e.target; if (!setar(el)) return; if (['sos', 'forma'].includes(el.dataset.gv)) { const it = S.guiaRasc.itens[Number(el.dataset.i)]; if (el.dataset.gv === 'sos' && it.sos && !it.sosQtd) it.sosQtd = PERIODOS_GV.map(x => it.p[x.k]).find(Boolean) || ''; rerenderGuia(); } else atualizarPrevGuia(); });
+  ajustarPrevGuia();
+  if (!window._gvResize) { window._gvResize = true; window.addEventListener('resize', () => ajustarPrevGuia()); }
+  setTimeout(ajustarPrevGuia, 60);
+}
+async function gerarGuia() {
+  const g = S.guiaRasc, p = paciente(g.patientId);
+  const d = dadosGuiaRasc();
+  if (!d.itens.length) return aviso('Inclua ao menos um remédio.');
+  const semHora = d.itens.filter(m => !m.sos && !PERIODOS_GV.some(x => String(m.p[x.k] || '').trim()));
+  if (semHora.length) return aviso('Escolha o horário de: ' + semHora.map(m => m.nome).join(', '), 5000);
+  const s = S.dados.settings;
+  const reg = {id: uid(), patientId: p.id, tipo: 'guia', data: d.data, criadoEm: agoraISO(),
+    campos: {itens: textoGuia(d.itens), ...(d.recado ? {recado: d.recado} : {}), dadosGuia: JSON.stringify(d)},
+    cid: [], refId: null, autor: `${s.medico} – ${s.crm}`, assinatura: {status: 'entregue'}};
+  reg.hash = await hashRegistro(reg); S.dados.records.push(reg);
+  auditar('Guia visual dos remédios gerado', p.nome, p.id);
+  await salvar();
+  S.guiaRasc = null; S.abertos.add(reg.id);
+  abrirPaciente(p.id);
+  imprimirFolha(htmlGuia(d, p), 'guia', 'Guia visual dos remédios – ' + p.nome, p.id);
+}
+const ACOES_GV = {
+  'novo-guia': d => abrirGuia(d.pid),
+  'gv-de-receita': d => { const r = S.dados.records.find(x => x.id === d.id); abrirGuia(r.patientId, r.id); },
+  'gv-novo-de': d => { const r = S.dados.records.find(x => x.id === d.id); abrirGuia(r.patientId, r.id); },
+  'gv-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id), dd = r && dadosGuiaDe(r); if (!dd) return aviso('Não foi possível ler este guia.'); imprimirFolha(htmlGuia(dd, paciente(r.patientId)), 'guia', 'Reimpressão – Guia visual dos remédios – ' + paciente(r.patientId).nome, r.patientId); },
+  'gv-origem': d => abrirGuia(S.guiaRasc.patientId, d.o),
+  'gv-cor': d => { S.guiaRasc.itens[Number(d.i)].cor = d.c; rerenderGuia(); },
+  'gv-para': d => { S.guiaRasc.itens[Number(d.i)].para = d.t; rerenderGuia(); },
+  'gv-mais': () => { const g = S.guiaRasc; g.itens.push({nome: '', dose: '', forma: 'comprimido', cor: CICLO_GV[g.itens.length % CICLO_GV.length], para: '', p: {manha: '', tarde: '', noite: '', deitar: ''}, sos: false, sosQtd: '', obs: '', comida: '', orig: '', confira: false}); rerenderGuia(); },
+  'gv-tirar': d => { const g = S.guiaRasc; g.itens.splice(Number(d.i), 1); if (!g.itens.length) return ACOES_GV['gv-mais'](); rerenderGuia(); },
+  'gv-subir': d => { const g = S.guiaRasc, i = Number(d.i); [g.itens[i - 1], g.itens[i]] = [g.itens[i], g.itens[i - 1]]; rerenderGuia(); },
+  'gv-gerar': () => gerarGuia()
+};
+
 const ACOES = {
   'ir': d => { S.view = {nome: d.v}; render(); },
   'bloquear': () => bloquear(),
@@ -3769,6 +4237,7 @@ const ACOES = {
   'bg-chip': d => { S.buscaG = {q: d.q || '', f: d.f || ''}; render(); },
   'bg-abrir': d => { S.abertos.add(d.r); abrirPaciente(d.pid); setTimeout(() => { const el = document.querySelector(`[data-reg="${d.r}"]`) || document.getElementById('reg-' + d.r); if (el) el.scrollIntoView({block: 'center'}); }, 50); }
 };
+Object.assign(ACOES, ACOES_GV);
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || !S.chave) return;
   const f = ACOES[el.dataset.act]; if (!f) return;
