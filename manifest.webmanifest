@@ -1,6 +1,6 @@
 {
-  "name": "Prontuário",
-  "short_name": "Prontuário",
+  "name": "Principal",
+  "short_name": "Principal",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
