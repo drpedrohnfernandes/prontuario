@@ -474,7 +474,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.21.0';
+const APP_VERSAO = '1.22.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -1305,7 +1305,7 @@ function cartaoRegistro(r, todos) {
         ${editavel(r) ? `<button class="btn sm pri" data-act="editar-registro" data-id="${r.id}">Editar</button>` : ''}
         <button class="btn sm" data-act="novo-registro" data-tipo="adendo" data-pid="${r.patientId}" data-ref="${r.id}">+ Adendo</button>
         ${anul ? '' : r.tipo === 'receita' ? `<button class="btn sm pri" data-act="reimprimir-receita" data-id="${r.id}">Imprimir receita</button><button class="btn sm" data-act="reimprimir-receita" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button><button class="btn sm azul" data-act="cfm-copiar" data-id="${r.id}">Levar para o CFM</button><button class="btn sm" data-act="gv-de-receita" data-id="${r.id}">Guia visual</button>` : ''}
-        ${!anul && r.tipo === 'guia' ? `<button class="btn sm pri" data-act="gv-reimprimir" data-id="${r.id}">Imprimir guia</button><button class="btn sm" data-act="gv-novo-de" data-id="${r.id}">Ajustar e gerar outro</button>` : ''}
+        ${!anul && r.tipo === 'guia' ? `<button class="btn sm pri" data-act="gv-pdf" data-id="${r.id}">Salvar PDF do guia</button><button class="btn sm" data-act="gv-reimprimir" data-id="${r.id}">Imprimir</button><button class="btn sm" data-act="gv-novo-de" data-id="${r.id}">Ajustar e gerar outro</button>` : ''}
         ${!anul && r.tipo === 'lme' ? `<button class="btn sm pri" data-act="lme-reimprimir" data-id="${r.id}">Imprimir LME</button>` : ''}
         ${!anul && r.tipo === 'documento' ? `<button class="btn sm pri" data-act="doc-reimprimir" data-id="${r.id}">Imprimir documento</button><button class="btn sm" data-act="doc-reimprimir" data-carimbo="1" data-id="${r.id}">Imprimir para carimbar</button>` : ''}
         ${anul || !ASSINAVEIS.includes(r.tipo) ? '' : r.pdfAssinado ? `<button class="btn sm" data-act="ver-assinado" data-id="${r.id}">Ver PDF assinado</button>` : S.esperando && S.esperando[r.id] ? `<span class="tag pend">Aguardando assinatura no Acrobat…</span><button class="btn sm" data-act="ass-verificar">Verificar agora</button><button class="btn sm link" data-act="assinar-vidaas" data-id="${r.id}">Anexar à mão</button>` : `<button class="btn sm azul" data-act="assinar-direto" data-id="${r.id}">Assinar com VIDaaS</button>${temPasta() ? `<button class="btn sm link" data-act="assinar-vidaas" data-id="${r.id}" title="Baixar o PDF ou anexar um arquivo assinado manualmente">opções</button>` : ''}`}
@@ -4198,7 +4198,7 @@ function telaGuia() {
   </div>
   <div class="barra-acoes"><span class="salvo">A folha fica registrada no prontuário e pode ser impressa de novo.</span>
     <button type="button" class="btn" data-act="abrir-paciente" data-id="${p.id}">Cancelar</button>
-    <button type="button" class="btn pri" data-act="gv-gerar">Gerar e imprimir</button></div>`;
+    <button type="button" class="btn pri" data-act="gv-gerar">Gerar PDF</button></div>`;
 }
 function dadosGuiaRasc() {
   const g = S.guiaRasc;
@@ -4244,12 +4244,109 @@ async function gerarGuia() {
   await salvar();
   S.guiaRasc = null; S.abertos.add(reg.id);
   abrirPaciente(p.id);
-  imprimirFolha(htmlGuia(d, p), 'guia', 'Guia visual dos remédios – ' + p.nome, p.id);
+  salvarGuiaPdf(htmlGuia(d, p), p, d.data, p.id);
+}
+
+/* ---------- guia visual: PDF direto (sem tela de imprimir) ---------- */
+async function fontesEmbutidasGV() {
+  if (S._fontesGV !== undefined) return S._fontesGV;
+  S._fontesGV = '';
+  try {
+    const link = document.querySelector('link[href*="fonts.googleapis.com/css2"]'); if (!link) return '';
+    const css = await (await fetch(link.href)).text();
+    const blocos = (css.match(/(\/\*[^*]*\*\/\s*)?@font-face\s*\{[^}]*\}/g) || []).filter(b => !/^\/\*/.test(b) || /\/\*\s*(latin|latin-ext)\s*\*\//.test(b));
+    let out = '';
+    for (const b of blocos) {
+      const m = b.match(/url\((https:[^)]+)\)/); if (!m) continue;
+      const buf = new Uint8Array(await (await fetch(m[1])).arrayBuffer());
+      let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      out += b.replace(m[1], 'data:font/woff2;base64,' + btoa(bin)).replace(/\/\*[^*]*\*\//, '') + '\n';
+    }
+    S._fontesGV = out;
+  } catch (e) { console.warn('fontes do guia', e); }
+  return S._fontesGV;
+}
+async function folhaParaJpeg(gvHtml, css, escala) {
+  const mm = v => v * 96 / 25.4, W = Math.round(mm(192)), H0 = Math.round(mm(277));
+  // mede a folha: se o conteúdo passar de uma página, a imagem fica mais alta e é reduzida no PDF
+  const med = document.createElement('div'); med.style.cssText = `position:absolute;left:-10000px;top:0;width:${W}px`;
+  med.innerHTML = gvHtml; document.body.appendChild(med);
+  const gm = med.querySelector('.gv'); if (gm) gm.style.minHeight = '0';
+  const H = Math.max(H0, gm ? Math.ceil(gm.scrollHeight) + 2 : H0); med.remove();
+  const wrap = document.createElement('div');
+  const st = document.createElement('style'); st.textContent = css; wrap.appendChild(st);
+  const corpo = document.createElement('div'); corpo.innerHTML = gvHtml; wrap.appendChild(corpo);
+  wrap.setAttribute('style', `width:${W}px;height:${H}px;background:#fff;overflow:hidden`);
+  const g = corpo.querySelector('.gv'); if (g) { g.style.minHeight = '0'; g.style.height = H + 'px'; g.style.width = W + 'px'; }
+  const xhtml = new XMLSerializer().serializeToString(wrap);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject x="0" y="0" width="${W}" height="${H}">${xhtml}</foreignObject></svg>`;
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await img.decode();
+  await new Promise(r => setTimeout(r, 120));
+  const cv = document.createElement('canvas'); cv.width = Math.round(W * escala); cv.height = Math.round(H * escala);
+  const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+  cx.drawImage(img, 0, 0, cv.width, cv.height);
+  const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+  if (!blob) throw new Error('falha ao gerar a imagem');
+  return {bytes: new Uint8Array(await blob.arrayBuffer()), w: cv.width, h: cv.height};
+}
+function pdfDeJpegs(pags, titulo) {
+  const L1 = t => { const u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i) & 255; return u; };
+  const hex = t => '<FEFF' + [...String(t)].map(c => { const u = c.codePointAt(0); return u > 0xFFFF ? '' : u.toString(16).padStart(4, '0'); }).join('') + '>';
+  const partes = [], offs = []; let pos = 0;
+  const put = x => { const b = typeof x === 'string' ? L1(x) : x; partes.push(b); pos += b.length; };
+  const PW = 595.28, PH = 841.89, mg = 9 * 72 / 25.4, iw = 192 * 72 / 25.4, ih = 277 * 72 / 25.4;
+  const n = pags.length, iInfo = 3 + 3 * n;
+  const obj = (i, corpo) => { offs[i] = pos; put(`${i} 0 obj\n`); if (typeof corpo === 'string') put(corpo); else corpo(); put('\nendobj\n'); };
+  put('%PDF-1.4\n%âãÏÓ\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, `<< /Type /Pages /Count ${n} /Kids [${pags.map((_, k) => `${3 + 3 * k} 0 R`).join(' ')}] >>`);
+  pags.forEach((pg, k) => {
+    const iP = 3 + 3 * k, iC = iP + 1, iI = iP + 2;
+    obj(iP, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im${k} ${iI} 0 R >> >> /Contents ${iC} 0 R >>`);
+    const esc_ = Math.min(iw / pg.w, ih / pg.h), dw = pg.w * esc_, dh = pg.h * esc_;
+    const c = `q ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${(mg + (iw - dw) / 2).toFixed(2)} ${(PH - mg - dh).toFixed(2)} cm /Im${k} Do Q`;
+    obj(iC, `<< /Length ${c.length} >>\nstream\n${c}\nendstream`);
+    obj(iI, () => { put(`<< /Type /XObject /Subtype /Image /Width ${pg.w} /Height ${pg.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${pg.bytes.length} >>\nstream\n`); put(pg.bytes); put('\nendstream'); });
+  });
+  obj(iInfo, `<< /Title ${hex(titulo)} /Producer (Principal ${APP_VERSAO}) >>`);
+  const xref = pos;
+  put(`xref\n0 ${iInfo + 1}\n0000000000 65535 f \n`);
+  for (let i = 1; i <= iInfo; i++) put(String(offs[i]).padStart(10, '0') + ' 00000 n \n');
+  put(`trailer\n<< /Size ${iInfo + 1} /Root 1 0 R /Info ${iInfo} 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  const out = new Uint8Array(pos); let o = 0; for (const b of partes) { out.set(b, o); o += b.length; }
+  return out;
+}
+async function salvarGuiaPdf(html, p, data, pid) {
+  aviso('Gerando o PDF do guia…', 3000);
+  try {
+    const caixa = document.createElement('div'); caixa.innerHTML = html;
+    const folhas = [...caixa.querySelectorAll('.gv')];
+    if (!folhas.length) throw new Error('guia vazio');
+    const css = (await fontesEmbutidasGV()) + [...document.querySelectorAll('style')].map(x => x.textContent).join('\n');
+    const pags = [];
+    for (const f of folhas) pags.push(await folhaParaJpeg(f.outerHTML, css, 2.6));
+    const bytes = pdfDeJpegs(pags, 'Guia visual dos remédios – ' + p.nome);
+    const nome = `Guia_visual_${semAcento(p.nome).replace(/[^A-Za-z0-9]+/g, '_')}_${data || hojeStr()}.pdf`.slice(0, 120);
+    const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}));
+    const a = document.createElement('a'); a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    auditar('Guia visual salvo em PDF', `${p.nome} – ${nome}`, pid || p.id); salvar();
+    aviso(`PDF do guia salvo: ${nome}`, 6000);
+    return true;
+  } catch (e) {
+    console.warn('guia pdf', e);
+    aviso('Não consegui gerar o PDF direto; abrindo a tela de imprimir (escolha “Salvar como PDF”).', 7000);
+    imprimirFolha(html, 'guia', 'Guia visual dos remédios – ' + p.nome, pid || p.id);
+    return false;
+  }
 }
 const ACOES_GV = {
   'novo-guia': d => abrirGuia(d.pid),
   'gv-de-receita': d => { const r = S.dados.records.find(x => x.id === d.id); abrirGuia(r.patientId, r.id); },
   'gv-novo-de': d => { const r = S.dados.records.find(x => x.id === d.id); abrirGuia(r.patientId, r.id); },
+  'gv-pdf': d => { const r = S.dados.records.find(x => x.id === d.id), dd = r && dadosGuiaDe(r); if (!dd) return aviso('Não foi possível ler este guia.'); const p = paciente(r.patientId); salvarGuiaPdf(htmlGuia(dd, p), p, dd.data || r.data, r.patientId); },
   'gv-reimprimir': d => { const r = S.dados.records.find(x => x.id === d.id), dd = r && dadosGuiaDe(r); if (!dd) return aviso('Não foi possível ler este guia.'); imprimirFolha(htmlGuia(dd, paciente(r.patientId)), 'guia', 'Reimpressão – Guia visual dos remédios – ' + paciente(r.patientId).nome, r.patientId); },
   'gv-origem': d => abrirGuia(S.guiaRasc.patientId, d.o),
   'gv-cor': d => { S.guiaRasc.itens[Number(d.i)].cor = d.c; rerenderGuia(); },
