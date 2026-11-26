@@ -474,7 +474,7 @@ table.aud th{color:var(--suave);font-weight:600;font-size:.82rem}
    Dados guardados só neste aparelho, criptografados (AES-256-GCM)
    com chave derivada da senha (PBKDF2-SHA256, 310 mil iterações).
    ============================================================ */
-const APP_VERSAO = '1.22.0';
+const APP_VERSAO = '1.23.0';
 const GOOGLE_CLIENT_ID_PADRAO = '49683390904-f22stdkgad331f0cmudrsj7k5lljum6d.apps.googleusercontent.com';
 const ITERACOES = 310000;
 const NOME_PASTA_DRIVE = 'Prontuário – Backups';
@@ -561,8 +561,20 @@ async function salvar() {
 function auditar(acao, detalhe = '', pid = null) {
   S.dados.audit.push({id:uid(), em:agoraISO(), acao, detalhe, pid});
 }
-const paciente = id => S.dados.patients.find(p => p.id === id);
-const registrosDe = pid => S.dados.records.filter(r => r.patientId === pid);
+// Prontuários unidos: o cadastro repetido guarda "unidoA" (id do principal) e os registros dele aparecem no principal
+function mapaUniao() {
+  const ps = S.dados.patients, v = S._verUniao || 0;
+  if (S._mu && S._mu.ps === ps && S._mu.n === ps.length && S._mu.v === v) return S._mu.m;
+  const porId = new Map(ps.map(p => [p.id, p])), m = new Map();
+  for (const p of ps) if (p.unidoA) { let q = p, n = 0; while (q.unidoA && porId.has(q.unidoA) && n++ < 30) q = porId.get(q.unidoA); if (q !== p && !q.unidoA) m.set(p.id, q.id); }
+  S._mu = {ps, n: ps.length, v, m}; return m;
+}
+const raizId = id => mapaUniao().get(id) || id;
+const pidDe = x => raizId(x.patientId);
+const pacienteBruto = id => S.dados.patients.find(p => p.id === id);
+const paciente = id => { const k = raizId(id); return S.dados.patients.find(p => p.id === k); };
+const ativo = p => !p.arquivado && !p.unidoA;
+const registrosDe = pid => { const m = mapaUniao(), k = m.get(pid) || pid; return S.dados.records.filter(r => (m.get(r.patientId) || r.patientId) === k); };
 
 /* ---------- CID-10 (sugestões; aceita texto livre) ---------- */
 const CIDS = [
@@ -794,6 +806,7 @@ function render() {
   if (v === 'monitor') ligarMonitor();
   if (v === 'busca-geral') ligarBuscaGeral();
   if (v === 'guia') ligarGuia();
+  if (v === 'unir') ligarUnir();
   if (v === 'backup' && S.dados.settings.googleClientId) Drive.carregarGIS().catch(() => {});
   $('#main').scrollTop = 0;
 }
@@ -803,29 +816,29 @@ const anulado = r => !!anulacaoDe(r.id);
 const N_RECENTES = 20;
 function ultimoAtendimento(pid) {
   const hoje = hojeStr();
-  let ult = null;
-  for (const r of S.dados.records) if (r.patientId === pid && !TIPOS_AUX.includes(r.tipo) && r.data && r.data <= hoje && !anulado(r) && (!ult || r.data > ult.data || (r.data === ult.data && (r.criadoEm || '') > (ult.criadoEm || '')))) ult = r;
+  let ult = null; const m = mapaUniao();
+  for (const r of S.dados.records) if ((m.get(r.patientId) || r.patientId) === pid && !TIPOS_AUX.includes(r.tipo) && r.data && r.data <= hoje && !anulado(r) && (!ult || r.data > ult.data || (r.data === ult.data && (r.criadoEm || '') > (ult.criadoEm || '')))) ult = r;
   return ult;
 }
 function pacientesRecentes() {
-  return S.dados.patients.filter(p => !p.arquivado).map(p => ({p, ult: ultimoAtendimento(p.id)})).filter(x => x.ult)
+  return S.dados.patients.filter(ativo).map(p => ({p, ult: ultimoAtendimento(p.id)})).filter(x => x.ult)
     .sort((a, b) => (b.ult.data + (b.ult.criadoEm || '')).localeCompare(a.ult.data + (a.ult.criadoEm || ''))).slice(0, N_RECENTES).map(x => x.p);
 }
 function abasLista() {
   if (S.busca.trim()) return '';
-  const aba = S.abaLista || 'recentes', total = S.dados.patients.filter(p => !p.arquivado).length;
+  const aba = S.abaLista || 'recentes', total = S.dados.patients.filter(ativo).length;
   return `<button class="aba ${aba === 'recentes' ? 'on' : ''}" data-act="aba-lista" data-aba="recentes">Recentes</button><button class="aba ${aba === 'todos' ? 'on' : ''}" data-act="aba-lista" data-aba="todos">Todos (${total})</button>`;
 }
 function listaPacientes() {
   const q = semAcento(S.busca.trim());
   const recentes = !q && (S.abaLista || 'recentes') === 'recentes';
-  let ps = S.dados.patients.filter(p => !p.arquivado);
+  let ps = S.dados.patients.filter(ativo);
   if (q) ps = ps.filter(p => semAcento(p.nome).includes(q) || (p.cpf || '').replace(/\D/g,'').includes(q.replace(/\D/g,'') || '###') || semAcento(p.telefone).includes(q));
   if (recentes) ps = pacientesRecentes();
   else ps.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   if (!ps.length) return `<div class="vazio">${!S.dados.patients.length ? 'Nenhum paciente ainda.<br>Toque em “+ Novo paciente”.' : recentes ? 'Nenhum atendimento registrado ainda.' : 'Nenhum paciente encontrado.'}</div>`;
   const atual = S.view.pid;
-  const cab = recentes ? `<div class="plist-cab">Últimos ${ps.length} pacientes atendidos</div>` : q ? `<div class="plist-cab">${ps.length} encontrado(s) entre todos os pacientes</div>` : '';
+  const cab = recentes ? `<div class="plist-cab">Últimos ${ps.length} pacientes atendidos</div>` : q ? `<div class="plist-cab">${ps.length} encontrado(s) entre todos os pacientes</div>` : `<div class="plist-cab"><button class="btn sm link" style="padding:0;min-height:0" data-act="unir-lista">Procurar cadastros repetidos</button></div>`;
   return cab + ps.map(p => {
     const ult = ultimoAtendimento(p.id);
     return `<button class="pitem ${p.id === atual ? 'on' : ''}" data-act="abrir-paciente" data-id="${p.id}"><b>${esc(p.nome)}</b><small>${p.nascimento ? esc(idade(p.nascimento)) + ' · ' : ''}${ult ? 'Último atendimento ' + fmtData(ult.data) : 'Sem atendimentos'}</small></button>`;
@@ -848,6 +861,7 @@ function telaPrincipal() {
     case 'linha': return telaLinha();
     case 'busca-geral': return telaBuscaGeral();
     case 'guia': return telaGuia();
+    case 'unir': return telaUnir();
     default: return telaInicio();
   }
 }
@@ -864,7 +878,7 @@ function telaInicio() {
     ${Store.volatil ? `<div class="banner alerta">Este navegador não está guardando os dados. Use a versão instalada do app.</div>` : ''}
     <h1 style="font-size:1.6rem;margin-bottom:1rem">Olá, ${esc((d.settings.medico || '').replace(/^Dra?\.\s*/,'').split(' ')[0] || 'doutor')}</h1>
     <div class="kpis">
-      <div class="kpi"><div class="n">${d.patients.filter(p => !p.arquivado).length}</div><div class="l">pacientes</div></div>
+      <div class="kpi"><div class="n">${d.patients.filter(ativo).length}</div><div class="l">pacientes</div></div>
       <div class="kpi"><div class="n">${hojeN}</div><div class="l">atendimentos hoje</div></div>
       <div class="kpi"><div class="n">${pend}</div><div class="l">registros aguardando assinatura digital</div></div>
       <div class="kpi"><div class="n" style="font-size:1.15rem;padding-top:.45rem">${u ? fmtDataHora(u.em) : 'Nunca'}</div><div class="l">último backup</div></div>
@@ -904,7 +918,9 @@ function telaPaciente() {
       <button class="btn" data-act="resumo-paciente" data-id="${p.id}">Resumo</button>
       <button class="btn" data-act="linha-tempo" data-id="${p.id}">Linha do tempo</button>
       <button class="btn" data-act="imprimir-paciente" data-id="${p.id}">Imprimir prontuário</button>
-    </div></div></div>
+    </div></div>
+    ${unioesAtivas(p).map(x => { const o = pacienteBruto(x.de); return `<div class="banner info" style="margin:.8rem 0 0;padding:.5rem .8rem;font-size:.9rem"><span>Inclui o prontuário de <b>${esc(o.nome)}</b>${o.cpf ? ' (CPF ' + esc(o.cpf) + ')' : ''}, unido em ${fmtData(x.em.slice(0, 10))}.</span><button class="btn sm link" data-act="uni-desfazer" data-pid="${p.id}" data-de="${o.id}">Desfazer união</button></div>`; }).join('')}
+    <div style="text-align:right;margin-top:.3rem"><button class="btn sm link" style="color:var(--suave)" data-act="unir-de" data-id="${p.id}" title="Juntar com outro cadastro da mesma pessoa">Unir com outro prontuário…</button></div></div>
   <div class="row" style="margin-bottom:1rem">
     <button class="btn ${temPrimeira ? '' : 'pri'}" data-act="novo-registro" data-tipo="primeira" data-pid="${p.id}">+ Primeira consulta</button>
     <button class="btn ${temPrimeira ? 'pri' : ''}" data-act="novo-registro" data-tipo="evolucao" data-pid="${p.id}">+ Nova evolução</button>
@@ -1288,6 +1304,8 @@ function cartaoRegistro(r, todos) {
   const tagInteg = integ === true ? '<span class="tag ok">Íntegro</span>' : integ === false ? '<span class="tag ruim">Alterado!</span>' : '';
   const anul = anulacaoDe(r.id);
   const tagVidaas = r.pdfAssinado ? '<span class="tag ok">Assinado · VIDaaS</span>' : '';
+  const pOrig = pidDe(r) !== r.patientId && pacienteBruto(r.patientId);
+  const tagUni = pOrig ? `<span class="tag azul" title="Registrado no cadastro “${esc(pOrig.nome)}”, unido a este prontuário">do cadastro unido</span>` : '';
   const nv = (r.versoes || []).length;
   const tagEdit = nv && !anul ? '<span class="tag marrom">Editado</span>' : '';
   const assin = r.tipo === 'guia' ? '<span class="tag azul">Entregue ao paciente</span>' : r.tipo === 'documento' ? (r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levado ao CFM</span>' : '<span class="tag marrom">Impresso · assinatura à mão</span>') : r.tipo === 'receita' && r.assinatura && r.assinatura.status === 'cfm' ? '<span class="tag azul">Levada ao CFM</span>' : r.tipo === 'doctoralia' ? '<span class="tag azul">Importado da Doctoralia</span>' : r.tipo === 'receita' ? '<span class="tag marrom">Impressa · assinatura à mão</span>' : r.tipo === 'cfm' ? (r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado no CFM</span>' : '<span class="tag marrom">CFM</span>') : r.assinatura && r.assinatura.status === 'assinado' ? '<span class="tag ok">Assinado</span>' : '<span class="tag pend">Assinatura pendente</span>';
@@ -1295,7 +1313,7 @@ function cartaoRegistro(r, todos) {
     <div class="rtop" data-act="alternar" data-id="${r.id}">
       <div><div class="rtit">${esc(r.tipo === 'escala' ? 'Escala ' + String(r.campos.nome || '').split(' – ')[0] : nomeTipo(r.tipo))} · ${fmtData(r.data)}</div>
       <div class="rmeta">${(r.cid || []).length ? esc(r.cid.join('; ')) + ' · ' : ''}${adendos.length ? adendos.length + ' adendo(s) · ' : ''}registrado ${fmtDataHora(r.criadoEm)}${nv ? ' · editado ' + fmtDataHora(r.editadoEm) : ''}</div></div>
-      <div class="row">${tagInteg}${tagEdit}${anul ? '<span class="tag ruim">Anulado</span>' : tagVidaas || assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
+      <div class="row">${tagUni}${tagInteg}${tagEdit}${anul ? '<span class="tag ruim">Anulado</span>' : tagVidaas || assin}<span style="color:var(--suave)">${aberto ? '▲' : '▼'}</span></div>
     </div>
     ${aberto ? `${anul ? `<div class="banner aviso-anul"><b>Registro anulado em ${fmtDataHora(anul.criadoEm)}.</b> Motivo: ${esc(anul.campos.motivo)}<br><small>Continua guardado no prontuário, mas sem validade.</small></div>` : ''}${camposHTML(r, ficha)}
       ${adendos.length ? `<div class="adendos">${adendos.map(a => `<div class="campo"><div class="k">Adendo · ${fmtDataHora(a.criadoEm)}</div><div class="v">${esc(a.campos.texto)}</div></div>`).join('')}</div>` : ''}
@@ -1384,7 +1402,7 @@ function painelApoio(r) {
   const p = paciente(r.patientId);
   const editado = r.editId ? S.dados.records.find(x => x.id === r.editId) : null;
   const antes = x => !editado || x.data < editado.data || (x.data === editado.data && x.criadoEm < editado.criadoEm);
-  const vis = S.dados.records.filter(x => x.patientId === r.patientId && !TIPOS_AUX.includes(x.tipo) && !anulado(x) && x.id !== r.editId && antes(x));
+  const vis = S.dados.records.filter(x => pidDe(x) === pidDe(r) && !TIPOS_AUX.includes(x.tipo) && !anulado(x) && x.id !== r.editId && antes(x));
   const evols = vis.filter(x => x.tipo === 'evolucao' || x.tipo === 'doctoralia').sort(ordDesc);
   const primeira = vis.filter(x => x.tipo === 'primeira').sort(ordDesc)[0];
   const ultCond = vis.filter(x => (x.tipo === 'evolucao' || x.tipo === 'primeira') && String(x.campos.conduta || '').trim()).sort(ordDesc)[0];
@@ -2396,9 +2414,12 @@ function mesclar(inc) {
   const d = S.dados; const cont = {pacientes:0, atualizados:0, registros:0};
   for (const p of inc.patients || []) {
     const i = d.patients.findIndex(x => x.id === p.id);
-    if (i < 0) { d.patients.push(p); cont.pacientes++; }
-    else if ((p.atualizadoEm || '') > (d.patients[i].atualizadoEm || '')) { d.patients[i] = p; cont.atualizados++; }
+    if (i < 0) { d.patients.push(p); cont.pacientes++; continue; }
+    const ex = d.patients[i];
+    if ((p.atualizadoEm || '') > (ex.atualizadoEm || '')) { d.patients[i] = p; cont.atualizados++; juntarEstadoUniao(p, ex); }
+    else juntarEstadoUniao(ex, p);
   }
+  S._verUniao = (S._verUniao || 0) + 1;
   const ids = new Set(d.records.map(r => r.id));
   for (const r of inc.records || []) {
     if (!ids.has(r.id)) { d.records.push(r); cont.registros++; continue; }
@@ -2433,7 +2454,7 @@ async function importarLista(obj, nomeArq) {
   for (const ip of pats) {
     if (S.dados.patients.some(x => x.id === ip.id)) { novos.push(ip); continue; }
     const cpf = soDig(ip.cpf);
-    const ex = S.dados.patients.find(x => (cpf && soDig(x.cpf) === cpf) || nomeN(x.nome) === nomeN(ip.nome));
+    const ex = S.dados.patients.find(x => ativo(x) && ((cpf && soDig(x.cpf) === cpf) || nomeN(x.nome) === nomeN(ip.nome)));
     if (ex) {
       mapa[ip.id] = ex.id; casados++;
       for (const k of ['cpf','nascimento','telefone','email','endereco','sexo','mae','cns']) if (!ex[k] && ip[k]) ex[k] = ip[k];
@@ -2638,7 +2659,7 @@ async function apagarTudo() {
 const RACAS_LME = ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena'];
 const QUEM_LME = ['Paciente', 'Mãe do paciente', 'Responsável (descrito no item 13)', 'Médico solicitante', 'Outro'];
 function ultimoCid(pid) {
-  const r = S.dados.records.filter(x => x.patientId === pid && (x.tipo === 'evolucao' || x.tipo === 'primeira') && !anulado(x) && (x.cid || []).length).sort(ordDesc)[0];
+  const r = S.dados.records.filter(x => pidDe(x) === raizId(pid) && (x.tipo === 'evolucao' || x.tipo === 'primeira') && !anulado(x) && (x.cid || []).length).sort(ordDesc)[0];
   if (!r) return {cid: '', diag: ''};
   const [c, ...d] = String(r.cid[0]).split(/\s+[–-]\s+/);
   return {cid: c.trim(), diag: d.join(' – ').trim()};
@@ -2720,7 +2741,7 @@ function lmeMed(i) {
   vazio.nome = nome; render();
 }
 function lmeHma() {
-  const r = S.lmeRasc, regs = S.dados.records.filter(x => x.patientId === r.patientId && !anulado(x));
+  const r = S.lmeRasc, regs = S.dados.records.filter(x => pidDe(x) === pidDe(r) && !anulado(x));
   const prim = regs.filter(x => x.tipo === 'primeira').sort(ordDesc)[0], ev = regs.filter(x => x.tipo === 'evolucao').sort(ordDesc)[0];
   const partes = [];
   if (prim) { if (prim.campos.queixa) partes.push(prim.campos.queixa.trim()); if (prim.campos.hda) partes.push(prim.campos.hda.trim()); }
@@ -2731,7 +2752,7 @@ function lmeHma() {
 }
 function lmeTrat() {
   const r = S.lmeRasc, p = paciente(r.patientId);
-  const prim = S.dados.records.filter(x => x.patientId === r.patientId && x.tipo === 'primeira' && !anulado(x)).sort(ordDesc)[0];
+  const prim = S.dados.records.filter(x => pidDe(x) === pidDe(r) && x.tipo === 'primeira' && !anulado(x)).sort(ordDesc)[0];
   const linhas = [];
   if (prim && prim.campos.med_previas) linhas.push(prim.campos.med_previas.trim());
   const susp = (p.medicacoes || []).filter(m => m.fim), at = (p.medicacoes || []).filter(m => !m.fim);
@@ -2885,7 +2906,257 @@ async function carregarDemo() {
 /* ============================================================
    NAVEGAÇÃO E AÇÕES
    ============================================================ */
-function abrirPaciente(id) { S.view = {nome:'paciente', pid:id}; S.rascunho = null; render(); }
+function abrirPaciente(id) { S.view = {nome:'paciente', pid: raizId(id)}; S.rascunho = null; render(); }
+/* ---------- unir prontuários (mesmo paciente cadastrado duas vezes) ---------- */
+const CAMPOS_UNIR = [['nome','Nome'],['nomeSocial','Nome social'],['nascimento','Nascimento'],['sexo','Sexo'],['cpf','CPF'],['mae','Nome da mãe'],['cns','Cartão SUS (CNS)'],['profissao','Profissão'],['telefone','Telefone'],['email','E-mail'],['endereco','Endereço'],['responsavel','Responsável / emergência'],['tipoAtend','Tipo de atendimento'],['convenio','Convênio'],['valorConsulta','Valor da consulta'],['alergias','Alergias'],['obs','Observações']];
+const CAMPOS_SOMAR = ['alergias', 'obs'];
+const PARTICULAS_NOME = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'di', 'du']);
+const soDigU = x => String(x || '').replace(/\D/g, '');
+const tokNome = s => semAcento(s).replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(t => t && !PARTICULAS_NOME.has(t));
+const normU = (k, x) => ['cpf', 'cns', 'telefone'].includes(k) ? soDigU(x) : semAcento(x).replace(/\s+/g, ' ').trim();
+const igualU = (k, x, y) => normU(k, x) === normU(k, y);
+function levU(a, b) {
+  if (a === b) return 0; const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({length: n + 1}, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+  return prev[n];
+}
+const tokParecido = (x, y) => x === y || (Math.min(x.length, y.length) >= 4 && levU(x, y) <= 1);
+// Nota de 0 a 100 de quanto dois cadastros parecem ser a mesma pessoa (null = não parece)
+function semelhanca(p, q) {
+  const motivos = [], alertas = [];
+  const ca = soDigU(p.cpf), cb = soDigU(q.cpf), ta = tokNome(p.nome), tb = tokNome(q.nome);
+  if (!ta.length || !tb.length) return null;
+  let nota = 0;
+  if (ca.length === 11 && ca === cb) { nota = 100; motivos.push('mesmo CPF'); }
+  const sa = ta.join(' '), sb = tb.join(' ');
+  if (sa === sb) { nota = Math.max(nota, 92); motivos.push('mesmo nome'); }
+  else if (tokParecido(ta[0], tb[0])) {
+    const [pq, gr] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+    const todos = pq.every(t => gr.some(u => tokParecido(t, u)));
+    const r = 1 - levU(sa, sb) / Math.max(sa.length, sb.length);
+    if (r >= 0.85) { nota = Math.max(nota, 82); motivos.push('nome quase igual'); }
+    else if (todos && pq.length >= 2) { nota = Math.max(nota, pq.length === gr.length ? 80 : 72); motivos.push(pq.length === gr.length ? 'nomes com grafia parecida' : 'nome mais curto em um dos cadastros'); }
+    else if (ta.length >= 2 && tb.length >= 2 && tokParecido(ta[ta.length - 1], tb[tb.length - 1])) { nota = Math.max(nota, 62); motivos.push('mesmo primeiro e último nome'); }
+  }
+  if (p.nascimento && q.nascimento) {
+    if (p.nascimento === q.nascimento) { if (tokParecido(ta[0], tb[0])) nota = Math.max(nota, 60); if (nota) { nota = Math.min(100, nota + 10); motivos.push('mesma data de nascimento'); } }
+    else { nota -= 35; alertas.push('datas de nascimento diferentes'); }
+  }
+  if (ca.length === 11 && cb.length === 11 && ca !== cb) { nota -= 60; alertas.push('CPFs diferentes'); }
+  return nota >= 55 ? {nota, motivos, alertas} : null;
+}
+const chaveNaoDup = (a, b) => [a, b].sort().join('|');
+const naoDup = () => S.dados.settings.naoDuplicados = S.dados.settings.naoDuplicados || [];
+function parecidosCom(pid) {
+  const p = paciente(pid), nd = new Set(naoDup());
+  return S.dados.patients.filter(q => ativo(q) && q.id !== p.id && !nd.has(chaveNaoDup(p.id, q.id)))
+    .map(q => ({q, s: semelhanca(p, q)})).filter(x => x.s).sort((a, b) => b.s.nota - a.s.nota).slice(0, 10);
+}
+function paresDuplicados() {
+  const ps = S.dados.patients.filter(ativo), nd = new Set(naoDup()), out = [];
+  const pre = ps.map(p => ({p, t: tokNome(p.nome), c: soDigU(p.cpf)}));
+  for (let i = 0; i < pre.length; i++) for (let j = i + 1; j < pre.length; j++) {
+    const a = pre[i], b = pre[j];
+    if (!a.t.length || !b.t.length) continue;
+    if (!(a.c.length === 11 && a.c === b.c) && !tokParecido(a.t[0], b.t[0]) && !(a.p.nascimento && a.p.nascimento === b.p.nascimento)) continue;
+    if (nd.has(chaveNaoDup(a.p.id, b.p.id))) continue;
+    const s = semelhanca(a.p, b.p); if (s) out.push({a: a.p, b: b.p, s});
+  }
+  return out.sort((x, y) => y.s.nota - x.s.nota || x.a.nome.localeCompare(y.a.nome, 'pt-BR'));
+}
+function resumoUniao(p) {
+  const regs = registrosDe(p.id).filter(r => !TIPOS_AUX.includes(r.tipo) && !anulado(r));
+  const cont = {}; for (const r of regs) cont[r.tipo] = (cont[r.tipo] || 0) + 1;
+  const datas = regs.map(r => r.data).filter(Boolean).sort();
+  const nomes = {primeira: 'primeira consulta', evolucao: 'evolução', receita: 'receita', documento: 'documento', cfm: 'documento do CFM', doctoralia: 'atendimento Doctoralia', escala: 'escala', lme: 'LME', guia: 'guia visual', litemia: 'litemia', monitor: 'sinais e exames'};
+  const partes = Object.entries(cont).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${n} ${nomes[t] || nomeTipo(t).toLowerCase()}`);
+  return {n: regs.length, partes, de: datas[0], ate: datas[datas.length - 1], assinados: regs.filter(r => r.pdfAssinado).length, meds: (p.medicacoes || []).filter(m => !m.fim), pags: pagsDe(p.id).length};
+}
+function valorUnido(k, P, O, ladoP, esc) {
+  const vp = P[k] || '', vo = O[k] || '';
+  if (!vo || igualU(k, vp, vo)) return vp || vo;
+  if (!vp) return vo;
+  if (CAMPOS_SOMAR.includes(k)) return vp + (k === 'obs' ? '\n' : '; ') + vo;
+  return (esc[k] || ladoP) === ladoP ? vp : vo;
+}
+const fmtCampoU = (k, v) => !v ? '<span style="color:var(--suave)">—</span>' : k === 'nascimento' ? fmtData(v) + (idade(v) ? ' (' + esc(idade(v)) + ')' : '') : esc(v).replace(/\n/g, '<br>');
+function abrirUnir(pid, outro) {
+  S.uni = {a: pid ? paciente(pid).id : null, b: null, princ: 'a', esc: {}, ok: false, q: ''};
+  S.view = {nome: 'unir', pid: S.uni.a};
+  if (outro) escolherOutroU(outro); else render();
+}
+function escolherOutroU(id) {
+  const u = S.uni, b = paciente(id); if (!b || b.id === u.a) return;
+  u.b = b.id; u.esc = {}; u.ok = false;
+  const ra = resumoUniao(paciente(u.a)), rb = resumoUniao(b);
+  u.princ = rb.n > ra.n || (rb.n === ra.n && (rb.ate || '') > (ra.ate || '')) ? 'b' : 'a';
+  render();
+}
+function itemPacU(q, s, botao) {
+  const r = resumoUniao(q);
+  return `<div class="ret-item"><div style="flex:1"><b>${esc(q.nome)}</b>
+    <small style="display:block;color:var(--suave)">${[q.nascimento ? fmtData(q.nascimento) : '', q.cpf ? 'CPF ' + esc(q.cpf) : '', r.n ? `${r.n} registro(s), último ${fmtData(r.ate)}` : 'sem registros'].filter(Boolean).join(' · ')}</small>
+    ${s ? `<small style="display:block">${s.motivos.map(m => `<span class="tag azul" style="margin:.15rem .25rem 0 0">${esc(m)}</span>`).join('')}${s.alertas.map(m => `<span class="tag ruim" style="margin:.15rem .25rem 0 0">${esc(m)}</span>`).join('')}</small>` : ''}</div>${botao}</div>`;
+}
+function telaUnir() {
+  const u = S.uni || (S.uni = {a: null, b: null, princ: 'a', esc: {}, ok: false, q: ''});
+  const A = u.a && paciente(u.a);
+  if (!A) return telaDuplicados();
+  if (!u.b || !paciente(u.b)) return telaEscolherUniao(A);
+  return telaCompararUniao(A, paciente(u.b));
+}
+function telaDuplicados() {
+  const pares = paresDuplicados();
+  return `${btnVoltar()}
+  <h1 style="font-size:1.5rem;margin-bottom:.3rem">Possíveis prontuários repetidos</h1>
+  <p style="color:var(--suave);margin-top:0">Pacientes com nomes parecidos, mesmo CPF ou mesma data de nascimento. Toque em “Comparar” para ver os dois lado a lado e decidir se une.</p>
+  ${pares.length ? `<div class="card">${pares.slice(0, 80).map(x => `<div class="ret-item" style="display:block;padding:.6rem 0">
+      <div class="row" style="justify-content:space-between;align-items:flex-start"><div style="flex:1;min-width:14rem">
+        ${[x.a, x.b].map(p => { const r = resumoUniao(p); return `<div><b>${esc(p.nome)}</b> <small style="color:var(--suave)">${[p.nascimento ? fmtData(p.nascimento) : '', p.cpf ? 'CPF ' + esc(p.cpf) : '', r.n ? r.n + ' registro(s)' : 'sem registros'].filter(Boolean).join(' · ')}</small></div>`; }).join('')}
+        <small>${x.s.motivos.map(m => `<span class="tag azul" style="margin:.2rem .25rem 0 0">${esc(m)}</span>`).join('')}${x.s.alertas.map(m => `<span class="tag ruim" style="margin:.2rem .25rem 0 0">${esc(m)}</span>`).join('')}</small></div>
+        <div class="row"><button class="btn sm pri" data-act="uni-comparar-par" data-a="${x.a.id}" data-b="${x.b.id}">Comparar</button><button class="btn sm link" data-act="uni-nao-dup" data-a="${x.a.id}" data-b="${x.b.id}">Não são a mesma pessoa</button></div></div></div>`).join('')}
+      ${pares.length > 80 ? `<p style="color:var(--suave)">Mostrando 80 de ${pares.length}.</p>` : ''}</div>`
+    : '<div class="card vazio">Nenhum par de cadastros parecido encontrado.</div>'}
+  ${naoDup().length ? `<p style="text-align:center"><button class="btn sm link" style="color:var(--suave)" data-act="uni-limpar-nao-dup">Mostrar de novo os ${naoDup().length} par(es) marcados como “não são a mesma pessoa”</button></p>` : ''}`;
+}
+function telaEscolherUniao(A) {
+  const u = S.uni, par = parecidosCom(A.id);
+  return `${btnVoltar('‹ Voltar ao paciente', 'abrir-paciente', `data-id="${A.id}"`)}
+  <h1 style="font-size:1.5rem;margin-bottom:.3rem">Unir prontuários</h1>
+  <p style="color:var(--suave);margin-top:0">Use quando <b>${esc(A.nome)}</b> foi cadastrado(a) mais de uma vez. Escolha o outro cadastro; antes de unir, o app mostra os dois lado a lado.</p>
+  <div class="card"><h2>Parecidos com este nome</h2>
+    ${par.length ? par.map(x => itemPacU(x.q, x.s, `<button class="btn sm pri" data-act="uni-escolher" data-id="${x.q.id}">Comparar</button>`)).join('') : '<div class="vazio" style="padding:1rem">Nenhum cadastro parecido encontrado. Procure abaixo pelo nome.</div>'}
+  </div>
+  <div class="card"><h2>Procurar outro paciente</h2>
+    <input type="text" id="uni-busca" placeholder="Nome ou CPF…" value="${esc(u.q)}" autocomplete="off">
+    <div id="uni-res" style="margin-top:.5rem">${resultadosBuscaU()}</div>
+  </div>`;
+}
+function resultadosBuscaU() {
+  const u = S.uni, q = semAcento(u.q.trim()); if (q.length < 2) return '';
+  const dig = soDigU(q);
+  const res = S.dados.patients.filter(p => ativo(p) && p.id !== u.a && (semAcento(p.nome).includes(q) || (dig.length >= 4 && soDigU(p.cpf).includes(dig)))).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).slice(0, 20);
+  return res.length ? res.map(p => itemPacU(p, null, `<button class="btn sm" data-act="uni-escolher" data-id="${p.id}">Comparar</button>`)).join('') : '<div style="color:var(--suave)">Nenhum paciente encontrado.</div>';
+}
+function telaCompararUniao(A, B) {
+  const u = S.uni, lados = {a: A, b: B}, P = lados[u.princ], O = lados[u.princ === 'a' ? 'b' : 'a'];
+  const ra = resumoUniao(A), rb = resumoUniao(B), s = semelhanca(A, B) || {motivos: [], alertas: []};
+  const alertas = [];
+  if (soDigU(A.cpf) && soDigU(B.cpf) && !igualU('cpf', A.cpf, B.cpf)) alertas.push('Os CPFs são diferentes.');
+  if (A.nascimento && B.nascimento && A.nascimento !== B.nascimento) alertas.push('As datas de nascimento são diferentes.');
+  if (A.sexo && B.sexo && A.sexo !== B.sexo) alertas.push('O sexo está diferente nos dois cadastros.');
+  if (A.mae && B.mae && !igualU('mae', A.mae, B.mae)) alertas.push('O nome da mãe está diferente.');
+  const linhas = CAMPOS_UNIR.filter(([k]) => A[k] || B[k]).map(([k, rot]) => {
+    const va = A[k] || '', vb = B[k] || '', conflito = va && vb && !igualU(k, va, vb);
+    const somar = conflito && CAMPOS_SOMAR.includes(k), escolha = u.esc[k] || u.princ;
+    const cel = (lado, v) => conflito && !somar ? `<label class="op-r" style="margin:0;align-items:flex-start"><input type="radio" name="uni-${k}" data-uni-campo="${k}" value="${lado}" ${escolha === lado ? 'checked' : ''}><span>${fmtCampoU(k, v)}</span></label>` : fmtCampoU(k, v);
+    return `<tr${conflito ? ' style="background:#fbf3e6"' : ''}><th style="text-align:left;font-weight:600;padding:.4rem;vertical-align:top">${rot}</th><td style="padding:.4rem;vertical-align:top">${cel('a', va)}</td><td style="padding:.4rem;vertical-align:top">${cel('b', vb)}</td>
+      <td style="padding:.4rem;vertical-align:top;color:var(--suave);font-size:.85rem">${somar ? 'junta os dois' : conflito ? 'escolha um' : ''}</td></tr>`;
+  }).join('');
+  const resumoCel = r => `${r.n ? `<b>${r.n}</b> registro(s)<br><small>${esc(r.partes.join(', '))}</small><br><small>${fmtData(r.de)} a ${fmtData(r.ate)}</small>` : 'Nenhum registro'}${r.assinados ? `<br><small>${r.assinados} assinado(s) com VIDaaS</small>` : ''}${r.pags ? `<br><small>${r.pags} pagamento(s)</small>` : ''}`;
+  const medsCel = r => r.meds.length ? r.meds.map(m => `${esc(m.nome)} ${esc(m.dose || '')}`).join('<br>') : '<span style="color:var(--suave)">—</span>';
+  const nomeMed = m => semAcento(m.nome).replace(/\s+/g, ' ').trim();
+  const ativasP = new Set((P.medicacoes || []).filter(m => !m.fim).map(nomeMed));
+  const repetidas = (O.medicacoes || []).filter(m => !m.fim && ativasP.has(nomeMed(m)));
+  return `${btnVoltar('‹ Escolher outro', 'uni-trocar', '')}
+  <h1 style="font-size:1.5rem;margin-bottom:.3rem">Unir prontuários</h1>
+  <p style="color:var(--suave);margin-top:0">Confira se os dois cadastros são da mesma pessoa.${s.motivos.length ? ' Parecem: ' + esc(s.motivos.join(', ')) + '.' : ''}</p>
+  ${alertas.length ? `<div class="banner alerta"><div><b>Atenção:</b> ${alertas.map(esc).join(' ')} Confira se é mesmo a mesma pessoa antes de unir.</div></div>` : ''}
+  <div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.95rem">
+    <thead><tr><th></th>${['a', 'b'].map(l => `<th style="text-align:left;padding:.4rem;vertical-align:top;min-width:11rem"><label class="op-r" style="margin:0"><input type="radio" name="uni-princ" data-uni-princ value="${l}" ${u.princ === l ? 'checked' : ''}><span>Cadastro ${l === 'a' ? 1 : 2}${u.princ === l ? ' <span class="tag">principal</span>' : ''}</span></label></th>`).join('')}<th></th></tr></thead>
+    <tbody>${linhas}
+      <tr style="border-top:2px solid var(--linha,#e6dccb)"><th style="text-align:left;padding:.4rem;vertical-align:top">Prontuário</th><td style="padding:.4rem;vertical-align:top">${resumoCel(ra)}</td><td style="padding:.4rem;vertical-align:top">${resumoCel(rb)}</td><td style="padding:.4rem;color:var(--suave);font-size:.85rem;vertical-align:top">tudo fica junto</td></tr>
+      <tr><th style="text-align:left;padding:.4rem;vertical-align:top">Medicações em uso</th><td style="padding:.4rem;vertical-align:top">${medsCel(ra)}</td><td style="padding:.4rem;vertical-align:top">${medsCel(rb)}</td><td style="padding:.4rem;color:var(--suave);font-size:.85rem;vertical-align:top">${repetidas.length ? `repetidas (${esc(repetidas.map(m => m.nome).join(', '))}): fica a do principal, a outra vai para o histórico` : 'juntam-se'}</td></tr>
+    </tbody></table></div>
+  <div class="card">
+    <p style="margin-top:0">O <b>cadastro principal</b> é o que continua aparecendo na lista. Os campos vazios nele são completados com os do outro; onde os dois têm valores diferentes, vale o marcado acima. Alergias e observações dos dois são juntadas.</p>
+    <p>Nada é apagado: todos os registros, versões, assinaturas e PDFs assinados continuam exatamente como estão (o código de integridade não muda). O outro cadastro fica guardado, oculto da lista, e a união <b>pode ser desfeita</b> pelo prontuário. Tudo fica no registro de acesso.</p>
+    <div class="barra-acoes" style="justify-content:space-between;flex-wrap:wrap;gap:.5rem;align-items:center">
+      <button class="btn link" data-act="uni-nao-dup" data-a="${A.id}" data-b="${B.id}">Não são a mesma pessoa</button>
+      <span class="row" style="gap:.8rem;align-items:center;margin-left:auto"><label class="op-r" style="margin:0"><input type="checkbox" id="uni-ok" ${u.ok ? 'checked' : ''}><span>São a <b>mesma pessoa</b></span></label>
+      <button class="btn pri" data-act="uni-executar" ${u.ok ? '' : 'disabled'}>Unir prontuários</button></span>
+    </div>
+  </div>`;
+}
+function ligarUnir() {
+  const i = $('#uni-busca');
+  if (i) { i.addEventListener('input', () => { S.uni.q = i.value; $('#uni-res').innerHTML = resultadosBuscaU(); }); if (S.uni.q) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  const m = $('#main');
+  m.addEventListener('change', e => {
+    const el = e.target, u = S.uni; if (!u) return;
+    if (el.id === 'uni-ok') { u.ok = el.checked; const b = document.querySelector('[data-act=uni-executar]'); if (b) b.disabled = !u.ok; return; }
+    if (el.hasAttribute('data-uni-princ')) { u.princ = el.value; u.esc = {}; const y = m.scrollTop; render(); $('#main').scrollTop = y; return; }
+    if (el.dataset.uniCampo) u.esc[el.dataset.uniCampo] = el.value;
+  });
+}
+async function executarUniao() {
+  const u = S.uni; if (!u || !u.ok) return;
+  const A = pacienteBruto(u.a), B = pacienteBruto(u.b);
+  if (!A || !B || A.unidoA || B.unidoA || A.id === B.id) return aviso('Um dos cadastros não está mais disponível. Abra o paciente de novo.');
+  const P = u.princ === 'b' ? B : A, O = P === A ? B : A, ladoP = u.princ;
+  const nO = resumoUniao(O).n;
+  const ok = await confirmar({titulo: 'Unir os dois prontuários?', texto: `Os registros de <b>${esc(O.nome)}</b> passam a aparecer no prontuário de <b>${esc(valorUnido('nome', P, O, ladoP, u.esc))}</b>. Nada é apagado e dá para desfazer depois.`, ok: 'Unir'});
+  if (!ok) return;
+  const agora = agoraISO(), hoje = hojeStr(), campos = {};
+  for (const [k] of CAMPOS_UNIR) { const nv = valorUnido(k, P, O, ladoP, u.esc); if ((P[k] || '') !== nv) { campos[k] = {antes: P[k] || '', depois: nv}; P[k] = nv; } }
+  for (const k of ['retornoDispensado', 'lmeDispensada']) if (!P[k] && O[k]) { campos[k] = {antes: '', depois: O[k]}; P[k] = O[k]; }
+  const meds = P.medicacoes = P.medicacoes || [], ids = new Set(meds.map(m => m.id)), medIds = [];
+  const nomeMed = m => semAcento(m.nome).replace(/\s+/g, ' ').trim();
+  const ativas = new Set(meds.filter(m => !m.fim).map(nomeMed));
+  for (const m of O.medicacoes || []) {
+    if (ids.has(m.id)) continue;
+    const c = JSON.parse(JSON.stringify(m));
+    if (!c.fim && ativas.has(nomeMed(c))) { c.fim = hoje; c.motivo = 'repetida na união de prontuários (ficou a do cadastro principal)'; }
+    else if (!c.fim) ativas.add(nomeMed(c));
+    meds.push(c); medIds.push(c.id);
+  }
+  P.unioes = (P.unioes || []).concat({de: O.id, nome: O.nome, em: agora, campos, medIds});
+  P.atualizadoEm = agora;
+  O.unidoA = P.id; O.uniaoEm = agora; O.atualizadoEm = agora;
+  S._verUniao = (S._verUniao || 0) + 1;
+  auditar('Prontuários unidos', `${O.nome}${O.cpf ? ' (CPF ' + O.cpf + ')' : ''} → ${P.nome}: ${nO} registro(s) passam a aparecer neste prontuário; campos completados ou trocados: ${Object.keys(campos).join(', ') || 'nenhum'}; ${medIds.length} medicação(ões) copiada(s)`, P.id);
+  await salvar(); S.uni = null; abrirPaciente(P.id);
+  aviso('Prontuários unidos. Para levar a união ao iPad, use “Salvar no Drive” aqui e “Atualizar do Drive” lá.', 8000);
+}
+function unioesAtivas(p) { return (p.unioes || []).filter(x => !x.desfeitaEm && (pacienteBruto(x.de) || {}).unidoA === p.id); }
+async function desfazerUniao(pid, de) {
+  const P = pacienteBruto(pid), O = pacienteBruto(de), x = P && (P.unioes || []).find(y => y.de === de && !y.desfeitaEm);
+  if (!P || !O || !x || O.unidoA !== P.id) return aviso('Esta união não pode mais ser desfeita aqui.');
+  const ok = await confirmar({titulo: 'Desfazer a união?', texto: `O cadastro de <b>${esc(O.nome)}</b> volta para a lista com os registros que eram dele. O que foi registrado depois da união continua em <b>${esc(P.nome)}</b>. Os campos do cadastro e as medicações copiadas na união voltam ao que eram (se não foram mudados depois).`, ok: 'Desfazer união', perigo: true});
+  if (!ok) return;
+  const agora = agoraISO(), voltaram = [];
+  for (const [k, c] of Object.entries(x.campos || {})) if ((P[k] || '') === c.depois) { P[k] = c.antes; voltaram.push(k); }
+  const ids = new Set(x.medIds || []); P.medicacoes = (P.medicacoes || []).filter(m => !ids.has(m.id));
+  x.desfeitaEm = agora; P.atualizadoEm = agora;
+  delete O.unidoA; O.uniaoEm = agora; O.atualizadoEm = agora;
+  S._verUniao = (S._verUniao || 0) + 1;
+  auditar('União de prontuários desfeita', `${O.nome} separado(a) de ${P.nome}; campos restaurados: ${voltaram.join(', ') || 'nenhum'}`, P.id);
+  await salvar(); abrirPaciente(P.id); aviso(`${O.nome} voltou a ter prontuário separado.`, 6000);
+}
+// Ao juntar backups (Drive/arquivo), a união mais recente (feita ou desfeita) sempre vale
+function juntarEstadoUniao(n, o) {
+  if ((o.uniaoEm || '') > (n.uniaoEm || '')) { n.uniaoEm = o.uniaoEm; if (o.unidoA) n.unidoA = o.unidoA; else delete n.unidoA; }
+  if (o.unioes && o.unioes.length) { const l = n.unioes = n.unioes || []; for (const x of o.unioes) { const e = l.find(y => y.de === x.de && y.em === x.em); if (!e) l.push(x); else if (x.desfeitaEm && !e.desfeitaEm) e.desfeitaEm = x.desfeitaEm; } }
+}
+const ACOES_UNIR = {
+  'unir-de': d => abrirUnir(d.id),
+  'unir-lista': () => abrirUnir(null),
+  'uni-escolher': d => escolherOutroU(d.id),
+  'uni-comparar-par': d => { abrirUnir(d.a, d.b); },
+  'uni-trocar': () => { if (S.uni && S.uni.a && S.uni.b) { S.uni.b = null; render(); } else abrirPaciente(S.uni && S.uni.a); },
+  'uni-nao-dup': async d => {
+    const ok = await confirmar({titulo: 'Não são a mesma pessoa?', texto: 'Este par deixa de aparecer como possível repetição. Os dois cadastros continuam como estão.', ok: 'Não são a mesma pessoa'});
+    if (!ok) return;
+    const k = chaveNaoDup(d.a, d.b); if (!naoDup().includes(k)) naoDup().push(k);
+    await salvar();
+    if (S.uni && S.uni.b) S.uni.b = null;
+    render();
+  },
+  'uni-limpar-nao-dup': async () => { S.dados.settings.naoDuplicados = []; await salvar(); render(); },
+  'uni-executar': () => executarUniao(),
+  'uni-desfazer': d => desfazerUniao(d.pid, d.de)
+};
 /* ---------- escalas de acompanhamento ---------- */
 const OP_FREQ4 = [['Nenhuma vez', 0], ['Vários dias', 1], ['Mais da metade dos dias', 2], ['Quase todos os dias', 3]];
 const OP_ASRS = [['Nunca', 0], ['Raramente', 1], ['Algumas vezes', 2], ['Frequentemente', 3], ['Muito frequentemente', 4]];
@@ -3538,7 +3809,7 @@ function retornoPrevisto(pid) {
 function listaRetornos() {
   const hoje = hojeStr(), semana = somarDias(hoje, 7), atras = [], prox = [];
   for (const p of S.dados.patients) {
-    if (p.arquivado) continue;
+    if (!ativo(p)) continue;
     const x = retornoPrevisto(p.id); if (!x || !x.prev || p.retornoDispensado === x.ult.id) continue;
     if (x.prev < hoje) atras.push({p, ...x}); else if (x.prev <= semana) prox.push({p, ...x});
   }
@@ -3565,7 +3836,7 @@ function painelRetornos() {
 function lmesARenovar(dias = 20) {
   const hoje = hojeStr(), lim = somarDias(hoje, dias), out = [];
   for (const p of S.dados.patients) {
-    if (p.arquivado) continue;
+    if (!ativo(p)) continue;
     const l = registrosDe(p.id).filter(r => r.tipo === 'lme' && !anulado(r)).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm))[0];
     if (!l || p.lmeDispensada === l.id) continue;
     const venc = somarDias(l.data, 90);
@@ -3584,7 +3855,7 @@ function painelLMEs() {
 
 /* ---------- pagamentos ---------- */
 const pags = () => (S.dados.pagamentos = S.dados.pagamentos || []);
-const pagsDe = pid => pags().filter(x => x.patientId === pid && !x.excluido).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
+const pagsDe = pid => pags().filter(x => pidDe(x) === raizId(pid) && !x.excluido).sort((a, b) => (b.data + b.criadoEm).localeCompare(a.data + a.criadoEm));
 const FORMAS_PAG = ['Pix', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Transferência', 'Outro'];
 function valorPadrao(p) { return numBR(p.valorConsulta) || numBR(S.dados.settings.valorConsulta) || 0; }
 function lancarPagamentoAuto(reg) {
@@ -3684,12 +3955,12 @@ function resultadosBusca() {
   if (B.f === 'pag') { const pend = pags().filter(x => !x.excluido && x.status === 'pendente' && paciente(x.patientId)).sort((a, b) => a.data.localeCompare(b.data)); return pend.length ? `<div class="card"><h2>Pagamentos pendentes (${pend.length}) · ${fmtReal(pend.reduce((a, x) => a + x.valor, 0))}</h2>${pend.map(x => linhaPag(x, true)).join('')}</div>` : '<div class="card vazio">Nenhum pagamento pendente.</div>'; }
   const q = (B.q || '').trim(), qn = semAcento(q);
   if (qn.length < 2) return '<p style="color:var(--suave)">Digite ao menos 2 letras. A busca olha medicações, CIDs, todos os registros e os cadastros.</p>';
-  const ativos = S.dados.patients.filter(p => !p.arquivado);
+  const ativos = S.dados.patients.filter(ativo);
   const emUso = [], usou = [];
   for (const p of ativos) for (const m of p.medicacoes || []) if (semAcento(m.nome).includes(qn)) (m.fim ? usou : emUso).push({p, m});
   const ehCid = /^[a-z]\d{0,2}(\.\d)?$/i.test(q);
   const porCid = new Map();
-  if (ehCid) for (const r of S.dados.records) { if (anulado(r) || !paciente(r.patientId)) continue; for (const c of r.cid || []) if (c.toUpperCase().replace(/\s/g, '').startsWith(q.toUpperCase())) { const e = porCid.get(r.patientId); if (!e || r.data > e.data) porCid.set(r.patientId, {data: r.data, cid: c}); } }
+  if (ehCid) for (const r of S.dados.records) { if (anulado(r) || !paciente(r.patientId)) continue; for (const c of r.cid || []) if (c.toUpperCase().replace(/\s/g, '').startsWith(q.toUpperCase())) { const e = porCid.get(pidDe(r)); if (!e || r.data > e.data) porCid.set(pidDe(r), {data: r.data, cid: c}); } }
   const pacs = ativos.filter(p => semAcento(p.nome).includes(qn) || (qn.replace(/\D/g, '').length >= 4 && (p.cpf || '').replace(/\D/g, '').includes(qn.replace(/\D/g, ''))));
   const regs = [];
   for (const r of S.dados.records) {
@@ -4449,6 +4720,7 @@ const ACOES = {
   'bg-abrir': d => { S.abertos.add(d.r); abrirPaciente(d.pid); setTimeout(() => { const el = document.querySelector(`[data-reg="${d.r}"]`) || document.getElementById('reg-' + d.r); if (el) el.scrollIntoView({block: 'center'}); }, 50); }
 };
 Object.assign(ACOES, ACOES_GV);
+Object.assign(ACOES, ACOES_UNIR);
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || !S.chave) return;
   const f = ACOES[el.dataset.act]; if (!f) return;
